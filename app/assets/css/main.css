@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --color-skyflix-50: #effaff;
+  --color-skyflix-100: #dff5ff;
+  --color-skyflix-300: #6ed0ff;
+  --color-skyflix-500: #0ea5e9;
+  --color-skyflix-600: #0284c7;
+  --color-skyflix-950: #07111f;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(14, 165, 233, 0.28), transparent 34rem),
+    linear-gradient(135deg, #061321 0%, #081827 46%, #020617 100%);
+  color: #f8fbff;
+}
+
+body,
+button,
+input {
+  font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  height: 0.7rem;
+  width: 0.7rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.55);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.72);
+}
+
+.hero-fade-enter-active,
+.hero-fade-leave-active {
+  transition: opacity 700ms ease, transform 900ms ease;
+}
+
+.hero-fade-enter-from,
+.hero-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.03);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
