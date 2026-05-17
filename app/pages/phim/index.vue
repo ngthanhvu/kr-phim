@@ -84,7 +84,7 @@ useHead({
   <main class="min-h-screen bg-slate-950">
     <AppHeader />
 
-    <section class="mx-auto max-w-[1560px] px-4 pb-16 pt-36 sm:px-6 lg:px-8 lg:pt-28 xl:px-10">
+    <section class="mx-auto max-w-390 px-4 pb-16 pt-36 sm:px-6 lg:px-8 lg:pt-28 xl:px-10">
       <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p class="text-sm font-semibold text-sky-200">Kho phim Hàn Quốc</p>
@@ -94,39 +94,25 @@ useHead({
         </div>
 
         <div class="flex w-full flex-col gap-3 sm:flex-row lg:max-w-3xl">
-          <div class="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-white/8 px-4 py-3 shadow-2xl shadow-sky-950/20">
+          <div
+            class="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-white/8 px-4 py-3 shadow-2xl shadow-sky-950/20">
             <Search class="mr-3 size-4 shrink-0 text-sky-200" />
-            <input
-              v-model="keyword"
-              type="search"
-              placeholder="Tìm phim Hàn Quốc..."
-              class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
-            >
+            <input v-model="keyword" type="search" placeholder="Tìm phim Hàn Quốc..."
+              class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
           </div>
 
-          <div class="grid grid-cols-3 rounded-full border border-white/10 bg-white/8 p-1 text-sm font-bold text-slate-200">
-            <button
-              type="button"
-              class="rounded-full px-4 py-2 transition"
-              :class="type === 'all' ? 'bg-sky-300 text-slate-950' : 'hover:text-white'"
-              @click="type = 'all'"
-            >
+          <div
+            class="grid grid-cols-3 rounded-full border border-white/10 bg-white/8 p-1 text-sm font-bold text-slate-200">
+            <button type="button" class="rounded-full px-4 py-2 transition"
+              :class="type === 'all' ? 'bg-sky-300 text-slate-950' : 'hover:text-white'" @click="type = 'all'">
               Tất cả
             </button>
-            <button
-              type="button"
-              class="rounded-full px-4 py-2 transition"
-              :class="type === 'series' ? 'bg-sky-300 text-slate-950' : 'hover:text-white'"
-              @click="type = 'series'"
-            >
+            <button type="button" class="rounded-full px-4 py-2 transition"
+              :class="type === 'series' ? 'bg-sky-300 text-slate-950' : 'hover:text-white'" @click="type = 'series'">
               Phim bộ
             </button>
-            <button
-              type="button"
-              class="rounded-full px-4 py-2 transition"
-              :class="type === 'single' ? 'bg-sky-300 text-slate-950' : 'hover:text-white'"
-              @click="type = 'single'"
-            >
+            <button type="button" class="rounded-full px-4 py-2 transition"
+              :class="type === 'single' ? 'bg-sky-300 text-slate-950' : 'hover:text-white'" @click="type = 'single'">
               Phim lẻ
             </button>
           </div>
@@ -134,11 +120,8 @@ useHead({
       </div>
 
       <div v-if="sourceStatus.length" class="mb-8 flex flex-wrap gap-2 text-xs text-slate-300">
-        <span
-          v-for="source in sourceStatus"
-          :key="source.name"
-          class="rounded-full border border-white/10 bg-white/8 px-3 py-1"
-        >
+        <span v-for="source in sourceStatus" :key="source.name"
+          class="rounded-full border border-white/10 bg-white/8 px-3 py-1">
           {{ source.name }}: {{ source.ok ? 'sẵn sàng' : 'đang bị chặn' }}
         </span>
       </div>
@@ -148,19 +131,17 @@ useHead({
       </p>
 
       <div v-if="pending" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-        <div v-for="item in 18" :key="item" class="aspect-[2/3] animate-pulse rounded-md bg-white/10" />
+        <div v-for="item in 18" :key="item" class="aspect-2/3 animate-pulse rounded-md bg-white/10" />
       </div>
 
       <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-        <NuxtLink
-          v-for="movie in filteredMovies"
-          :key="`${movie.source}-${movie.slug}`"
-          :to="{ path: `/phim/${movie.slug}`, query: { source: movie.source } }"
-          class="group"
-        >
-          <div class="relative aspect-[2/3] overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-sky-300/60">
-            <img :src="movie.thumb || movie.poster" :alt="movie.name" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
-            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent p-3">
+        <NuxtLink v-for="movie in filteredMovies" :key="`${movie.source}-${movie.slug}`"
+          :to="{ path: `/phim/${movie.slug}`, query: { source: movie.source } }" class="group">
+          <div
+            class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-sky-300/60">
+            <img :src="movie.thumb || movie.poster" :alt="movie.name"
+              class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+            <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950 via-slate-950/70 to-transparent p-3">
               <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>
               <p class="mt-1 truncate text-xs text-sky-100">{{ movie.episode || movie.year || movie.quality }}</p>
             </div>
@@ -171,27 +152,22 @@ useHead({
         </NuxtLink>
       </div>
 
-      <div v-if="!pending && !filteredMovies.length" class="rounded-md border border-white/10 bg-white/8 p-8 text-center text-slate-300">
+      <div v-if="!pending && !filteredMovies.length"
+        class="rounded-md border border-white/10 bg-white/8 p-8 text-center text-slate-300">
         Không có phim phù hợp.
       </div>
 
       <div v-if="movies.length" class="flex items-center justify-center gap-3 pt-10">
-        <button
-          type="button"
-          :disabled="page === 1"
+        <button type="button" :disabled="page === 1"
           class="grid size-11 place-items-center rounded-full border border-white/15 bg-white/8 text-white disabled:cursor-not-allowed disabled:opacity-40"
-          aria-label="Trang trước"
-          @click="previousPage"
-        >
+          aria-label="Trang trước" @click="previousPage">
           <ChevronLeft class="size-5" />
         </button>
-        <span class="text-sm text-slate-300">Trang {{ page }}<template v-if="totalPages"> / {{ totalPages }}</template></span>
-        <button
-          type="button"
+        <span class="text-sm text-slate-300">Trang {{ page }}<template v-if="totalPages"> / {{ totalPages
+        }}</template></span>
+        <button type="button"
           class="grid size-11 place-items-center rounded-full bg-sky-300 text-slate-950 hover:bg-white"
-          aria-label="Trang sau"
-          @click="nextPage"
-        >
+          aria-label="Trang sau" @click="nextPage">
           <ChevronRight class="size-5" />
         </button>
       </div>
