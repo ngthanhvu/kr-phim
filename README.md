@@ -1,75 +1,109 @@
-# Nuxt Minimal Starter
+# KR Phim
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+KR Phim is a Korean movie streaming web app built with Nuxt and Tailwind CSS. It aggregates Korean-only movie data from the OPhim and NguonC APIs, normalizes the responses on the server, and presents the content with a Netflix-inspired sky-blue interface.
+
+## Features
+
+- Korean-only movie catalogue from OPhim and NguonC.
+- Netflix-style home page with a large hero carousel.
+- Floating movie preview cards on home page hover.
+- Browse page with search, type filters, and pagination.
+- Movie detail page with embedded player and episode selector.
+- Shared responsive header with centered navigation and global search.
+- Shared footer and scroll-to-top button.
+- Tailwind CSS styling with the `Be Vietnam Pro` font.
+- Lucide icons for UI actions.
+
+## Tech Stack
+
+- Nuxt 4
+- Vue 3
+- Tailwind CSS 4
+- `@tailwindcss/vite`
+- `lucide-vue-next`
+
+## Project Structure
+
+```text
+app/
+  assets/css/main.css        Global Tailwind and theme styles
+  components/                Shared UI components
+  pages/index.vue            Home page
+  pages/phim/index.vue       Browse, search, filter, and pagination page
+  pages/phim/[slug].vue      Movie detail and player page
+server/
+  api/movies.get.ts          Movie list API endpoint
+  api/movies/[slug].get.ts   Movie detail API endpoint
+  utils/movies.ts            API adapters and normalization helpers
+API_nguonc.md                NguonC API notes
+API_ophim.md                 OPhim API notes
+```
 
 ## Setup
 
-Make sure to install dependencies:
+Install dependencies:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+## Development
 
-Start the development server on `http://localhost:3000`:
+Start the development server:
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+The app will usually be available at:
 
-Build the application for production:
+```text
+http://localhost:3000
+```
+
+## Production Build
+
+Build the app for production:
 
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
 ```
 
-Locally preview production build:
+Preview the production build locally:
 
 ```bash
-# npm
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Available Routes
+
+- `/` - Home page with hero carousel and movie rows.
+- `/phim` - Browse page with search, filters, and pagination.
+- `/phim?type=series` - Browse Korean series.
+- `/phim?type=single` - Browse Korean movies.
+- `/phim?q=keyword` - Search Korean movies.
+- `/phim/[slug]?source=ophim` - Movie detail page from OPhim.
+- `/phim/[slug]?source=nguonc` - Movie detail page from NguonC.
+
+## API Notes
+
+The app does not call external movie APIs directly from the browser. Instead, Nuxt server endpoints request and normalize movie data:
+
+- OPhim list/detail data is handled in `server/utils/movies.ts`.
+- NguonC list/detail data is handled in `server/utils/movies.ts`.
+- Only Korean movies are kept in the normalized result.
+
+If one source is unavailable, the list endpoint still returns data from the other source when possible and includes source status metadata.
+
+## Scripts
+
+```bash
+npm run dev       # Start Nuxt development server
+npm run build     # Build for production
+npm run preview   # Preview the production build
+npm run generate  # Generate a static build when supported
+```
+
+## Notes
+
+This project is intended as a movie browsing and streaming UI experiment using public movie API sources. Availability of movie metadata, images, and episode embeds depends on the upstream APIs.
