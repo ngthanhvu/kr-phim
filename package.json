@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --host 0.0.0.0 --port 3002",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "preview": "nuxt preview --host 0.0.0.0 --port 3002",
+    "start": "node .output/server/index.mjs",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@oxc-parser/binding-win32-x64-msvc": "^0.128.0",
     "@tailwindcss/vite": "^4.3.0",
     "lucide-vue-next": "^1.0.0",
     "nuxt": "^4.4.5",

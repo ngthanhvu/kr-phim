@@ -1,0 +1,15 @@
+services:
+  kr-phim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kr-phim
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3002
+      NITRO_HOST: 0.0.0.0
+      NITRO_PORT: 3002
+    ports:
+      - "3002:3002"

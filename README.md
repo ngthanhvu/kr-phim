@@ -58,7 +58,7 @@ npm run dev
 The app will usually be available at:
 
 ```text
-http://localhost:3000
+http://localhost:3002
 ```
 
 ## Production Build
@@ -74,6 +74,36 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
+
+Run the production server after building:
+
+```bash
+npm run start
+```
+
+The production server listens on port `3002` by default.
+
+## Docker
+
+Build and run with Docker Compose:
+
+```bash
+docker compose up -d --build
+```
+
+The container exposes the app at:
+
+```text
+http://localhost:3002
+```
+
+Stop the container:
+
+```bash
+docker compose down
+```
+
+The Compose service is named `kr-phim` and maps host port `3002` to container port `3002`.
 
 ## Available Routes
 
@@ -101,6 +131,7 @@ If one source is unavailable, the list endpoint still returns data from the othe
 npm run dev       # Start Nuxt development server
 npm run build     # Build for production
 npm run preview   # Preview the production build
+npm run start     # Start the built Nitro server
 npm run generate  # Generate a static build when supported
 ```
 
