@@ -31,9 +31,16 @@ export interface NormalizedServer {
   episodes: NormalizedEpisode[]
 }
 
+export interface NormalizedActor {
+  name: string
+  originalName?: string
+  role?: string
+  avatar?: string
+}
+
 export interface MovieDetail extends NormalizedMovie {
   content: string
-  actors: string[]
+  actors: NormalizedActor[]
   directors: string[]
   trailer?: string
   servers: NormalizedServer[]
@@ -95,6 +102,23 @@ function stripHtml(value?: string) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function normalizeActor(actor: any): NormalizedActor | undefined {
+  if (typeof actor === 'string') {
+    const name = actor.trim()
+    return name ? { name } : undefined
+  }
+
+  const name = text(actor?.name || actor?.actor_name || actor?.title).trim()
+  if (!name) return undefined
+
+  return {
+    name,
+    originalName: text(actor?.original_name || actor?.origin_name || actor?.real_name) || undefined,
+    role: text(actor?.role || actor?.character || actor?.as || actor?.cast_name) || undefined,
+    avatar: joinImage('', actor?.avatar || actor?.image || actor?.thumb_url || actor?.poster_url) || undefined,
+  }
 }
 
 export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): NormalizedMovie {
@@ -239,7 +263,7 @@ export async function getOphimDetail(slug: string): Promise<MovieDetail> {
   return {
     ...normalized,
     content: stripHtml(movie?.content),
-    actors: toArray(movie?.actor).map((item) => text(item)).filter(Boolean),
+    actors: toArray(movie?.actor).map(normalizeActor).filter(Boolean) as NormalizedActor[],
     directors: toArray(movie?.director).map((item) => text(item)).filter(Boolean),
     trailer: text(movie?.trailer_url),
     servers: toArray(data?.episodes ?? json?.episodes ?? movie?.episodes).map((server: any) => ({
@@ -262,7 +286,7 @@ export async function getNguoncDetail(slug: string): Promise<MovieDetail> {
   return {
     ...normalized,
     content: stripHtml(movie?.content || movie?.description),
-    actors: toArray(movie?.actor || movie?.actors).map((item: any) => text(item?.name ?? item)).filter(Boolean),
+    actors: toArray(movie?.actor || movie?.actors).map(normalizeActor).filter(Boolean) as NormalizedActor[],
     directors: toArray(movie?.director || movie?.directors).map((item: any) => text(item?.name ?? item)).filter(Boolean),
     trailer: text(movie?.trailer_url || movie?.trailer),
     servers: toArray(movie?.episodes ?? json?.episodes ?? json?.data?.episodes).map((server: any) => ({

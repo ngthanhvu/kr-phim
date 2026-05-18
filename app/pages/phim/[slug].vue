@@ -2,21 +2,31 @@
 import { ChevronDown, Heart, Play, Plus, Share2, Star } from 'lucide-vue-next'
 
 const route = useRoute()
+const requestedSource = computed(() => String(route.query.source || 'ophim'))
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
+const activeTab = ref<'episodes' | 'actors'>('episodes')
+const sourceOptions = [
+  { label: 'OPhim', value: 'ophim' },
+  { label: 'NguonC', value: 'nguonc' },
+]
 
-const { data: movie, pending, error } = await useFetch(`/api/movies/${route.params.slug}`, {
-  query: {
-    source: route.query.source,
-  },
+const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`, {
+  query: computed(() => ({
+    source: requestedSource.value,
+  })),
+  watch: [requestedSource],
 })
 
 const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value])
+const activeSource = computed(() => String(movie.value?.source || route.query.source || 'ophim'))
+const actors = computed(() => movie.value?.actors ?? [])
+const actorSummary = computed(() => actors.value.map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
 const firstWatchLink = computed(() => ({
   path: `/xem/${route.params.slug}`,
   query: {
-    source: route.query.source,
+    source: activeSource.value,
     server: selectedServer.value,
     ep: 1,
   },
@@ -27,12 +37,32 @@ function episodeLink(index: number) {
   return {
     path: `/xem/${route.params.slug}`,
     query: {
-      source: route.query.source,
+      source: activeSource.value,
       server: selectedServer.value,
       ep: index + 1,
     },
   }
 }
+
+function sourceLink(source: string) {
+  return {
+    path: `/phim/${route.params.slug}`,
+    query: { source },
+  }
+}
+
+function formatEpisodeName(name: string, index: number) {
+  const label = String(name || index + 1).trim()
+  return /^\d+$/.test(label) ? `Tập ${label}` : label
+}
+
+function actorInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase()
+}
+
+watch(requestedSource, () => {
+  selectedServer.value = 0
+})
 
 useHead(() => ({
   title: movie.value ? `${movie.value.name} - KR Phim` : 'Đang tải phim - KR Phim',
@@ -70,7 +100,7 @@ useHead(() => ({
           <div class="absolute inset-0 bg-linear-to-r from-[#08090d] via-transparent to-[#08090d]" />
         </div>
 
-        <div class="relative mx-auto max-w-390 px-3 pb-8 pt-5 sm:px-6 sm:py-10 lg:px-8 xl:px-10">
+        <div class="relative mx-auto max-w-390 px-3 pb-8 pt-40 sm:px-6 sm:pb-12 sm:pt-52 lg:px-8 lg:pt-56 xl:px-10">
           <div class="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-6">
             <aside class="mb-3 flex flex-col items-center text-center lg:mb-6 lg:items-start lg:text-left">
               <img :src="movie.thumb || movie.poster" :alt="movie.name"
@@ -104,8 +134,8 @@ useHead(() => ({
                 }}</p>
                 <p v-if="movie.countries?.length"><span class="font-black text-white">Quốc gia:</span> {{
                   movie.countries.join(', ') }}</p>
-                <p v-if="movie.actors?.length"><span class="font-black text-white">Diễn viên:</span> {{
-                  movie.actors.slice(0, 6).join(', ') }}</p>
+                <p v-if="actorSummary"><span class="font-black text-white">Diễn viên:</span> {{
+                  actorSummary }}</p>
               </div>
             </aside>
 
@@ -129,12 +159,23 @@ useHead(() => ({
                 }}</p>
                 <p v-if="movie.countries?.length"><span class="font-black text-white">Quốc gia:</span> {{
                   movie.countries.join(', ') }}</p>
-                <p v-if="movie.actors?.length"><span class="font-black text-white">Diễn viên:</span> {{
-                  movie.actors.slice(0, 6).join(', ') }}</p>
+                <p v-if="actorSummary"><span class="font-black text-white">Diễn viên:</span> {{
+                  actorSummary }}</p>
+              </div>
+
+              <div class="hidden">
+                <p class="text-sm font-black text-white">Nguồn API</p>
+                <div class="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
+                  <NuxtLink v-for="source in sourceOptions" :key="source.value" :to="sourceLink(source.value)"
+                    class="shrink-0 rounded-md px-4 py-2 text-sm font-black transition"
+                    :class="activeSource === source.value ? 'bg-sky-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                    {{ source.label }}
+                  </NuxtLink>
+                </div>
               </div>
 
               <div
-                class="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
+                class="flex flex-col gap-4 border-b border-white/10 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
                 <div class="flex flex-wrap justify-center gap-3 sm:justify-start">
                   <NuxtLink :to="firstWatchLink"
                     class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-sky-400 to-sky-300 px-7 text-sm font-black text-slate-950 transition hover:from-sky-300 hover:to-white sm:w-auto">
@@ -143,7 +184,17 @@ useHead(() => ({
                   </NuxtLink>
                 </div>
 
-                <div class="flex items-center justify-between gap-3 px-8 sm:justify-center sm:px-0">
+                <div class="flex flex-col gap-3 sm:items-end">
+                  <div class="flex items-center justify-center gap-2 sm:justify-end">
+                    <span class="text-xs font-black text-slate-300">Nguồn API</span>
+                    <NuxtLink v-for="source in sourceOptions" :key="source.value" :to="sourceLink(source.value)"
+                      class="shrink-0 rounded-md px-4 py-2 text-sm font-black transition"
+                      :class="activeSource === source.value ? 'bg-sky-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                      {{ source.label }}
+                    </NuxtLink>
+                  </div>
+
+                  <div class="flex items-center justify-between gap-3 px-8 sm:justify-center sm:px-0">
                   <button type="button"
                     class="flex flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-sky-200"
                     aria-label="Yêu thích">
@@ -169,14 +220,19 @@ useHead(() => ({
                   </div>
                 </div>
               </div>
+              </div>
 
               <div
                 class="mt-3 flex justify-between gap-6 border-b border-white/10 px-6 text-sm font-black sm:mt-0 sm:justify-center sm:px-0 sm:pt-5">
-                <button type="button" class="border-b-2 border-sky-300 px-5 pb-3 text-sky-200 sm:px-0">Tập phim</button>
-                <button type="button" class="pb-3 text-slate-300">Diễn viên</button>
+                <button type="button" class="px-5 pb-3 sm:px-0"
+                  :class="activeTab === 'episodes' ? 'border-b-2 border-sky-300 text-sky-200' : 'text-slate-300'"
+                  @click="activeTab = 'episodes'">Tập phim</button>
+                <button type="button" class="px-5 pb-3 sm:px-0"
+                  :class="activeTab === 'actors' ? 'border-b-2 border-sky-300 text-sky-200' : 'text-slate-300'"
+                  @click="activeTab = 'actors'">Diễn viên</button>
               </div>
 
-              <div class="px-0 pt-6 sm:px-0 sm:pt-5">
+              <div v-if="activeTab === 'episodes'" class="px-0 pt-6 sm:px-0 sm:pt-5">
                 <h2 class="text-[1.08rem] font-black sm:text-xl">Danh sách tập</h2>
 
                 <div v-if="servers.length > 1" class="mt-3 flex gap-2 overflow-x-auto pb-2">
@@ -193,12 +249,42 @@ useHead(() => ({
                   <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
                     :to="episodeLink(index)"
                     class="rounded-md bg-white/10 px-4 py-3 text-center text-sm font-black text-white transition first:bg-sky-400 first:text-slate-950 hover:bg-sky-400 hover:text-slate-950">
-                    {{ episode.name }}
+                    {{ formatEpisodeName(episode.name, index) }}
                   </NuxtLink>
                 </div>
 
                 <p v-else class="mt-4 rounded-md border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
                   Chưa có tập xem từ nguồn này.
+                </p>
+              </div>
+
+              <div v-else class="px-0 pt-6 sm:px-0 sm:pt-5">
+                <h2 class="text-[1.08rem] font-black sm:text-xl">Diễn viên</h2>
+
+                <div v-if="actors.length" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  <div v-for="actor in actors" :key="actor.name"
+                    class="flex min-w-0 items-center gap-3 rounded-md border border-white/10 bg-white/5 p-3">
+                    <img v-if="actor.avatar" :src="actor.avatar" :alt="actor.name"
+                      class="size-14 shrink-0 rounded-md object-cover">
+                    <div v-else
+                      class="grid size-14 shrink-0 place-items-center rounded-md bg-sky-400/18 text-lg font-black text-sky-100 ring-1 ring-sky-300/20">
+                      {{ actorInitial(actor.name) }}
+                    </div>
+
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-black text-white">{{ actor.name }}</p>
+                      <p class="mt-1 truncate text-xs font-semibold text-sky-200">
+                        {{ actor.originalName || 'Tên quốc tế đang cập nhật' }}
+                      </p>
+                      <p class="mt-1 truncate text-xs font-semibold text-slate-400">
+                        {{ actor.role || 'Vai diễn đang cập nhật' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <p v-else class="mt-4 rounded-md border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
+                  Nguồn này chưa có dữ liệu diễn viên.
                 </p>
               </div>
             </section>

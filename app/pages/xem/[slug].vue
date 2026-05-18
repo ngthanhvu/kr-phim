@@ -17,6 +17,7 @@ const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value] ?? servers.value[0])
 const activeEpisode = computed(() => activeServer.value?.episodes?.[selectedEpisode.value] ?? activeServer.value?.episodes?.[0])
 const playerUrl = computed(() => activeEpisode.value?.linkEmbed || activeEpisode.value?.linkM3u8 || '')
+const actorSummary = computed(() => (movie.value?.actors ?? []).map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
 
 type WatchHistoryItem = {
   source: string
@@ -217,8 +218,8 @@ useHead(() => ({
               <p v-if="movie.countries?.length"><span class="font-black text-white">Quốc gia:</span> {{
                 movie.countries.join(', ') }}</p>
               <p v-if="movie.year"><span class="font-black text-white">Năm:</span> {{ movie.year }}</p>
-              <p v-if="movie.actors?.length"><span class="font-black text-white">Diễn viên:</span> {{
-                movie.actors.slice(0, 6).join(', ') }}</p>
+              <p v-if="actorSummary"><span class="font-black text-white">Diễn viên:</span> {{
+                actorSummary }}</p>
             </div>
           </aside>
         </div>
