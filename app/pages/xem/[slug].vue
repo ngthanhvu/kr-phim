@@ -5,6 +5,7 @@ const route = useRoute()
 const selectedServer = ref(Math.max(Number(route.query.server || 0), 0))
 const selectedEpisode = ref(Math.max(Number(route.query.ep || 1) - 1, 0))
 const hasStarted = ref(false)
+const watchHistoryKey = 'kr-phim-watch-history'
 
 const { data: movie, pending, error } = await useFetch(`/api/movies/${route.params.slug}`, {
   query: {
@@ -16,6 +17,19 @@ const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value] ?? servers.value[0])
 const activeEpisode = computed(() => activeServer.value?.episodes?.[selectedEpisode.value] ?? activeServer.value?.episodes?.[0])
 const playerUrl = computed(() => activeEpisode.value?.linkEmbed || activeEpisode.value?.linkM3u8 || '')
+
+type WatchHistoryItem = {
+  source: string
+  slug: string
+  name: string
+  originName?: string
+  thumb?: string
+  poster?: string
+  episodeName?: string
+  episodeIndex: number
+  serverIndex: number
+  updatedAt: number
+}
 
 function episodeLink(index: number) {
   return {
@@ -36,12 +50,50 @@ function selectServer(index: number) {
 
 function startPlayer() {
   hasStarted.value = true
+  saveWatchHistory()
+}
+
+function saveWatchHistory() {
+  if (!import.meta.client || !movie.value) return
+
+  const source = String(route.query.source || movie.value.source || '')
+  const slug = String(route.params.slug)
+  const item: WatchHistoryItem = {
+    source,
+    slug,
+    name: movie.value.name,
+    originName: movie.value.originName,
+    thumb: movie.value.thumb,
+    poster: movie.value.poster,
+    episodeName: activeEpisode.value?.name,
+    episodeIndex: selectedEpisode.value,
+    serverIndex: selectedServer.value,
+    updatedAt: Date.now(),
+  }
+
+  try {
+    const raw = window.localStorage.getItem(watchHistoryKey)
+    const history = raw ? JSON.parse(raw) : []
+    const items = Array.isArray(history) ? history : []
+    const nextItems = [
+      item,
+      ...items.filter((historyItem: WatchHistoryItem) => !(historyItem.slug === slug && historyItem.source === source)),
+    ].slice(0, 20)
+
+    window.localStorage.setItem(watchHistoryKey, JSON.stringify(nextItems))
+  } catch {
+    window.localStorage.setItem(watchHistoryKey, JSON.stringify([item]))
+  }
 }
 
 watch(() => route.query, () => {
   selectedServer.value = Math.max(Number(route.query.server || 0), 0)
   selectedEpisode.value = Math.max(Number(route.query.ep || 1) - 1, 0)
   hasStarted.value = false
+})
+
+watch([movie, activeEpisode], () => {
+  saveWatchHistory()
 })
 
 useHead(() => ({

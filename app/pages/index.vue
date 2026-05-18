@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookPlus, ChevronLeft, ChevronRight, Heart, Info, Play } from 'lucide-vue-next'
+import { BookPlus, ChevronLeft, ChevronRight, Heart, Info, Play, Trash2 } from 'lucide-vue-next'
 
 const { data, pending, error } = await useFetch('/api/movies', {
   query: {
@@ -12,6 +12,21 @@ const heroIndex = ref(0)
 const heroSlides = computed(() => movies.value.slice(0, 6))
 const hero = computed(() => heroSlides.value[heroIndex.value] ?? movies.value[0])
 const sourceStatus = computed(() => data.value?.sources ?? [])
+const watchHistoryKey = 'kr-phim-watch-history'
+const watchHistory = ref<WatchHistoryItem[]>([])
+
+type WatchHistoryItem = {
+  source: string
+  slug: string
+  name: string
+  originName?: string
+  thumb?: string
+  poster?: string
+  episodeName?: string
+  episodeIndex?: number
+  serverIndex?: number
+  updatedAt?: number
+}
 
 let heroTimer: ReturnType<typeof setInterval> | undefined
 
@@ -37,11 +52,48 @@ watch(heroSlides, (slides) => {
 
 onMounted(() => {
   heroTimer = setInterval(nextHero, 6500)
+  loadWatchHistory()
+  window.addEventListener('storage', loadWatchHistory)
 })
 
 onBeforeUnmount(() => {
   if (heroTimer) clearInterval(heroTimer)
+  if (import.meta.client) window.removeEventListener('storage', loadWatchHistory)
 })
+
+function loadWatchHistory() {
+  if (!import.meta.client) return
+
+  try {
+    const raw = window.localStorage.getItem(watchHistoryKey)
+    const history = raw ? JSON.parse(raw) : []
+    watchHistory.value = Array.isArray(history)
+      ? history
+        .filter((item: WatchHistoryItem) => item?.slug && item?.name)
+        .sort((a: WatchHistoryItem, b: WatchHistoryItem) => (b.updatedAt || 0) - (a.updatedAt || 0))
+        .slice(0, 12)
+      : []
+  } catch {
+    watchHistory.value = []
+  }
+}
+
+function clearWatchHistory() {
+  if (!import.meta.client) return
+  window.localStorage.removeItem(watchHistoryKey)
+  watchHistory.value = []
+}
+
+function watchHistoryLink(item: WatchHistoryItem) {
+  return {
+    path: `/xem/${item.slug}`,
+    query: {
+      source: item.source,
+      server: item.serverIndex || 0,
+      ep: (item.episodeIndex || 0) + 1,
+    },
+  }
+}
 
 const rows = computed(() => [
   {
@@ -192,6 +244,43 @@ useHead({
       <p v-if="error" class="rounded-md border border-red-300/30 bg-red-500/12 p-4 text-red-100">
         Không tải được dữ liệu phim. Vui lòng thử lại sau.
       </p>
+
+      <section v-if="watchHistory.length" class="mb-12">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h2 class="text-2xl font-extrabold text-white">Tiếp Tục Xem</h2>
+          <button type="button"
+            class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-white/8 text-white transition hover:border-sky-300/60 hover:bg-white/14"
+            aria-label="Xóa lịch sử xem" @click="clearWatchHistory">
+            <Trash2 class="size-4" />
+          </button>
+        </div>
+
+        <div class="no-scrollbar -mx-4 ml-0.5 flex snap-x gap-4 overflow-x-auto px-4 pb-5 sm:ml-0">
+          <NuxtLink v-for="item in watchHistory" :key="`${item.source}-${item.slug}`" :to="watchHistoryLink(item)"
+            class="group block w-44 shrink-0 snap-start sm:w-52 xl:w-56">
+            <div
+              class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-sky-300/60">
+              <img :src="item.thumb || item.poster" :alt="item.name"
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+              <div class="absolute inset-x-0 bottom-0 h-1 bg-white/18">
+                <span class="block h-full w-1/3 bg-sky-300" />
+              </div>
+              <span
+                class="absolute left-2 top-2 rounded bg-sky-400 px-2 py-1 text-xs font-black text-slate-950">
+                {{ item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}` }}
+              </span>
+              <span
+                class="absolute bottom-3 right-3 rounded bg-black/70 px-2 py-1 text-[11px] font-black text-white opacity-0 transition group-hover:opacity-100">
+                Xem tiếp
+              </span>
+            </div>
+            <h3 class="mt-3 line-clamp-1 text-center text-sm font-black text-white">{{ item.name }}</h3>
+            <p class="mt-1 truncate text-center text-xs font-semibold text-slate-400">
+              {{ item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}` }}
+            </p>
+          </NuxtLink>
+        </div>
+      </section>
 
       <div v-if="pending" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <div v-for="item in 12" :key="item" class="aspect-2/3 animate-pulse rounded-md bg-white/10" />
