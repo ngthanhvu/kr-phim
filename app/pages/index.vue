@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { BookPlus, ChevronLeft, ChevronRight, Heart, Info, Play, Trash2 } from 'lucide-vue-next'
+import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
 const { data, pending, error } = await useFetch('/api/movies', {
   query: {
@@ -12,21 +13,12 @@ const heroIndex = ref(0)
 const heroSlides = computed(() => movies.value.slice(0, 6))
 const hero = computed(() => heroSlides.value[heroIndex.value] ?? movies.value[0])
 const sourceStatus = computed(() => data.value?.sources ?? [])
-const watchHistoryKey = 'kr-phim-watch-history'
 const watchHistory = ref<WatchHistoryItem[]>([])
-
-type WatchHistoryItem = {
-  source: string
-  slug: string
-  name: string
-  originName?: string
-  thumb?: string
-  poster?: string
-  episodeName?: string
-  episodeIndex?: number
-  serverIndex?: number
-  updatedAt?: number
-}
+const { user, initAuth } = useSupabaseAuth()
+const {
+  loadWatchHistory: fetchWatchHistory,
+  clearWatchHistory: removeWatchHistory,
+} = useWatchHistory()
 
 let heroTimer: ReturnType<typeof setInterval> | undefined
 
@@ -51,6 +43,7 @@ watch(heroSlides, (slides) => {
 })
 
 onMounted(() => {
+  initAuth()
   heroTimer = setInterval(nextHero, 6500)
   loadWatchHistory()
   window.addEventListener('storage', loadWatchHistory)
@@ -61,26 +54,14 @@ onBeforeUnmount(() => {
   if (import.meta.client) window.removeEventListener('storage', loadWatchHistory)
 })
 
-function loadWatchHistory() {
+async function loadWatchHistory() {
   if (!import.meta.client) return
-
-  try {
-    const raw = window.localStorage.getItem(watchHistoryKey)
-    const history = raw ? JSON.parse(raw) : []
-    watchHistory.value = Array.isArray(history)
-      ? history
-        .filter((item: WatchHistoryItem) => item?.slug && item?.name)
-        .sort((a: WatchHistoryItem, b: WatchHistoryItem) => (b.updatedAt || 0) - (a.updatedAt || 0))
-        .slice(0, 12)
-      : []
-  } catch {
-    watchHistory.value = []
-  }
+  watchHistory.value = await fetchWatchHistory(12)
 }
 
-function clearWatchHistory() {
+async function clearWatchHistory() {
   if (!import.meta.client) return
-  window.localStorage.removeItem(watchHistoryKey)
+  await removeWatchHistory()
   watchHistory.value = []
 }
 
@@ -93,6 +74,36 @@ function watchHistoryLink(item: WatchHistoryItem) {
       ep: (item.episodeIndex || 0) + 1,
     },
   }
+}
+
+function formatWatchTime(seconds = 0) {
+  const totalSeconds = Math.max(Math.floor(seconds), 0)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const remainingSeconds = totalSeconds % 60
+
+  if (hours) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+  }
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
+function watchProgressPercent(item: WatchHistoryItem) {
+  if (!item.durationSeconds || !item.progressSeconds) return 6
+  return Math.min(Math.max((item.progressSeconds / item.durationSeconds) * 100, 6), 100)
+}
+
+function watchProgressLabel(item: WatchHistoryItem) {
+  if (item.progressSeconds && item.durationSeconds) {
+    return `${formatWatchTime(item.progressSeconds)} / ${formatWatchTime(item.durationSeconds)}`
+  }
+
+  if (item.progressSeconds) {
+    return `${formatWatchTime(item.progressSeconds)} đã xem`
+  }
+
+  return item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}`
 }
 
 const rows = computed(() => [
@@ -112,6 +123,10 @@ const rows = computed(() => [
     items: movies.value.filter((movie: any) => movie.type === 'single' || movie.episode === 'Full').slice(0, 12),
   },
 ])
+
+watch(user, () => {
+  loadWatchHistory()
+})
 
 useHead({
   title: 'KR Phim - Phim Hàn Quốc',
@@ -263,7 +278,7 @@ useHead({
               <img :src="item.thumb || item.poster" :alt="item.name"
                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
               <div class="absolute inset-x-0 bottom-0 h-1 bg-white/18">
-                <span class="block h-full w-1/3 bg-sky-300" />
+                <span class="block h-full bg-sky-300" :style="{ width: `${watchProgressPercent(item)}%` }" />
               </div>
               <span
                 class="absolute left-2 top-2 rounded bg-sky-400 px-2 py-1 text-xs font-black text-slate-950">
@@ -276,7 +291,7 @@ useHead({
             </div>
             <h3 class="mt-3 line-clamp-1 text-center text-sm font-black text-white">{{ item.name }}</h3>
             <p class="mt-1 truncate text-center text-xs font-semibold text-slate-400">
-              {{ item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}` }}
+              {{ watchProgressLabel(item) }}
             </p>
           </NuxtLink>
         </div>

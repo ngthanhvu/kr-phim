@@ -6,6 +6,16 @@ const requestedSource = computed(() => String(route.query.source || 'ophim'))
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
 const activeTab = ref<'episodes' | 'actors'>('episodes')
+const isFavoriteMovie = ref(false)
+const actionMessage = ref('')
+const actionBusy = ref(false)
+const { user, initAuth } = useSupabaseAuth()
+const {
+  isFavorite,
+  saveFavorite,
+  removeFavorite,
+  saveWatchLater,
+} = useMovieLibrary()
 const sourceOptions = [
   { label: 'OPhim', value: 'ophim' },
   { label: 'NguonC', value: 'nguonc' },
@@ -32,6 +42,19 @@ const firstWatchLink = computed(() => ({
   },
 }))
 const episodeCount = computed(() => servers.value.reduce((total: number, server: any) => total + (server.episodes?.length || 0), 0))
+const libraryItem = computed(() => {
+  if (!movie.value) return null
+
+  return {
+    source: activeSource.value,
+    slug: String(route.params.slug),
+    name: movie.value.name,
+    originName: movie.value.originName,
+    thumb: movie.value.thumb,
+    poster: movie.value.poster,
+    updatedAt: Date.now(),
+  }
+})
 
 function episodeLink(index: number) {
   return {
@@ -60,8 +83,77 @@ function actorInitial(name: string) {
   return name.trim().charAt(0).toUpperCase()
 }
 
+function flashActionMessage(message: string) {
+  actionMessage.value = message
+  window.setTimeout(() => {
+    if (actionMessage.value === message) actionMessage.value = ''
+  }, 2200)
+}
+
+async function refreshFavoriteState() {
+  if (!libraryItem.value) return
+  isFavoriteMovie.value = await isFavorite(libraryItem.value)
+}
+
+async function toggleFavorite() {
+  if (!libraryItem.value || actionBusy.value) return
+
+  actionBusy.value = true
+  if (isFavoriteMovie.value) {
+    await removeFavorite(libraryItem.value)
+    isFavoriteMovie.value = false
+    flashActionMessage('Đã bỏ khỏi yêu thích.')
+  } else {
+    await saveFavorite(libraryItem.value)
+    isFavoriteMovie.value = true
+    flashActionMessage(user.value ? 'Đã lưu vào yêu thích.' : 'Đã lưu yêu thích trên thiết bị này.')
+  }
+  actionBusy.value = false
+}
+
+async function addToWatchLater() {
+  if (!libraryItem.value || actionBusy.value) return
+
+  actionBusy.value = true
+  await saveWatchLater(libraryItem.value)
+  actionBusy.value = false
+  flashActionMessage(user.value ? 'Đã thêm vào danh sách xem sau.' : 'Đã thêm vào danh sách xem sau trên thiết bị này.')
+}
+
+async function shareMovie() {
+  if (!import.meta.client || !movie.value) return
+
+  const shareUrl = window.location.href
+  const shareTitle = `${movie.value.name} - KR Phim`
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: shareTitle,
+        text: movie.value.originName || movie.value.name,
+        url: shareUrl,
+      })
+      return
+    }
+
+    await navigator.clipboard.writeText(shareUrl)
+    flashActionMessage('Đã copy link phim.')
+  } catch {
+    flashActionMessage('Chưa chia sẻ được, bạn thử lại nhé.')
+  }
+}
+
+onMounted(async () => {
+  await initAuth()
+  await refreshFavoriteState()
+})
+
 watch(requestedSource, () => {
   selectedServer.value = 0
+})
+
+watch([libraryItem, user], () => {
+  refreshFavoriteState()
 })
 
 useHead(() => ({
@@ -196,20 +288,21 @@ useHead(() => ({
 
                   <div class="flex items-center justify-between gap-3 px-8 sm:justify-center sm:px-0">
                   <button type="button"
-                    class="flex flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-sky-200"
-                    aria-label="Yêu thích">
-                    <Heart class="size-5" />
-                    <span>Yêu thích</span>
+                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold transition hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-70"
+                    :class="isFavoriteMovie ? 'text-sky-300' : 'text-white'" aria-label="Yêu thích"
+                    :disabled="actionBusy" @click="toggleFavorite">
+                    <Heart class="size-5" :class="isFavoriteMovie ? 'fill-current' : ''" />
+                    <span>{{ isFavoriteMovie ? 'Đã thích' : 'Yêu thích' }}</span>
                   </button>
                   <button type="button"
-                    class="flex flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-sky-200"
-                    aria-label="Thêm vào">
+                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-70"
+                    aria-label="Thêm vào" :disabled="actionBusy" @click="addToWatchLater">
                     <Plus class="size-5" />
                     <span>Thêm vào</span>
                   </button>
                   <button type="button"
-                    class="flex flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-sky-200"
-                    aria-label="Chia sẻ">
+                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-sky-200"
+                    aria-label="Chia sẻ" @click="shareMovie">
                     <Share2 class="size-5" />
                     <span>Chia sẻ</span>
                   </button>
@@ -219,6 +312,10 @@ useHead(() => ({
                     {{ movie.rating.toFixed(1) }}
                   </div>
                 </div>
+                <p v-if="actionMessage"
+                  class="mt-2 text-center text-xs font-bold text-sky-200 sm:text-right">
+                  {{ actionMessage }}
+                </p>
               </div>
               </div>
 
