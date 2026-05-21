@@ -42,7 +42,7 @@ useHead({
 
     <section class="mx-auto max-w-390 px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pt-32 xl:px-10">
       <div class="mb-6">
-        <p class="text-sm font-black uppercase text-sky-300">Thư viện</p>
+        <p class="text-sm font-black uppercase text-emerald-300">Thư viện</p>
         <h1 class="mt-2 text-3xl font-black sm:text-4xl">Yêu thích</h1>
       </div>
 
@@ -54,13 +54,13 @@ useHead({
         <NuxtLink v-for="item in favoriteItems" :key="`${item.source}-${item.slug}`" :to="movieLink(item)"
           class="group block min-w-0">
           <div
-            class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-sky-300/60">
+            class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-emerald-300/60">
             <img v-if="item.thumb || item.poster" :src="item.thumb || item.poster" :alt="item.name"
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div v-else class="grid h-full w-full place-items-center bg-white/8">
-              <Heart class="size-10 text-sky-300" />
+              <Heart class="size-10 text-emerald-300" />
             </div>
-            <span class="absolute left-2 top-2 rounded bg-sky-400 px-2 py-1 text-xs font-black text-slate-950">
+            <span class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
               Yêu thích
             </span>
           </div>
@@ -71,19 +71,19 @@ useHead({
 
       <div v-else-if="user"
         class="flex min-h-80 flex-col items-center justify-center rounded-lg border border-white/10 bg-white/6 p-6 text-center">
-        <Heart class="size-12 text-sky-300" />
+        <Heart class="size-12 text-emerald-300" />
         <h2 class="mt-4 text-xl font-black">Chưa có phim yêu thích</h2>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-300">
           Bấm nút Yêu thích ở trang phim để lưu phim vào đây.
         </p>
         <NuxtLink to="/phim"
-          class="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-sky-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white">
+          class="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-emerald-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white">
           Duyệt phim
         </NuxtLink>
       </div>
 
       <div v-else class="rounded-lg border border-white/10 bg-white/6 p-6">
-        <UserRound class="size-10 text-sky-300" />
+        <UserRound class="size-10 text-emerald-300" />
         <h2 class="mt-4 text-xl font-black">Bạn chưa đăng nhập</h2>
         <p class="mt-2 text-sm leading-6 text-slate-300">
           Đăng nhập để đồng bộ danh sách yêu thích, hoặc vẫn có thể lưu tạm trên thiết bị này.

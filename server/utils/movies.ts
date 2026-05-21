@@ -1,4 +1,5 @@
-type Source = 'ophim' | 'nguonc'
+type Source = 'ophim' | 'nguonc' | 'kkphim'
+type SourceFilter = Source | 'all'
 
 export interface NormalizedMovie {
   id: string
@@ -49,6 +50,9 @@ export interface MovieDetail extends NormalizedMovie {
 const OPHIM_BASE = 'https://ophim1.com'
 const OPHIM_IMAGE = 'https://img.ophim.live/uploads/movies/'
 const NGUONC_BASE = 'https://phim.nguonc.com'
+const KKPHIM_BASE = 'https://phimapi.com'
+const KKPHIM_IMAGE = 'https://phimimg.com/'
+const SOURCE_NAMES: Source[] = ['ophim', 'nguonc', 'kkphim']
 
 function toArray<T>(value: T[] | T | undefined | null): T[] {
   if (!value) return []
@@ -86,6 +90,18 @@ function joinOphimImage(base: string, path?: string) {
   return url.toString()
 }
 
+function joinKkphimImage(base: string, path?: string) {
+  if (!path) return ''
+  if (/^https?:\/\//i.test(path)) return path
+
+  const url = new URL(base)
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path
+  const basePath = url.pathname.replace(/\/$/, '')
+  url.pathname = basePath && basePath !== '/' ? `${basePath}/${cleanPath}` : cleanPath
+
+  return url.toString()
+}
+
 function includesKorea(movie: any) {
   const countries = toArray(movie?.country ?? movie?.countries ?? movie?.quoc_gia)
   if (!countries.length) return true
@@ -102,6 +118,35 @@ function stripHtml(value?: string) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function isSource(value: unknown): value is Source {
+  return typeof value === 'string' && SOURCE_NAMES.includes(value as Source)
+}
+
+function interleaveMovies(groups: NormalizedMovie[][]) {
+  const maxLength = Math.max(0, ...groups.map((items) => items.length))
+  const interleaved: NormalizedMovie[] = []
+
+  for (let index = 0; index < maxLength; index += 1) {
+    for (const items of groups) {
+      const movie = items[index]
+      if (movie) interleaved.push(movie)
+    }
+  }
+
+  return interleaved
+}
+
+function uniqueMovies(items: NormalizedMovie[]) {
+  const seen = new Set<string>()
+
+  return items.filter((movie) => {
+    const key = `${movie.source}:${movie.slug || movie.name}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 function normalizeActor(actor: any): NormalizedActor | undefined {
@@ -130,6 +175,27 @@ export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): Normal
     slug: text(movie?.slug),
     thumb: joinOphimImage(pathImage, movie?.thumb_url),
     poster: joinOphimImage(pathImage, movie?.poster_url || movie?.thumb_url),
+    year: Number(movie?.year) || undefined,
+    time: text(movie?.time),
+    episode: text(movie?.episode_current),
+    quality: text(movie?.quality),
+    lang: text(movie?.lang),
+    type: text(movie?.type),
+    rating: Number(movie?.tmdb?.vote_average || movie?.imdb?.vote_average) || undefined,
+    categories: toArray(movie?.category).map((item: any) => text(item?.name)).filter(Boolean),
+    countries: toArray(movie?.country).map((item: any) => text(item?.name)).filter(Boolean),
+  }
+}
+
+export function normalizeKkphimMovie(movie: any, pathImage = KKPHIM_IMAGE): NormalizedMovie {
+  return {
+    id: `kkphim:${movie?._id ?? movie?.slug}`,
+    source: 'kkphim',
+    name: text(movie?.name, 'ChÆ°a cÃ³ tÃªn'),
+    originName: text(movie?.origin_name),
+    slug: text(movie?.slug),
+    thumb: joinKkphimImage(pathImage, movie?.thumb_url),
+    poster: joinKkphimImage(pathImage, movie?.poster_url || movie?.thumb_url),
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
@@ -225,20 +291,45 @@ export async function getNguoncKoreanMovies(page: number, keyword = '') {
   }
 }
 
-export async function getKoreanMovies(page: number, keyword = '') {
-  const results = await Promise.allSettled([
-    getOphimKoreanMovies(page, keyword),
-    getNguoncKoreanMovies(page, keyword),
-  ])
+export async function getKkphimKoreanMovies(page: number, keyword = '') {
+  const url = keyword
+    ? new URL('/v1/api/tim-kiem', KKPHIM_BASE)
+    : new URL('/v1/api/quoc-gia/han-quoc', KKPHIM_BASE)
 
-  const items = results.flatMap((result) => result.status === 'fulfilled' ? result.value.items : [])
-  const seen = new Set<string>()
-  const unique = items.filter((movie) => {
-    const key = movie.slug || `${movie.source}:${movie.name}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
+  url.searchParams.set('page', String(page))
+  if (keyword) {
+    url.searchParams.set('keyword', keyword)
+    url.searchParams.set('country', 'han-quoc')
+  }
+
+  const json: any = await requestJson(url.toString())
+  const data = json?.data ?? json
+  const imageBase = data?.APP_DOMAIN_CDN_IMAGE || data?.pathImage || KKPHIM_IMAGE
+  const items = toArray(data?.items ?? json?.items)
+    .filter(includesKorea)
+    .map((item) => normalizeKkphimMovie(item, imageBase))
+    .filter((movie) => movie.slug)
+
+  return {
+    items,
+    pagination: data?.params?.pagination ?? data?.pagination ?? json?.pagination ?? {},
+  }
+}
+
+export async function getKoreanMovies(page: number, keyword = '', source: SourceFilter = 'all') {
+  const fetchers = {
+    ophim: getOphimKoreanMovies,
+    nguonc: getNguoncKoreanMovies,
+    kkphim: getKkphimKoreanMovies,
+  }
+  const selectedSources = isSource(source) ? [source] : SOURCE_NAMES
+  const results = await Promise.allSettled(
+    selectedSources.map((sourceName) => fetchers[sourceName](page, keyword)),
+  )
+
+  const resultGroups = results.map((result) => result.status === 'fulfilled' ? result.value.items : [])
+  const items = source === 'all' ? interleaveMovies(resultGroups) : resultGroups.flat()
+  const unique = uniqueMovies(items)
 
   const pagination = results.find((result) => result.status === 'fulfilled')?.value.pagination ?? {}
 
@@ -247,9 +338,10 @@ export async function getKoreanMovies(page: number, keyword = '') {
     page,
     pagination,
     sources: results.map((result, index) => ({
-      name: index === 0 ? 'ophim' : 'nguonc',
+      name: selectedSources[index],
       ok: result.status === 'fulfilled',
     })),
+    source,
   }
 }
 
@@ -296,6 +388,31 @@ export async function getNguoncDetail(slug: string): Promise<MovieDetail> {
         slug: text(episode?.slug),
         linkEmbed: text(episode?.link_embed || episode?.embed),
         linkM3u8: text(episode?.link_m3u8 || episode?.m3u8),
+      })),
+    })),
+  }
+}
+
+export async function getKkphimDetail(slug: string): Promise<MovieDetail> {
+  const json: any = await requestJson(`${KKPHIM_BASE}/phim/${slug}`)
+  const data = json?.data ?? json
+  const movie = data?.item ?? data?.movie ?? json?.movie ?? json?.item
+  const imageBase = data?.APP_DOMAIN_CDN_IMAGE || data?.pathImage || KKPHIM_IMAGE
+  const normalized = normalizeKkphimMovie(movie, imageBase)
+
+  return {
+    ...normalized,
+    content: stripHtml(movie?.content),
+    actors: toArray(movie?.actor).map(normalizeActor).filter(Boolean) as NormalizedActor[],
+    directors: toArray(movie?.director).map((item) => text(item)).filter(Boolean),
+    trailer: text(movie?.trailer_url),
+    servers: toArray(data?.episodes ?? json?.episodes ?? movie?.episodes).map((server: any) => ({
+      name: text(server?.server_name, 'Server'),
+      episodes: toArray(server?.server_data).map((episode: any) => ({
+        name: text(episode?.name, 'Táº­p phim'),
+        slug: text(episode?.slug),
+        linkEmbed: text(episode?.link_embed),
+        linkM3u8: text(episode?.link_m3u8),
       })),
     })),
   }

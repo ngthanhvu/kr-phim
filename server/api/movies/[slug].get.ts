@@ -1,4 +1,4 @@
-import { getNguoncDetail, getOphimDetail } from '../../utils/movies'
+import { getKkphimDetail, getNguoncDetail, getOphimDetail } from '../../utils/movies'
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -8,21 +8,26 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Thiếu slug phim' })
   }
 
-  if (source === 'nguonc') {
+  const detailBySource = {
+    ophim: getOphimDetail,
+    nguonc: getNguoncDetail,
+    kkphim: getKkphimDetail,
+  }
+
+  const requestedSource = typeof source === 'string' && source in detailBySource ? source as keyof typeof detailBySource : 'ophim'
+  const orderedSources = [
+    requestedSource,
+    ...Object.keys(detailBySource).filter((item) => item !== requestedSource) as Array<keyof typeof detailBySource>,
+  ]
+  let lastError: unknown
+
+  for (const sourceName of orderedSources) {
     try {
-      return await getNguoncDetail(slug)
-    } catch {
-      return await getOphimDetail(slug)
+      return await detailBySource[sourceName](slug)
+    } catch (error) {
+      lastError = error
     }
   }
 
-  try {
-    return await getOphimDetail(slug)
-  } catch (error) {
-    try {
-      return await getNguoncDetail(slug)
-    } catch {
-      throw error
-    }
-  }
+  throw lastError
 })

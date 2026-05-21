@@ -182,38 +182,38 @@ watch(user, (currentUser) => {
       <AppLogo />
 
       <div class="hidden lg:flex lg:items-center lg:gap-7 lg:text-sm lg:font-semibold lg:text-slate-200">
-        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="shrink-0 transition hover:text-sky-200"
-          :class="isActive(item.to) ? 'text-sky-200' : 'text-slate-200'">
+        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="shrink-0 transition hover:text-emerald-200"
+          :class="isActive(item.to) ? 'text-emerald-200' : 'text-slate-200'">
           {{ item.label }}
         </NuxtLink>
       </div>
 
       <form
-        class="ml-auto flex w-full max-w-xs items-center rounded-full border border-white/10 bg-white/8 px-4 py-2 shadow-2xl shadow-sky-950/20 sm:max-w-sm"
+        class="ml-auto flex w-full max-w-xs items-center rounded-full border border-white/10 bg-white/8 px-4 py-2 shadow-2xl shadow-emerald-950/20 sm:max-w-sm"
         @submit.prevent="submitSearch">
-        <Search class="mr-3 size-4 shrink-0 text-sky-200" />
+        <Search class="mr-3 size-4 shrink-0 text-emerald-200" />
         <input v-model="keyword" type="search" placeholder="Tìm phim Hàn Quốc..."
           class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
       </form>
 
-      <div class="group/member relative hidden shrink-0 items-center gap-3 md:flex" @mouseenter="memberMenuOpen = true"
+      <div class="group/member relative hidden shrink-0 items-center gap-2.5 md:flex" @mouseenter="memberMenuOpen = true"
         @mouseleave="memberMenuOpen = false">
         <button v-if="user" type="button"
-          class="grid size-10 cursor-pointer place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/16"
+          class="grid size-9 cursor-pointer place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/16"
           aria-label="Thông báo">
           <Bell class="size-4 fill-current" />
         </button>
 
         <button type="button"
-          class="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-full bg-white px-3 pl-1 text-sm font-black text-slate-950 shadow-xl shadow-black/20 transition hover:bg-sky-100"
+          class="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-2.5 pl-1 text-xs font-black text-slate-950 shadow-xl shadow-black/20 transition hover:bg-emerald-100"
           :aria-label="user ? 'Tài khoản thành viên' : 'Đăng nhập thành viên'" @click="handleMemberClick">
           <Loader2 v-if="authLoading" class="mx-1 size-4 animate-spin" />
           <template v-else-if="user">
             <img :src="memberAvatar" :alt="memberName"
-              class="size-8 rounded-full object-cover ring-2 ring-sky-200/80">
+              class="size-7 rounded-full object-cover ring-2 ring-emerald-200/80">
           </template>
           <User v-else class="ml-1 size-4 fill-current" />
-          <span class="max-w-28 truncate">{{ user ? memberName : 'Thành viên' }}</span>
+          <span class="max-w-24 truncate">{{ user ? memberName : 'Thành viên' }}</span>
         </button>
 
         <Transition name="member-menu">
@@ -226,7 +226,7 @@ watch(user, (currentUser) => {
             </NuxtLink>
             <div class="my-2 border-t border-white/10" />
             <button type="button"
-              class="flex h-12 w-full cursor-pointer items-center gap-3 px-5 text-left font-black text-sky-300 transition hover:bg-white/8 hover:text-white"
+              class="flex h-12 w-full cursor-pointer items-center gap-3 px-5 text-left font-black text-emerald-300 transition hover:bg-white/8 hover:text-white"
               @click="handleSignOut">
               <LogOut class="size-4 shrink-0" />
               Đăng xuất
@@ -257,14 +257,14 @@ watch(user, (currentUser) => {
             </div>
             <nav class="flex flex-col gap-1 p-4">
               <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to"
-                class="rounded-lg px-4 py-3 text-base font-semibold text-slate-200 transition hover:bg-white/8 hover:text-sky-200"
-                :class="isActive(item.to) ? 'bg-white/8 text-sky-200' : ''" @click="closeMobileMenu">
+                class="rounded-lg px-4 py-3 text-base font-semibold text-slate-200 transition hover:bg-white/8 hover:text-emerald-200"
+                :class="isActive(item.to) ? 'bg-white/8 text-emerald-200' : ''" @click="closeMobileMenu">
                 {{ item.label }}
               </NuxtLink>
             </nav>
             <div class="border-t border-white/10 p-4">
               <button type="button"
-                class="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 transition hover:bg-sky-100"
+                class="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-black text-slate-950 transition hover:bg-emerald-100"
                 @click="handleMemberClick">
                 <img v-if="user" :src="memberAvatar" :alt="memberName"
                   class="size-7 rounded-full object-cover">
@@ -279,7 +279,7 @@ watch(user, (currentUser) => {
                 </NuxtLink>
                 <div class="border-t border-white/10" />
                 <button type="button"
-                  class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-black text-sky-300 transition hover:bg-white/8 hover:text-white"
+                  class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-black text-emerald-300 transition hover:bg-white/8 hover:text-white"
                   @click="handleSignOut">
                   <LogOut class="size-4 shrink-0" />
                   Đăng xuất
@@ -309,11 +309,11 @@ watch(user, (currentUser) => {
 
             <div class="bg-slate-950 px-5 py-10 sm:px-10 md:px-16 md:py-16">
               <div v-if="user">
-                <p class="text-sm font-bold text-sky-300">Thành viên</p>
+                <p class="text-sm font-bold text-emerald-300">Thành viên</p>
                 <h2 class="mt-2 text-2xl font-black">Tài khoản của bạn</h2>
                 <p class="mt-6 rounded-md bg-white/8 px-4 py-3 text-sm font-semibold text-slate-100">{{ user.email }}</p>
                 <button type="button"
-                  class="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-sky-300 text-sm font-black text-slate-950 transition hover:bg-white"
+                  class="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-300 text-sm font-black text-slate-950 transition hover:bg-white"
                   @click="handleSignOut">
                   <LogOut class="size-4" />
                   Đăng xuất
@@ -325,14 +325,14 @@ watch(user, (currentUser) => {
                 <p class="mt-5 text-sm text-slate-300">
                   <template v-if="authMode === 'login'">
                     Nếu bạn chưa có tài khoản,
-                    <button type="button" class="font-black text-sky-300 hover:text-white"
+                    <button type="button" class="font-black text-emerald-300 hover:text-white"
                       @click="authMode = 'register'; authError = ''; authMessage = ''">
                       đăng ký ngay
                     </button>
                   </template>
                   <template v-else>
                     Nếu bạn đã có tài khoản,
-                    <button type="button" class="font-black text-sky-300 hover:text-white"
+                    <button type="button" class="font-black text-emerald-300 hover:text-white"
                       @click="authMode = 'login'; authError = ''; authMessage = ''">
                       đăng nhập ngay
                     </button>
@@ -367,7 +367,7 @@ watch(user, (currentUser) => {
                 </div>
 
                 <button type="submit"
-                  class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-sky-300 text-sm font-black text-slate-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+                  class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-emerald-300 text-sm font-black text-slate-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
                   :disabled="submittingAuth">
                   <Loader2 v-if="submittingAuth" class="size-4 animate-spin" />
                   <User v-else class="size-4 fill-current" />
@@ -375,7 +375,7 @@ watch(user, (currentUser) => {
                 </button>
 
                 <button v-if="authMode === 'login'" type="button"
-                  class="mt-7 block w-full text-center text-sm font-bold text-white hover:text-sky-300"
+                  class="mt-7 block w-full text-center text-sm font-bold text-white hover:text-emerald-300"
                   @click="handleResetPassword">
                   Quên mật khẩu?
                 </button>
@@ -440,9 +440,9 @@ watch(user, (currentUser) => {
 .auth-poster-panel {
   background:
     linear-gradient(180deg, rgba(2, 6, 23, 0.45), rgba(2, 6, 23, 0.92)),
-    linear-gradient(135deg, rgba(125, 211, 252, 0.12) 0 18%, transparent 18% 100%),
-    radial-gradient(circle at 22% 18%, rgba(56, 189, 248, 0.24), transparent 8rem),
-    linear-gradient(120deg, #07111f 0%, #0f172a 54%, #020617 100%);
+    linear-gradient(135deg, rgba(0, 220, 130, 0.12) 0 18%, transparent 18% 100%),
+    radial-gradient(circle at 22% 18%, rgba(0, 220, 130, 0.24), transparent 8rem),
+    linear-gradient(120deg, #061f17 0%, #0f172a 54%, #020617 100%);
   position: relative;
 }
 
@@ -450,9 +450,9 @@ watch(user, (currentUser) => {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(115deg, transparent 0 10%, rgba(125, 211, 252, 0.12) 10% 10.6%, transparent 10.6% 100%),
+    linear-gradient(115deg, transparent 0 10%, rgba(0, 220, 130, 0.12) 10% 10.6%, transparent 10.6% 100%),
     repeating-linear-gradient(105deg, rgba(255, 255, 255, 0.06) 0 7.5rem, transparent 7.5rem 8rem),
-    repeating-linear-gradient(15deg, rgba(14, 165, 233, 0.08) 0 10rem, transparent 10rem 10.6rem);
+    repeating-linear-gradient(15deg, rgba(0, 220, 130, 0.08) 0 10rem, transparent 10rem 10.6rem);
   content: "";
   opacity: 0.75;
 }

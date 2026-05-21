@@ -33,7 +33,7 @@ const linkGroups = [
             v-for="item in socialLinks"
             :key="item.label"
             type="button"
-            class="grid size-12 place-items-center rounded-full bg-sky-400 text-slate-950 shadow-lg shadow-sky-950/30 transition hover:-translate-y-0.5 hover:bg-white"
+            class="grid size-12 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-950/30 transition hover:-translate-y-0.5 hover:bg-white"
             :aria-label="item.label"
           >
             <component :is="item.icon" class="size-5" />
@@ -47,7 +47,7 @@ const linkGroups = [
             v-for="link in group"
             :key="link"
             to="/phim"
-            class="block text-slate-100 transition hover:text-sky-200"
+            class="block text-slate-100 transition hover:text-emerald-200"
           >
             {{ link }}
           </NuxtLink>
@@ -55,7 +55,7 @@ const linkGroups = [
       </div>
 
       <p class="mt-10 max-w-4xl text-sm leading-7 text-slate-300">
-        KRPHIM - Trang xem phim Hàn Quốc online chất lượng cao miễn phí Vietsub, thuyết minh, lồng tiếng full HD. Kho phim mới cập nhật liên tục từ OPhim và NguồnC với giao diện xanh da trời hiện đại.
+        KRPHIM - Trang xem phim Hàn Quốc online chất lượng cao miễn phí Vietsub, thuyết minh, lồng tiếng full HD. Kho phim mới cập nhật liên tục từ OPhim, NguồnC và KKPhim với giao diện xanh Nuxt hiện đại.
       </p>
 
       <p class="mt-7 text-sm text-slate-400">

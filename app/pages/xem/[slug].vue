@@ -646,7 +646,7 @@ useHead(() => ({
     <template v-else>
       <section class="mx-auto max-w-390 px-3 pb-16 pt-24 sm:px-6 sm:pt-36 lg:px-8 lg:pt-28 xl:px-10">
         <NuxtLink :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source } }"
-          class="text-sm font-bold text-slate-100 hover:text-sky-200">
+          class="text-sm font-bold text-slate-100 hover:text-emerald-200">
           ‹ Chi tiết phim
         </NuxtLink>
 
@@ -654,13 +654,13 @@ useHead(() => ({
           <div class="grid grid-cols-2 gap-2 border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
             <button type="button"
               class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
-              :class="playerMode === 'embed' ? 'bg-sky-400 text-slate-950' : 'bg-white/10 text-slate-100'"
+              :class="playerMode === 'embed' ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
               :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
               Nhúng
             </button>
             <button type="button"
               class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
-              :class="playerMode === 'hls' ? 'bg-sky-400 text-slate-950' : 'bg-white/10 text-slate-100'"
+              :class="playerMode === 'hls' ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
               :disabled="!canUseHls" @click="selectPlayerMode('hls')">
               HLS
             </button>
@@ -670,12 +670,12 @@ useHead(() => ({
             <div
               class="absolute left-3 top-3 z-20 hidden rounded-md border border-white/10 bg-black/65 p-1 text-xs font-black text-white backdrop-blur sm:inline-flex">
               <button type="button" class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'embed' ? 'bg-sky-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+                :class="playerMode === 'embed' ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
                 :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
                 Nhúng
               </button>
               <button type="button" class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'hls' ? 'bg-sky-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+                :class="playerMode === 'hls' ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
                 :disabled="!canUseHls" @click="selectPlayerMode('hls')">
                 HLS
               </button>
@@ -698,7 +698,7 @@ useHead(() => ({
               <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/35" />
 
               <div v-if="isVideoBuffering"
-                class="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/20 text-sky-200">
+                class="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/20 text-emerald-200">
                 <Loader2 class="size-10 animate-spin" />
               </div>
 
@@ -708,13 +708,13 @@ useHead(() => ({
               </div>
 
               <button v-if="videoCurrentTime < skipIntroSeconds && durationSeconds > 180" type="button"
-                class="absolute bottom-24 right-4 z-20 rounded-md bg-sky-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg transition hover:bg-white"
+                class="absolute bottom-24 right-4 z-20 rounded-md bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg transition hover:bg-white"
                 @click="skipIntro">
                 Bỏ intro
               </button>
 
               <button v-if="skipOutroSeconds && videoCurrentTime > skipOutroSeconds - 45 && hasNextEpisode" type="button"
-                class="absolute bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-md bg-sky-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg transition hover:bg-white"
+                class="absolute bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-md bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg transition hover:bg-white"
                 @click="playNextEpisode(true)">
                 <SkipForward class="size-4" /> Tập tiếp
               </button>
@@ -724,7 +724,7 @@ useHead(() => ({
                 :class="isVideoPlaying && !controlsVisible ? 'opacity-0' : 'opacity-100'"
                 :aria-label="isVideoPlaying ? 'Tạm dừng' : 'Phát phim'" @click="toggleHlsPlayback">
                 <span
-                  class="grid size-12 place-items-center rounded-full bg-sky-400 text-slate-950 shadow-xl shadow-sky-950/30 sm:size-16">
+                  class="grid size-12 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-950/30 sm:size-16">
                   <Pause v-if="isVideoPlaying" class="size-5 fill-current sm:size-7" />
                   <Play v-else class="size-5 fill-current sm:size-7" />
                 </span>
@@ -737,23 +737,23 @@ useHead(() => ({
                 <div class="mt-2 flex items-center justify-between gap-2 sm:mt-3 sm:gap-3">
                   <div class="flex min-w-0 items-center gap-1.5 sm:gap-3">
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:size-9"
+                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
                       :aria-label="isVideoPlaying ? 'Tạm dừng' : 'Phát phim'" @click="toggleHlsPlayback">
                       <Pause v-if="isVideoPlaying" class="size-3.5 fill-current sm:size-4" />
                       <Play v-else class="size-3.5 fill-current sm:size-4" />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:size-9"
+                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
                       aria-label="Lùi 10 giây" @click="seekBy(-10)">
                       <Rewind class="size-3.5 sm:size-4" />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:size-9"
+                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
                       aria-label="Tua 10 giây" @click="seekBy(10)">
                       <FastForward class="size-3.5 sm:size-4" />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:size-9"
+                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
                       :aria-label="isVideoMuted ? 'Bật âm' : 'Tắt âm'" @click="toggleMute">
                       <VolumeX v-if="isVideoMuted" class="size-3.5 sm:size-4" />
                       <Volume2 v-else class="size-3.5 sm:size-4" />
@@ -768,8 +768,8 @@ useHead(() => ({
                   <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
                     <div class="relative">
                       <button type="button"
-                        class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:size-9"
-                        :class="isSettingsOpen ? 'bg-sky-400 text-slate-950' : ''" aria-label="Cài đặt player"
+                        class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                        :class="isSettingsOpen ? 'bg-emerald-400 text-slate-950' : ''" aria-label="Cài đặt player"
                         @click="isSettingsOpen = !isSettingsOpen; controlsVisible = true">
                         <Settings class="size-3.5 sm:size-4" />
                       </button>
@@ -804,17 +804,17 @@ useHead(() => ({
                       </div>
                     </div>
                     <button type="button"
-                      class="hidden size-9 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:grid"
+                      class="hidden size-9 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:grid"
                       aria-label="Picture in Picture" @click="togglePictureInPicture">
                       <PictureInPicture2 class="size-4" />
                     </button>
                     <button v-if="hasNextEpisode" type="button"
-                      class="hidden size-9 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:grid"
+                      class="hidden size-9 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:grid"
                       aria-label="Tập tiếp theo" @click="playNextEpisode(true)">
                       <SkipForward class="size-4" />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-sky-400 hover:text-slate-950 sm:size-9"
+                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
                       aria-label="Toàn màn hình" @click="toggleFullscreen">
                       <Maximize class="size-3.5 sm:size-4" />
                     </button>
@@ -828,7 +828,7 @@ useHead(() => ({
               <div class="absolute inset-0 bg-black/45" />
               <div class="absolute inset-0 grid place-items-center">
                 <span
-                  class="grid size-16 place-items-center rounded-full bg-sky-400 text-slate-950 shadow-xl shadow-sky-950/30">
+                  class="grid size-16 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-950/30">
                   <Play class="size-7 fill-current" />
                 </span>
                 <span v-if="playerMode === 'hls' && !canUseHls"
@@ -842,25 +842,25 @@ useHead(() => ({
           <div
             class="flex items-center justify-center gap-7 border-t border-white/10 px-4 py-4 text-xs font-bold text-slate-100 sm:justify-start sm:gap-4 sm:py-3">
             <button type="button"
-              class="inline-flex cursor-pointer items-center gap-2 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-70"
-              :class="isFavoriteMovie ? 'text-sky-300' : ''" :disabled="actionBusy" @click="toggleFavorite">
+              class="inline-flex cursor-pointer items-center gap-2 hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
+              :class="isFavoriteMovie ? 'text-emerald-300' : ''" :disabled="actionBusy" @click="toggleFavorite">
               <Heart class="size-4 sm:size-3" :class="isFavoriteMovie ? 'fill-current' : ''" />
               {{ isFavoriteMovie ? 'Đã thích' : 'Yêu thích' }}
             </button>
             <button type="button"
-              class="inline-flex cursor-pointer items-center gap-2 hover:text-sky-200 disabled:cursor-not-allowed disabled:opacity-70"
+              class="inline-flex cursor-pointer items-center gap-2 hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
               :disabled="actionBusy" @click="addToWatchLater">
               <Plus class="size-4 sm:size-3" /> Thêm vào
             </button>
-            <button type="button" class="inline-flex cursor-pointer items-center gap-2 hover:text-sky-200"
+            <button type="button" class="inline-flex cursor-pointer items-center gap-2 hover:text-emerald-200"
               @click="shareMovie">
               <Share2 class="size-4 sm:size-3" /> Chia sẻ
             </button>
-            <span v-if="actionMessage" class="hidden text-xs font-bold text-sky-200 sm:inline">
+            <span v-if="actionMessage" class="hidden text-xs font-bold text-emerald-200 sm:inline">
               {{ actionMessage }}
             </span>
           </div>
-          <p v-if="actionMessage" class="border-t border-white/10 px-4 pb-3 text-center text-xs font-bold text-sky-200 sm:hidden">
+          <p v-if="actionMessage" class="border-t border-white/10 px-4 pb-3 text-center text-xs font-bold text-emerald-200 sm:hidden">
             {{ actionMessage }}
           </p>
         </div>
@@ -872,13 +872,13 @@ useHead(() => ({
                 class="hidden h-28 w-20 rounded-md object-cover sm:block">
               <div>
                 <h1 class="text-[1.35rem] font-black leading-tight sm:text-2xl">{{ movie.name }}</h1>
-                <p v-if="movie.originName" class="mt-1 text-sm font-bold text-sky-200">{{ movie.originName }}</p>
+                <p v-if="movie.originName" class="mt-1 text-sm font-bold text-emerald-200">{{ movie.originName }}</p>
                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-black">
                   <span v-if="movie.quality" class="rounded bg-white/12 px-2 py-1">{{ movie.quality }}</span>
                   <span v-if="movie.episode" class="rounded bg-white/12 px-2 py-1">{{ movie.episode }}</span>
                   <span v-if="movie.time" class="rounded bg-white/12 px-2 py-1">{{ movie.time }}</span>
                   <span v-if="movie.rating"
-                    class="inline-flex items-center gap-1 rounded bg-sky-400 px-2 py-1 text-slate-950">
+                    class="inline-flex items-center gap-1 rounded bg-emerald-400 px-2 py-1 text-slate-950">
                     <Star class="size-3 fill-current" />
                     {{ movie.rating.toFixed(1) }}
                   </span>
@@ -888,14 +888,14 @@ useHead(() => ({
 
             <p v-if="movie.content" class="mt-4 text-sm leading-7 text-slate-200">{{ movie.content }}</p>
 
-            <div class="mt-5 rounded-md bg-sky-400 px-4 py-3 text-sm font-black text-slate-950">
+            <div class="mt-5 rounded-md bg-emerald-400 px-4 py-3 text-sm font-black text-slate-950">
               Đang xem {{ activeEpisode?.name || 'Tập 1' }}
             </div>
 
             <div v-if="servers.length > 1" class="mt-4 flex gap-2 overflow-x-auto pb-2">
               <button v-for="(server, index) in servers" :key="server.name" type="button"
                 class="shrink-0 rounded px-4 py-2 text-sm font-black"
-                :class="selectedServer === index ? 'bg-sky-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
+                :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
                 @click="selectServer(index)">
                 {{ server.name }}
               </button>
@@ -906,7 +906,7 @@ useHead(() => ({
               <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
                 :to="episodeLink(index)"
                 class="inline-flex items-center justify-center gap-2 rounded-md px-3 py-3 text-center text-sm font-black transition"
-                :class="selectedEpisode === index ? 'bg-sky-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                :class="selectedEpisode === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
                 <Play class="size-3 fill-current" />
                 {{ episode.name }}
               </NuxtLink>

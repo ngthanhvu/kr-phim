@@ -1,10 +1,10 @@
 # KR Phim
 
-KR Phim is a Korean movie streaming web app built with Nuxt and Tailwind CSS. It aggregates Korean-only movie data from the OPhim and NguonC APIs, normalizes the responses on the server, and presents the content with a Netflix-inspired sky-blue interface.
+KR Phim is a Korean movie streaming web app built with Nuxt and Tailwind CSS. It aggregates Korean-only movie data from the OPhim, NguonC, and KKPhim APIs, normalizes the responses on the server, and presents the content with a Netflix-inspired Nuxt-green interface.
 
 ## Features
 
-- Korean-only movie catalogue from OPhim and NguonC.
+- Korean-only movie catalogue from OPhim, NguonC, and KKPhim.
 - Netflix-style home page with a large hero carousel.
 - Floating movie preview cards on home page hover.
 - Browse page with search, type filters, and pagination.
@@ -37,6 +37,7 @@ server/
   utils/movies.ts            API adapters and normalization helpers
 API_nguonc.md                NguonC API notes
 API_ophim.md                 OPhim API notes
+API_kkphim.md                KKPhim API notes
 ```
 
 ## Setup
@@ -114,6 +115,7 @@ The Compose service is named `kr-phim` and maps host port `3002` to container po
 - `/phim?q=keyword` - Search Korean movies.
 - `/phim/[slug]?source=ophim` - Movie detail page from OPhim.
 - `/phim/[slug]?source=nguonc` - Movie detail page from NguonC.
+- `/phim/[slug]?source=kkphim` - Movie detail page from KKPhim.
 
 ## API Notes
 
@@ -121,9 +123,10 @@ The app does not call external movie APIs directly from the browser. Instead, Nu
 
 - OPhim list/detail data is handled in `server/utils/movies.ts`.
 - NguonC list/detail data is handled in `server/utils/movies.ts`.
+- KKPhim list/detail data is handled in `server/utils/movies.ts`.
 - Only Korean movies are kept in the normalized result.
 
-If one source is unavailable, the list endpoint still returns data from the other source when possible and includes source status metadata.
+If one source is unavailable, the list endpoint still returns data from the other sources when possible and includes source status metadata.
 
 ## Scripts
 

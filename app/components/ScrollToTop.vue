@@ -33,7 +33,7 @@ onBeforeUnmount(() => {
     <button
       v-if="isVisible"
       type="button"
-      class="fixed bottom-6 right-5 z-50 grid size-12 place-items-center rounded-full bg-sky-400 text-slate-950 shadow-2xl shadow-sky-950/40 ring-1 ring-white/20 transition hover:-translate-y-0.5 hover:bg-white sm:bottom-8 sm:right-8"
+      class="fixed bottom-6 right-5 z-50 grid size-12 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-2xl shadow-emerald-950/40 ring-1 ring-white/20 transition hover:-translate-y-0.5 hover:bg-white sm:bottom-8 sm:right-8"
       aria-label="Lên đầu trang"
       @click="scrollToTop"
     >

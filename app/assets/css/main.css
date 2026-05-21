@@ -3,12 +3,12 @@
 
 @theme {
   --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
-  --color-skyflix-50: #effaff;
-  --color-skyflix-100: #dff5ff;
-  --color-skyflix-300: #6ed0ff;
-  --color-skyflix-500: #0ea5e9;
-  --color-skyflix-600: #0284c7;
-  --color-skyflix-950: #07111f;
+  --color-nuxt-50: #ecfff7;
+  --color-nuxt-100: #d3ffec;
+  --color-nuxt-300: #7dffc8;
+  --color-nuxt-400: #00dc82;
+  --color-nuxt-500: #00bd71;
+  --color-nuxt-950: #061f17;
 }
 
 html {
@@ -18,8 +18,8 @@ html {
 body {
   min-width: 320px;
   background:
-    radial-gradient(circle at 15% 0%, rgba(14, 165, 233, 0.28), transparent 34rem),
-    linear-gradient(135deg, #061321 0%, #081827 46%, #020617 100%);
+    radial-gradient(circle at 15% 0%, rgba(0, 220, 130, 0.26), transparent 34rem),
+    linear-gradient(135deg, #061f17 0%, #09231b 46%, #020617 100%);
   color: #f8fbff;
 }
 
@@ -35,7 +35,7 @@ input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.55);
+  background: rgba(0, 220, 130, 0.55);
   border-radius: 999px;
 }
 
