@@ -43,6 +43,7 @@ const defaultAvatar = 'https://thumbs.dreamstime.com/b/avatar-vietnam-character-
 const navItems = [
   { label: 'Trang chủ', to: '/' },
   { label: 'Duyệt phim', to: '/phim' },
+  { label: 'Lịch chiếu', to: '/lich-chieu' },
   { label: 'Phim bộ', to: '/phim?type=series' },
   { label: 'Phim lẻ', to: '/phim?type=single' },
 ]

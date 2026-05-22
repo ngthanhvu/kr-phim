@@ -16,6 +16,7 @@ export interface NormalizedMovie {
   lang?: string
   type?: string
   rating?: number
+  updatedAt?: string
   categories: string[]
   countries: string[]
 }
@@ -182,6 +183,7 @@ export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): Normal
     lang: text(movie?.lang),
     type: text(movie?.type),
     rating: Number(movie?.tmdb?.vote_average || movie?.imdb?.vote_average) || undefined,
+    updatedAt: text(movie?.modified?.time || movie?.created),
     categories: toArray(movie?.category).map((item: any) => text(item?.name)).filter(Boolean),
     countries: toArray(movie?.country).map((item: any) => text(item?.name)).filter(Boolean),
   }
@@ -203,6 +205,7 @@ export function normalizeKkphimMovie(movie: any, pathImage = KKPHIM_IMAGE): Norm
     lang: text(movie?.lang),
     type: text(movie?.type),
     rating: Number(movie?.tmdb?.vote_average || movie?.imdb?.vote_average) || undefined,
+    updatedAt: text(movie?.modified?.time || movie?.created),
     categories: toArray(movie?.category).map((item: any) => text(item?.name)).filter(Boolean),
     countries: toArray(movie?.country).map((item: any) => text(item?.name)).filter(Boolean),
   }
@@ -226,6 +229,7 @@ function normalizeNguoncMovie(movie: any): NormalizedMovie {
     lang: text(movie?.language || movie?.lang),
     type: text(movie?.type),
     rating: Number(movie?.rating) || undefined,
+    updatedAt: text(movie?.modified || movie?.created),
     categories: toArray(movie?.category || movie?.categories).map((item: any) => text(item?.name ?? item)).filter(Boolean),
     countries: toArray(movie?.country || movie?.countries).map((item: any) => text(item?.name ?? item)).filter(Boolean),
   }
