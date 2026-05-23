@@ -19,6 +19,13 @@ export interface NormalizedMovie {
   updatedAt?: string
   categories: string[]
   countries: string[]
+  sources?: MovieSourceRef[]
+}
+
+export interface MovieSourceRef {
+  source: Source
+  slug: string
+  name?: string
 }
 
 export interface NormalizedEpisode {
@@ -30,6 +37,9 @@ export interface NormalizedEpisode {
 
 export interface NormalizedServer {
   name: string
+  source?: Source
+  sourceSlug?: string
+  sourceServerIndex?: number
   episodes: NormalizedEpisode[]
 }
 
@@ -121,6 +131,55 @@ function stripHtml(value?: string) {
     .trim()
 }
 
+function comparableText(value?: string) {
+  return text(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function compactTitleKey(value?: string) {
+  return comparableText(value)
+    .replace(/\b(vietsub|thuyet-minh|long-tieng|hd|full-hd|fhd|bluray|web-dl|webdl)\b/g, '')
+    .replace(/\b(phan|mua|season|part|ss|s)-?(\d+)\b/g, 's$2')
+    .replace(/\b(19|20)\d{2}\b/g, '')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function movieTitleAliases(movie: NormalizedMovie) {
+  const aliases = new Set<string>()
+  const values = [
+    movie.originName,
+    movie.name,
+    movie.slug,
+  ]
+
+  for (const value of values) {
+    const key = compactTitleKey(value)
+    if (!key || key.length < 3) continue
+    aliases.add(key)
+
+    const seriesLike = movie.type !== 'single' || !/^(full|hoan-tat)$/i.test(String(movie.episode || ''))
+    if (seriesLike) {
+      aliases.add(key.replace(/-(\d+)$/, '-s$1'))
+      aliases.add(key.replace(/-s(\d+)$/, '-$1'))
+    }
+  }
+
+  return [...aliases]
+}
+
+function movieSourceRef(movie: NormalizedMovie): MovieSourceRef {
+  return {
+    source: movie.source,
+    slug: movie.slug,
+    name: movie.name,
+  }
+}
+
 function isSource(value: unknown): value is Source {
   return typeof value === 'string' && SOURCE_NAMES.includes(value as Source)
 }
@@ -139,15 +198,70 @@ function interleaveMovies(groups: NormalizedMovie[][]) {
   return interleaved
 }
 
-function uniqueMovies(items: NormalizedMovie[]) {
-  const seen = new Set<string>()
+function groupMovies(items: NormalizedMovie[]) {
+  const groups = new Map<string, NormalizedMovie>()
+  const exactAliases = new Map<string, string>()
+  const looseAliases = new Map<string, string>()
+  const looseAliasCollisions = new Set<string>()
 
-  return items.filter((movie) => {
-    const key = `${movie.source}:${movie.slug || movie.name}`
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
+  function rememberLooseAlias(alias: string, groupKey: string) {
+    const existingGroupKey = looseAliases.get(alias)
+    if (!existingGroupKey) {
+      looseAliases.set(alias, groupKey)
+      return
+    }
+
+    if (existingGroupKey !== groupKey) {
+      looseAliasCollisions.add(alias)
+    }
+  }
+
+  for (const movie of items) {
+    const aliases = movieTitleAliases(movie)
+    const key = aliases[0]
+    const fallbackKey = `${movie.source}:${movie.slug || movie.name}`
+    const exactKeys = movie.year ? aliases.map((alias) => `${alias}:${movie.year}`) : []
+    const existingGroupKey = exactKeys
+      .map((alias) => exactAliases.get(alias))
+      .find(Boolean)
+      || aliases
+        .map((alias) => looseAliasCollisions.has(alias) ? undefined : looseAliases.get(alias))
+        .find(Boolean)
+    const groupKey = existingGroupKey || (movie.year && key ? `${key}:${movie.year}` : key) || fallbackKey
+    const existing = groups.get(groupKey)
+    if (!existing) {
+      groups.set(groupKey, {
+        ...movie,
+        sources: [movieSourceRef(movie)],
+      })
+      for (const alias of aliases) {
+        if (movie.year) exactAliases.set(`${alias}:${movie.year}`, groupKey)
+        rememberLooseAlias(alias, groupKey)
+      }
+      continue
+    }
+
+    if (!existing.sources?.some((source) => source.source === movie.source && source.slug === movie.slug)) {
+      existing.sources = [...(existing.sources || []), movieSourceRef(movie)]
+    }
+
+    existing.thumb ||= movie.thumb
+    existing.poster ||= movie.poster
+    existing.originName ||= movie.originName
+    existing.rating ||= movie.rating
+    existing.categories = [...new Set([...existing.categories, ...movie.categories])]
+    existing.countries = [...new Set([...existing.countries, ...movie.countries])]
+    existing.updatedAt = existing.updatedAt && movie.updatedAt
+      ? (new Date(existing.updatedAt).getTime() > new Date(movie.updatedAt).getTime() ? existing.updatedAt : movie.updatedAt)
+      : existing.updatedAt || movie.updatedAt
+
+    for (const alias of aliases) {
+      if (movie.year) exactAliases.set(`${alias}:${movie.year}`, groupKey)
+      rememberLooseAlias(alias, groupKey)
+    }
+  }
+
+  return [...groups.values()]
 }
 
 function normalizeActor(actor: any): NormalizedActor | undefined {
@@ -333,7 +447,7 @@ export async function getKoreanMovies(page: number, keyword = '', source: Source
 
   const resultGroups = results.map((result) => result.status === 'fulfilled' ? result.value.items : [])
   const items = source === 'all' ? interleaveMovies(resultGroups) : resultGroups.flat()
-  const unique = uniqueMovies(items)
+  const unique = groupMovies(items)
 
   const pagination = results.find((result) => result.status === 'fulfilled')?.value.pagination ?? {}
 
@@ -364,6 +478,8 @@ export async function getOphimDetail(slug: string): Promise<MovieDetail> {
     trailer: text(movie?.trailer_url),
     servers: toArray(data?.episodes ?? json?.episodes ?? movie?.episodes).map((server: any) => ({
       name: text(server?.server_name, 'Server'),
+      source: 'ophim',
+      sourceSlug: normalized.slug,
       episodes: toArray(server?.server_data).map((episode: any) => ({
         name: text(episode?.name, 'Tập phim'),
         slug: text(episode?.slug),
@@ -387,6 +503,8 @@ export async function getNguoncDetail(slug: string): Promise<MovieDetail> {
     trailer: text(movie?.trailer_url || movie?.trailer),
     servers: toArray(movie?.episodes ?? json?.episodes ?? json?.data?.episodes).map((server: any) => ({
       name: text(server?.server_name || server?.name, 'Server'),
+      source: 'nguonc',
+      sourceSlug: normalized.slug,
       episodes: toArray(server?.server_data ?? server?.items ?? server?.episodes).map((episode: any) => ({
         name: text(episode?.name || episode?.title, 'Tập phim'),
         slug: text(episode?.slug),
@@ -412,6 +530,8 @@ export async function getKkphimDetail(slug: string): Promise<MovieDetail> {
     trailer: text(movie?.trailer_url),
     servers: toArray(data?.episodes ?? json?.episodes ?? movie?.episodes).map((server: any) => ({
       name: text(server?.server_name, 'Server'),
+      source: 'kkphim',
+      sourceSlug: normalized.slug,
       episodes: toArray(server?.server_data).map((episode: any) => ({
         name: text(episode?.name, 'Táº­p phim'),
         slug: text(episode?.slug),
@@ -419,5 +539,61 @@ export async function getKkphimDetail(slug: string): Promise<MovieDetail> {
         linkM3u8: text(episode?.link_m3u8),
       })),
     })),
+  }
+}
+
+export function parseSourceRefs(value: unknown, fallbackSource: Source, fallbackSlug: string): MovieSourceRef[] {
+  const refs = typeof value === 'string'
+    ? value.split(',').map((item) => {
+        const [source, ...slugParts] = item.split(':')
+        const slug = slugParts.join(':')
+        return isSource(source) && slug ? { source, slug } : undefined
+      }).filter(Boolean) as MovieSourceRef[]
+    : []
+
+  if (refs.length) return refs
+  return [{ source: fallbackSource, slug: fallbackSlug }]
+}
+
+export async function getMovieDetailGroup(refs: MovieSourceRef[]): Promise<MovieDetail> {
+  const detailBySource = {
+    ophim: getOphimDetail,
+    nguonc: getNguoncDetail,
+    kkphim: getKkphimDetail,
+  }
+  const uniqueRefs = refs.filter((ref, index, allRefs) =>
+    index === allRefs.findIndex((item) => item.source === ref.source && item.slug === ref.slug),
+  )
+  const results = await Promise.allSettled(
+    uniqueRefs.map((ref) => detailBySource[ref.source](ref.slug)),
+  )
+  const details = results
+    .map((result) => result.status === 'fulfilled' ? result.value : null)
+    .filter(Boolean) as MovieDetail[]
+
+  if (!details.length) {
+    const firstRef = uniqueRefs[0]
+    return await detailBySource[firstRef.source](firstRef.slug)
+  }
+
+  const primary = details[0]
+  const sources = details.map(movieSourceRef)
+  const servers = details.flatMap((detail) =>
+    detail.servers.map((server, sourceServerIndex) => ({
+      ...server,
+      name: `${detail.source.toUpperCase()} - ${server.name}`,
+      source: detail.source,
+      sourceSlug: detail.slug,
+      sourceServerIndex,
+    })),
+  )
+
+  return {
+    ...primary,
+    sources,
+    servers,
+    actors: details.find((detail) => detail.actors.length)?.actors || primary.actors,
+    directors: details.find((detail) => detail.directors.length)?.directors || primary.directors,
+    content: details.find((detail) => detail.content && detail.content.length > primary.content.length)?.content || primary.content,
   }
 }

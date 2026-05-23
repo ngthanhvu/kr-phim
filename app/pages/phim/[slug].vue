@@ -3,6 +3,7 @@ import { ChevronDown, Heart, Play, Plus, Share2, Star } from 'lucide-vue-next'
 
 const route = useRoute()
 const requestedSource = computed(() => String(route.query.source || 'ophim'))
+const requestedSources = computed(() => typeof route.query.srcs === 'string' ? route.query.srcs : '')
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
 const activeTab = ref<'episodes' | 'actors'>('episodes')
@@ -16,29 +17,37 @@ const {
   removeFavorite,
   saveWatchLater,
 } = useMovieLibrary()
-const sourceOptions = [
-  { label: 'OPhim', value: 'ophim' },
-  { label: 'NguonC', value: 'nguonc' },
-  { label: 'KKPhim', value: 'kkphim' },
-]
 
 const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`, {
   query: computed(() => ({
     source: requestedSource.value,
+    srcs: requestedSources.value || undefined,
   })),
-  watch: [requestedSource],
+  watch: [requestedSource, requestedSources],
 })
 
 const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value])
-const activeSource = computed(() => String(movie.value?.source || route.query.source || 'ophim'))
+const activeSource = computed(() => String(activeServer.value?.source || movie.value?.source || route.query.source || 'ophim'))
+const activeSourceSlug = computed(() => String(activeServer.value?.sourceSlug || movie.value?.slug || route.params.slug))
+const activeSourceServerIndex = computed(() => Number(activeServer.value?.sourceServerIndex ?? 0))
+const sourceOptions = computed(() =>
+  (movie.value?.sources || [{ source: activeSource.value, slug: activeSourceSlug.value }])
+    .map((source: any) => ({
+      label: String(source.source || '').toUpperCase(),
+      value: source.source,
+      slug: source.slug,
+    }))
+    .filter((source: any) => source.value && source.slug),
+)
 const actors = computed(() => movie.value?.actors ?? [])
 const actorSummary = computed(() => actors.value.map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
 const firstWatchLink = computed(() => ({
-  path: `/xem/${route.params.slug}`,
+  path: `/xem/${activeSourceSlug.value}`,
   query: {
     source: activeSource.value,
-    server: selectedServer.value,
+    srcs: requestedSources.value || undefined,
+    server: activeSourceServerIndex.value,
     ep: 1,
   },
 }))
@@ -48,7 +57,7 @@ const libraryItem = computed(() => {
 
   return {
     source: activeSource.value,
-    slug: String(route.params.slug),
+    slug: activeSourceSlug.value,
     name: movie.value.name,
     originName: movie.value.originName,
     thumb: movie.value.thumb,
@@ -59,20 +68,30 @@ const libraryItem = computed(() => {
 
 function episodeLink(index: number) {
   return {
-    path: `/xem/${route.params.slug}`,
+    path: `/xem/${activeSourceSlug.value}`,
     query: {
       source: activeSource.value,
-      server: selectedServer.value,
+      srcs: requestedSources.value || undefined,
+      server: activeSourceServerIndex.value,
       ep: index + 1,
     },
   }
 }
 
 function sourceLink(source: string) {
+  const ref = sourceOptions.value.find((item: any) => item.value === source)
   return {
-    path: `/phim/${route.params.slug}`,
-    query: { source },
+    path: `/phim/${ref?.slug || route.params.slug}`,
+    query: {
+      source,
+      srcs: requestedSources.value || undefined,
+    },
   }
+}
+
+function serverLabel(server: any, index: number) {
+  const label = String(server?.name || '').replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
+  return label || `Server ${index + 1}`
 }
 
 function formatEpisodeName(name: string, index: number) {
@@ -150,6 +169,10 @@ onMounted(async () => {
 })
 
 watch(requestedSource, () => {
+  selectedServer.value = 0
+})
+
+watch(requestedSources, () => {
   selectedServer.value = 0
 })
 
@@ -278,7 +301,7 @@ useHead(() => ({
                 </div>
 
                 <div class="flex flex-col gap-3 sm:items-end">
-                  <div class="flex items-center justify-center gap-2 sm:justify-end">
+                  <div class="hidden">
                     <span class="text-xs font-black text-slate-300">Nguồn API</span>
                     <NuxtLink v-for="source in sourceOptions" :key="source.value" :to="sourceLink(source.value)"
                       class="shrink-0 rounded-md px-4 py-2 text-sm font-black transition"
@@ -338,7 +361,7 @@ useHead(() => ({
                     class="shrink-0 rounded px-4 py-2 text-sm font-black"
                     :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
                     @click="selectedServer = index">
-                    {{ server.name }}
+                    {{ serverLabel(server, index) }}
                   </button>
                 </div>
 

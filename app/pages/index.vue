@@ -65,6 +65,23 @@ function uniqueHeroMovies(items: any[]) {
   return uniqueItems
 }
 
+function movieSourcesQuery(movie: any) {
+  return (movie?.sources || [{ source: movie?.source, slug: movie?.slug }])
+    .filter((source: any) => source.source && source.slug)
+    .map((source: any) => `${source.source}:${source.slug}`)
+    .join(',')
+}
+
+function movieLink(movie: any) {
+  return {
+    path: `/phim/${movie?.slug}`,
+    query: {
+      source: movie?.source,
+      srcs: movieSourcesQuery(movie) || undefined,
+    },
+  }
+}
+
 function selectHero(index: number) {
   heroIndex.value = index
 }
@@ -102,6 +119,7 @@ watch(hero, async (currentHero) => {
     const detail = await $fetch(`/api/movies/${currentHero.slug}`, {
       query: {
         source: currentHero.source,
+        srcs: movieSourcesQuery(currentHero) || undefined,
       },
     })
     heroDetailCache.set(cacheKey, detail)
@@ -283,7 +301,7 @@ useHead({
             {{ heroDescription }}
           </p>
           <div class="mt-6 flex items-center gap-3 sm:mt-8 sm:gap-4">
-            <NuxtLink :to="{ path: `/phim/${hero.slug}`, query: { source: hero.source } }"
+            <NuxtLink :to="movieLink(hero)"
               class="grid size-12 shrink-0 place-items-center rounded-full bg-emerald-300 text-slate-950 shadow-2xl shadow-emerald-950/50 transition hover:scale-105 hover:bg-white sm:size-16"
               aria-label="Xem ngay">
               <Play class="size-6 fill-current sm:size-7" />
@@ -298,7 +316,7 @@ useHead({
               aria-label="Thêm vào thư viện">
               <BookPlus class="size-4 sm:size-5" />
             </button>
-            <NuxtLink :to="{ path: `/phim/${hero.slug}`, query: { source: hero.source } }"
+            <NuxtLink :to="movieLink(hero)"
               class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-black/28 text-white backdrop-blur transition hover:bg-white/16 sm:size-12"
               aria-label="Thông tin phim">
               <Info class="size-4 sm:size-5" />
@@ -344,7 +362,7 @@ useHead({
     </section>
 
     <div class="relative z-10 mx-auto -mt-10 max-w-390 px-4 pb-16 sm:px-6 lg:px-8 xl:px-10">
-      <div v-if="sourceStatus.length" class="mb-8 hidden flex-wrap gap-2 text-xs text-slate-300 sm:flex">
+      <div v-if="sourceStatus.length" class="hidden">
         <span v-for="source in sourceStatus" :key="source.name"
           class="rounded-full border border-white/10 bg-white/8 px-3 py-1">
           {{ source.name }}: {{ source.ok ? 'sẵn sàng' : 'đang bị chặn' }}
@@ -396,7 +414,7 @@ useHead({
         <div v-for="item in 12" :key="item" class="aspect-2/3 animate-pulse rounded-md bg-white/10" />
       </div>
 
-      <section v-for="(row, index) in apiRows" v-show="row.items.length"
+      <section v-for="(row, index) in rows" v-show="row.items.length"
         :id="index === 0 ? 'latest' : index === 1 ? 'series' : 'movies'" :key="row.title" class="mb-12">
         <div class="mb-4 flex items-end justify-between gap-4">
           <h2 class="text-2xl font-extrabold text-white">{{ row.title }}</h2>

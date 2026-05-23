@@ -16,6 +16,7 @@ const props = defineProps<{
     lang?: string
     categories?: string[]
     countries?: string[]
+    sources?: { source: string, slug: string }[]
   }
 }>()
 
@@ -23,9 +24,19 @@ const isPreviewVisible = ref(false)
 const previewStyle = ref<Record<string, string>>({})
 let hideTimer: ReturnType<typeof setTimeout> | undefined
 
+const movieSourcesQuery = computed(() =>
+  (props.movie.sources || [{ source: props.movie.source, slug: props.movie.slug }])
+    .filter((source) => source.source && source.slug)
+    .map((source) => `${source.source}:${source.slug}`)
+    .join(','),
+)
+
 const movieLink = computed(() => ({
   path: `/phim/${props.movie.slug}`,
-  query: { source: props.movie.source },
+  query: {
+    source: props.movie.source,
+    srcs: movieSourcesQuery.value || undefined,
+  },
 }))
 
 function showPreview(event: MouseEvent) {
@@ -75,8 +86,9 @@ onBeforeUnmount(() => {
         <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>
         <p class="mt-1 truncate text-xs text-emerald-100">{{ movie.episode || movie.year || movie.quality }}</p>
       </div>
-      <span class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
-        {{ movie.source }}
+      <span v-if="movie.sources?.length && movie.sources.length > 1"
+        class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
+        {{ movie.sources.length }} server
       </span>
     </div>
   </NuxtLink>

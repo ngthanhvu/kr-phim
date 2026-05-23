@@ -4,6 +4,7 @@ import {
   FastForward,
   Heart,
   Loader2,
+  Menu,
   Maximize,
   Pause,
   PictureInPicture2,
@@ -22,6 +23,7 @@ const route = useRoute()
 const selectedServer = ref(Math.max(Number(route.query.server || 0), 0))
 const selectedEpisode = ref(Math.max(Number(route.query.ep || 1) - 1, 0))
 const hasStarted = ref(false)
+const hasManualPlayerMode = ref(false)
 const isFavoriteMovie = ref(false)
 const actionMessage = ref('')
 const actionBusy = ref(false)
@@ -41,11 +43,24 @@ const qualityLevels = ref<{ label: string, level: number }[]>([])
 const isSettingsOpen = ref(false)
 const hlsErrorMessage = ref('')
 const controlsVisible = ref(true)
+const isHlsFullscreen = ref(false)
+const edgeProgressVisible = ref(false)
+const gestureHint = ref('')
+const isHoldSpeedActive = ref(false)
 const pendingResumeSeconds = ref(0)
 let controlsHideTimer: ReturnType<typeof setTimeout> | undefined
+let edgeProgressTimer: ReturnType<typeof setTimeout> | undefined
+let singleTapTimer: ReturnType<typeof setTimeout> | undefined
+let holdSpeedTimer: ReturnType<typeof setTimeout> | undefined
+let hlsFallbackTimer: ReturnType<typeof setTimeout> | undefined
 let touchStartX = 0
 let touchStartY = 0
 let touchStartAt = 0
+let lastTapAt = 0
+let lastTapX = 0
+let holdRestoreRate = 1
+let ignoreNextTap = false
+let hlsFatalRetryCount = 0
 let hlsPlayer: Hls | undefined
 let progressTimer: ReturnType<typeof setInterval> | undefined
 let lastSavedProgress = 0
@@ -61,10 +76,12 @@ const {
   saveWatchLater,
 } = useMovieLibrary()
 
-const { data: movie, pending, error } = await useFetch(`/api/movies/${route.params.slug}`, {
-  query: {
+const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`, {
+  query: computed(() => ({
     source: route.query.source,
-  },
+    srcs: route.query.srcs,
+  })),
+  watch: [() => route.query.source, () => route.query.srcs],
 })
 
 const servers = computed(() => movie.value?.servers ?? [])
@@ -82,6 +99,7 @@ const progressPercent = computed(() => {
   if (!durationSeconds.value || !progressSeconds.value) return 0
   return Math.min(Math.max((progressSeconds.value / durationSeconds.value) * 100, 0), 100)
 })
+const shouldShowHlsControls = computed(() => (controlsVisible.value || !isVideoPlaying.value) && !(isHlsFullscreen.value && edgeProgressVisible.value && isVideoPlaying.value))
 const skipIntroSeconds = 85
 const skipOutroSeconds = computed(() => Math.max((durationSeconds.value || 0) - 85, 0))
 const libraryItem = computed(() => {
@@ -98,23 +116,65 @@ const libraryItem = computed(() => {
   }
 })
 
+function formatEpisodeName(name?: string, index = 0) {
+  const value = String(name || index + 1).trim()
+  if (!value) return `Tập ${index + 1}`
+  if (/^(tập|tap|episode|ep)\b/i.test(value)) return value
+  return `Tập ${value}`
+}
+
+function serverLabel(server: any, index: number) {
+  const source = String(server?.source || '').toUpperCase()
+  const name = String(server?.name || '').replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
+  const sameSourceServers = servers.value.filter((item: any) => item.source === server?.source)
+  const sourceServerNumber = sameSourceServers.findIndex((item: any) => item === server) + 1
+
+  if (source && sameSourceServers.length > 1) return `${source} #${sourceServerNumber || index + 1}`
+  if (source) return source
+  return name || `Server ${index + 1}`
+}
+
 function episodeLink(index: number) {
   return {
     path: `/xem/${route.params.slug}`,
     query: {
       source: route.query.source,
+      srcs: route.query.srcs,
       server: selectedServer.value,
       ep: index + 1,
     },
   }
 }
 
-function selectServer(index: number) {
+function episodeIndexForServer(serverIndex: number, episodeIndex = selectedEpisode.value) {
+  const episodeCount = servers.value[serverIndex]?.episodes?.length || 0
+  if (!episodeCount) return 0
+  return Math.min(Math.max(episodeIndex, 0), episodeCount - 1)
+}
+
+async function selectServer(index: number) {
+  if (index === selectedServer.value) return
+  const shouldAutoplay = hasStarted.value
+  const nextEpisodeIndex = episodeIndexForServer(index)
   selectedServer.value = index
-  selectedEpisode.value = 0
+  selectedEpisode.value = nextEpisodeIndex
   hasStarted.value = false
+  hasManualPlayerMode.value = false
   resetProgressTimer()
   destroyHlsPlayer()
+  choosePreferredPlayerMode(true)
+  await navigateTo({
+    path: `/xem/${route.params.slug}`,
+    query: {
+      ...route.query,
+      server: index,
+      ep: nextEpisodeIndex + 1,
+    },
+  }, { replace: true })
+
+  if (shouldAutoplay) {
+    nextTick(() => startPlayer())
+  }
 }
 
 async function startPlayer() {
@@ -131,11 +191,17 @@ async function startPlayer() {
 function selectPlayerMode(mode: 'embed' | 'hls') {
   if (mode === playerMode.value) return
 
+  hasManualPlayerMode.value = true
   playerMode.value = mode
   isSettingsOpen.value = false
   hasStarted.value = false
   resetProgressTimer()
   destroyHlsPlayer()
+}
+
+function choosePreferredPlayerMode(force = false) {
+  if (!force && hasManualPlayerMode.value) return
+  playerMode.value = canUseHls.value ? 'hls' : 'embed'
 }
 
 function parseDurationSeconds(value: string) {
@@ -158,6 +224,7 @@ function resetProgressTimer() {
   hlsErrorMessage.value = ''
   pendingResumeSeconds.value = 0
   lastSavedProgress = 0
+  clearHlsFallbackTimer()
   stopProgressTimer()
 }
 
@@ -233,6 +300,54 @@ function showControlsTemporarily() {
   }, 2600)
 }
 
+function showFullscreenProgressOnly() {
+  if (!isHlsFullscreen.value) return
+  edgeProgressVisible.value = true
+  controlsVisible.value = false
+  if (edgeProgressTimer) clearTimeout(edgeProgressTimer)
+  edgeProgressTimer = setTimeout(() => {
+    edgeProgressVisible.value = false
+  }, 1400)
+}
+
+function clearHlsFallbackTimer() {
+  if (!hlsFallbackTimer) return
+  clearTimeout(hlsFallbackTimer)
+  hlsFallbackTimer = undefined
+}
+
+function scheduleHlsFallback(message = 'HLS phản hồi chậm, đang chuyển sang chế độ Nhúng...') {
+  if (!canUseEmbed.value) return
+  clearHlsFallbackTimer()
+  hlsFallbackTimer = setTimeout(() => {
+    fallbackToEmbed(message)
+  }, 12000)
+}
+
+function fallbackToEmbed(message = 'HLS đang lỗi, đã chuyển sang chế độ Nhúng.') {
+  clearHlsFallbackTimer()
+  if (!canUseEmbed.value) {
+    hlsErrorMessage.value = 'HLS đang lỗi và phim này chưa có link Nhúng ở server này.'
+    isVideoBuffering.value = false
+    return
+  }
+
+  hlsErrorMessage.value = ''
+  isVideoBuffering.value = false
+  isVideoPlaying.value = false
+  isSettingsOpen.value = false
+  playerMode.value = 'embed'
+  destroyHlsPlayer()
+  flashActionMessage(message)
+}
+
+function flashGestureHint(message: string) {
+  gestureHint.value = message
+  window.setTimeout(() => {
+    if (gestureHint.value === message) gestureHint.value = ''
+  }, 650)
+}
+
 function formatPlayerTime(seconds = 0) {
   const totalSeconds = Math.max(Math.floor(seconds), 0)
   const hours = Math.floor(totalSeconds / 3600)
@@ -250,6 +365,7 @@ async function setupHlsPlayer(autoplay = false) {
   if (!import.meta.client || !videoRef.value || !hlsPlayerUrl.value) return
 
   destroyHlsPlayer()
+  hlsFatalRetryCount = 0
 
   const video = videoRef.value
   isVideoBuffering.value = true
@@ -260,8 +376,14 @@ async function setupHlsPlayer(autoplay = false) {
 
   if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = hlsPlayerUrl.value
+    scheduleHlsFallback()
   } else {
     const { default: HlsPlayer } = await import('hls.js')
+
+    if (!HlsPlayer.isSupported()) {
+      fallbackToEmbed('Trình duyệt chưa hỗ trợ HLS, đã chuyển sang chế độ Nhúng.')
+      return
+    }
 
     if (!HlsPlayer.isSupported()) {
       hlsErrorMessage.value = 'Trình duyệt chưa hỗ trợ HLS, bạn dùng chế độ Nhúng nhé.'
@@ -273,6 +395,7 @@ async function setupHlsPlayer(autoplay = false) {
       lowLatencyMode: true,
     })
     hlsPlayer.on(HlsPlayer.Events.MANIFEST_PARSED, () => {
+      clearHlsFallbackTimer()
       qualityLevels.value = hlsPlayer?.levels
         .map((level, index) => ({
           label: level.height ? `${level.height}p` : `${Math.round((level.bitrate || 0) / 1000)}kbps`,
@@ -284,6 +407,12 @@ async function setupHlsPlayer(autoplay = false) {
     })
     hlsPlayer.on(HlsPlayer.Events.ERROR, (_event, data) => {
       if (!data.fatal) return
+
+      hlsFatalRetryCount += 1
+      if (hlsFatalRetryCount >= 2) {
+        fallbackToEmbed('HLS tải không ổn định, đã chuyển sang chế độ Nhúng.')
+        return
+      }
 
       if (data.type === HlsPlayer.ErrorTypes.NETWORK_ERROR) {
         hlsErrorMessage.value = 'Mạng đang chập chờn, đang thử tải lại...'
@@ -297,6 +426,7 @@ async function setupHlsPlayer(autoplay = false) {
     })
     hlsPlayer.loadSource(hlsPlayerUrl.value)
     hlsPlayer.attachMedia(video)
+    scheduleHlsFallback()
   }
 
   if (autoplay) {
@@ -304,11 +434,14 @@ async function setupHlsPlayer(autoplay = false) {
       await video.play()
     } catch {
       isVideoPlaying.value = false
+      fallbackToEmbed('HLS chưa phát được, đã chuyển sang chế độ Nhúng.')
     }
   }
 }
 
 function destroyHlsPlayer() {
+  clearHlsFallbackTimer()
+
   if (hlsPlayer) {
     hlsPlayer.destroy()
     hlsPlayer = undefined
@@ -334,9 +467,29 @@ function updateVideoTime() {
 }
 
 function updateVideoMetadata() {
+  clearHlsFallbackTimer()
   updateVideoTime()
   applyResumeProgress()
   isVideoBuffering.value = false
+}
+
+function handleVideoCanPlay() {
+  clearHlsFallbackTimer()
+  isVideoBuffering.value = false
+}
+
+function handleVideoWaiting() {
+  isVideoBuffering.value = true
+  scheduleHlsFallback('HLS bị đứng quá lâu, đã chuyển sang chế độ Nhúng.')
+}
+
+function handleVideoPlaying() {
+  clearHlsFallbackTimer()
+  isVideoBuffering.value = false
+}
+
+function handleVideoError() {
+  fallbackToEmbed('HLS phát lỗi, đã chuyển sang chế độ Nhúng.')
 }
 
 async function loadResumeProgress() {
@@ -380,7 +533,11 @@ function seekBy(seconds: number) {
   const nextTime = Math.min(Math.max((videoRef.value.currentTime || 0) + seconds, 0), durationSeconds.value || Number.MAX_SAFE_INTEGER)
   videoRef.value.currentTime = nextTime
   updateVideoTime()
-  showControlsTemporarily()
+  if (isHlsFullscreen.value) {
+    showFullscreenProgressOnly()
+  } else {
+    showControlsTemporarily()
+  }
   saveWatchHistory()
 }
 
@@ -389,6 +546,7 @@ function seekHlsPlayer(event: Event) {
   const value = Number((event.target as HTMLInputElement).value)
   videoRef.value.currentTime = value
   updateVideoTime()
+  if (isHlsFullscreen.value) showFullscreenProgressOnly()
   saveWatchHistory()
 }
 
@@ -421,14 +579,52 @@ function changeQuality(event: Event) {
   showControlsTemporarily()
 }
 
-function toggleFullscreen() {
-  const target = videoRef.value?.parentElement
-  if (!target) return
-  if (document.fullscreenElement) {
-    document.exitFullscreen()
-  } else {
-    target.requestFullscreen()
+async function toggleFullscreen() {
+  if (!import.meta.client || !videoRef.value) return
+
+  const video = videoRef.value as HTMLVideoElement & {
+    webkitEnterFullscreen?: () => void
+    webkitRequestFullscreen?: () => Promise<void> | void
   }
+  const target = (playerShellRef.value || video.parentElement || video) as HTMLElement & {
+    webkitRequestFullscreen?: () => Promise<void> | void
+  }
+  const documentWithWebkit = document as Document & {
+    webkitFullscreenElement?: Element | null
+    webkitExitFullscreen?: () => Promise<void> | void
+  }
+
+  try {
+    if (document.fullscreenElement || documentWithWebkit.webkitFullscreenElement) {
+      if (document.exitFullscreen) await document.exitFullscreen()
+      else await documentWithWebkit.webkitExitFullscreen?.()
+      return
+    }
+
+    if (target.requestFullscreen) {
+      await target.requestFullscreen()
+      return
+    }
+
+    if (target.webkitRequestFullscreen) {
+      await target.webkitRequestFullscreen()
+      return
+    }
+
+    video.webkitEnterFullscreen?.()
+  } catch {
+    video.webkitEnterFullscreen?.()
+  }
+}
+
+function updateFullscreenState() {
+  if (!import.meta.client) return
+  const documentWithWebkit = document as Document & {
+    webkitFullscreenElement?: Element | null
+  }
+  const fullscreenElement = document.fullscreenElement || documentWithWebkit.webkitFullscreenElement
+  isHlsFullscreen.value = Boolean(fullscreenElement && playerShellRef.value?.contains(fullscreenElement))
+  if (!isHlsFullscreen.value) edgeProgressVisible.value = false
 }
 
 async function togglePictureInPicture() {
@@ -472,6 +668,71 @@ function handleVideoEnded() {
   playNextEpisode(true)
 }
 
+function seekByTapPosition(clientX: number) {
+  const rect = playerShellRef.value?.getBoundingClientRect()
+  const centerX = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
+  const seconds = clientX < centerX ? -10 : 10
+  seekBy(seconds)
+  flashGestureHint(seconds > 0 ? '+10s' : '-10s')
+}
+
+function handlePlayerPointerDown() {
+  if (!videoRef.value) return
+  if (holdSpeedTimer) clearTimeout(holdSpeedTimer)
+  holdSpeedTimer = setTimeout(() => {
+    if (!videoRef.value) return
+    holdRestoreRate = videoRef.value.playbackRate || playbackRate.value || 1
+    videoRef.value.playbackRate = 2
+    isHoldSpeedActive.value = true
+    ignoreNextTap = true
+    flashGestureHint('2x')
+    if (isHlsFullscreen.value) showFullscreenProgressOnly()
+  }, 420)
+}
+
+function stopHoldSpeed() {
+  if (holdSpeedTimer) {
+    clearTimeout(holdSpeedTimer)
+    holdSpeedTimer = undefined
+  }
+
+  if (!isHoldSpeedActive.value) return
+  if (videoRef.value) videoRef.value.playbackRate = playbackRate.value || holdRestoreRate || 1
+  isHoldSpeedActive.value = false
+  window.setTimeout(() => {
+    ignoreNextTap = false
+  }, 80)
+}
+
+function handlePlayerTap(event: MouseEvent) {
+  if (ignoreNextTap) {
+    ignoreNextTap = false
+    return
+  }
+
+  const now = Date.now()
+  const tapX = event.clientX
+  const isDoubleTap = now - lastTapAt < 280 && Math.abs(tapX - lastTapX) < 90
+
+  if (isDoubleTap) {
+    if (singleTapTimer) {
+      clearTimeout(singleTapTimer)
+      singleTapTimer = undefined
+    }
+    lastTapAt = 0
+    seekByTapPosition(tapX)
+    return
+  }
+
+  lastTapAt = now
+  lastTapX = tapX
+  if (singleTapTimer) clearTimeout(singleTapTimer)
+  singleTapTimer = setTimeout(() => {
+    toggleHlsPlayback()
+    singleTapTimer = undefined
+  }, 260)
+}
+
 function handleTouchStart(event: TouchEvent) {
   const touch = event.touches[0]
   touchStartX = touch.clientX
@@ -488,6 +749,7 @@ function handleTouchEnd(event: TouchEvent) {
 
   if (Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY) && elapsed < 700) {
     seekBy(deltaX > 0 ? 10 : -10)
+    flashGestureHint(deltaX > 0 ? '+10s' : '-10s')
     return
   }
 
@@ -583,32 +845,43 @@ onMounted(async () => {
   await refreshFavoriteState()
   document.addEventListener('visibilitychange', handleVisibilityChange)
   document.addEventListener('keydown', handleKeyboardShortcut)
+  document.addEventListener('fullscreenchange', updateFullscreenState)
+  document.addEventListener('webkitfullscreenchange', updateFullscreenState)
 })
 
 onBeforeUnmount(() => {
   if (hasStarted.value) saveWatchHistory()
   stopProgressTimer()
   if (controlsHideTimer) clearTimeout(controlsHideTimer)
+  if (edgeProgressTimer) clearTimeout(edgeProgressTimer)
+  if (singleTapTimer) clearTimeout(singleTapTimer)
+  if (holdSpeedTimer) clearTimeout(holdSpeedTimer)
+  clearHlsFallbackTimer()
   destroyHlsPlayer()
   if (import.meta.client) document.removeEventListener('visibilitychange', handleVisibilityChange)
   if (import.meta.client) document.removeEventListener('keydown', handleKeyboardShortcut)
+  if (import.meta.client) document.removeEventListener('fullscreenchange', updateFullscreenState)
+  if (import.meta.client) document.removeEventListener('webkitfullscreenchange', updateFullscreenState)
 })
 
 watch(() => route.query, () => {
   selectedServer.value = Math.max(Number(route.query.server || 0), 0)
   selectedEpisode.value = Math.max(Number(route.query.ep || 1) - 1, 0)
   hasStarted.value = false
+  hasManualPlayerMode.value = false
   resetProgressTimer()
   destroyHlsPlayer()
+  choosePreferredPlayerMode(true)
 })
 
 watch([movie, activeEpisode], () => {
   if (hasStarted.value) saveWatchHistory()
+  hasManualPlayerMode.value = false
+  choosePreferredPlayerMode(true)
 })
 
 watch([canUseEmbed, canUseHls], () => {
-  if (!canUseHls.value && playerMode.value === 'hls') playerMode.value = 'embed'
-  if (!canUseEmbed.value && canUseHls.value) playerMode.value = 'hls'
+  choosePreferredPlayerMode()
 }, {
   immediate: true,
 })
@@ -645,13 +918,14 @@ useHead(() => ({
 
     <template v-else>
       <section class="mx-auto max-w-390 px-3 pb-16 pt-24 sm:px-6 sm:pt-36 lg:px-8 lg:pt-28 xl:px-10">
-        <NuxtLink :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source } }"
+        <NuxtLink :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs } }"
           class="text-sm font-bold text-slate-100 hover:text-emerald-200">
           ‹ Chi tiết phim
         </NuxtLink>
 
         <div class="mt-4 overflow-hidden rounded-md border border-white/10 bg-black shadow-2xl shadow-black/40">
-          <div class="grid grid-cols-2 gap-2 border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
+          <div class="border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
+            <div class="grid grid-cols-2 gap-2">
             <button type="button"
               class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
               :class="playerMode === 'embed' ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
@@ -664,6 +938,16 @@ useHead(() => ({
               :disabled="!canUseHls" @click="selectPlayerMode('hls')">
               HLS
             </button>
+            </div>
+
+            <div v-if="servers.length > 1" class="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
+              <button v-for="(server, index) in servers" :key="`${server.name}-${index}-mobile-player`" type="button"
+                class="shrink-0 rounded-md px-3 py-2 text-xs font-black transition"
+                :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
+                @click="selectServer(index)">
+                {{ serverLabel(server, index) }}
+              </button>
+            </div>
           </div>
 
           <div class="relative aspect-video bg-slate-950">
@@ -681,6 +965,18 @@ useHead(() => ({
               </button>
             </div>
 
+            <div v-if="servers.length > 1"
+              class="absolute right-3 top-3 z-20 hidden max-w-[48%] rounded-md border border-white/10 bg-black/65 p-1 text-xs font-black text-white backdrop-blur sm:flex">
+              <div class="no-scrollbar flex max-w-full gap-1 overflow-x-auto">
+                <button v-for="(server, index) in servers" :key="`${server.name}-${index}-player`" type="button"
+                  class="shrink-0 rounded px-3 py-1.5 transition"
+                  :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+                  @click="selectServer(index)">
+                  {{ serverLabel(server, index) }}
+                </button>
+              </div>
+            </div>
+
             <iframe v-if="playerMode === 'embed' && playerUrl && hasStarted" :src="playerUrl"
               :title="`${movie.name} - ${activeEpisode?.name || 'Tập phim'}`" class="h-full w-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -691,9 +987,10 @@ useHead(() => ({
               @touchend.passive="handleTouchEnd">
               <video ref="videoRef" class="h-full w-full bg-black object-contain" playsinline
                 @loadedmetadata="updateVideoMetadata" @timeupdate="updateVideoTime"
-                @canplay="isVideoBuffering = false" @waiting="isVideoBuffering = true"
-                @playing="isVideoBuffering = false" @play="isVideoPlaying = true; showControlsTemporarily()"
-                @pause="isVideoPlaying = false; controlsVisible = true" @ended="handleVideoEnded" />
+                @canplay="handleVideoCanPlay" @waiting="handleVideoWaiting"
+                @playing="handleVideoPlaying" @play="isVideoPlaying = true; showControlsTemporarily()"
+                @pause="isVideoPlaying = false; controlsVisible = true" @ended="handleVideoEnded"
+                @error="handleVideoError" />
 
               <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/35" />
 
@@ -722,7 +1019,9 @@ useHead(() => ({
               <button type="button"
                 class="absolute inset-0 grid cursor-pointer place-items-center text-white transition"
                 :class="isVideoPlaying && !controlsVisible ? 'opacity-0' : 'opacity-100'"
-                :aria-label="isVideoPlaying ? 'Tạm dừng' : 'Phát phim'" @click="toggleHlsPlayback">
+                :aria-label="isVideoPlaying ? 'Tạm dừng' : 'Phát phim'" @click="handlePlayerTap"
+                @pointerdown="handlePlayerPointerDown" @pointerup="stopHoldSpeed" @pointercancel="stopHoldSpeed"
+                @pointerleave="stopHoldSpeed" @contextmenu.prevent>
                 <span
                   class="grid size-12 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-950/30 sm:size-16">
                   <Pause v-if="isVideoPlaying" class="size-5 fill-current sm:size-7" />
@@ -730,48 +1029,57 @@ useHead(() => ({
                 </span>
               </button>
 
-              <div class="absolute inset-x-0 bottom-0 z-10 px-3 pb-3 text-white transition sm:px-4 sm:pb-4"
-                :class="controlsVisible || !isVideoPlaying ? 'opacity-100' : 'pointer-events-none opacity-0'">
-                <input class="kr-hls-range w-full cursor-pointer" type="range" min="0" :max="durationSeconds || 0"
+              <div v-if="gestureHint || isHoldSpeedActive"
+                class="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/55 px-4 py-2 text-sm font-black text-white shadow-2xl backdrop-blur">
+                {{ isHoldSpeedActive ? '2x' : gestureHint }}
+              </div>
+
+              <div class="kr-hls-edge-progress"
+                :class="edgeProgressVisible || (isHlsFullscreen && !shouldShowHlsControls) ? 'opacity-100' : 'opacity-0'" />
+
+              <div class="kr-hls-controls text-white transition"
+                :class="shouldShowHlsControls ? 'opacity-100' : 'pointer-events-none opacity-0'">
+                <div class="kr-hls-time-row">
+                  <span>{{ formatPlayerTime(videoCurrentTime) }}</span>
+                  <span>{{ formatPlayerTime(durationSeconds) }}</span>
+                </div>
+                <input class="kr-hls-range" type="range" min="0" :max="durationSeconds || 0"
                   :value="videoCurrentTime" step="1" @input="seekHlsPlayer">
-                <div class="mt-2 flex items-center justify-between gap-2 sm:mt-3 sm:gap-3">
-                  <div class="flex min-w-0 items-center gap-1.5 sm:gap-3">
+                <div class="kr-hls-actions">
+                  <div class="kr-hls-actions-left">
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                      class="kr-hls-control-button is-primary"
                       :aria-label="isVideoPlaying ? 'Tạm dừng' : 'Phát phim'" @click="toggleHlsPlayback">
-                      <Pause v-if="isVideoPlaying" class="size-3.5 fill-current sm:size-4" />
-                      <Play v-else class="size-3.5 fill-current sm:size-4" />
+                      <Pause v-if="isVideoPlaying" class="fill-current" />
+                      <Play v-else class="fill-current" />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                      class="kr-hls-control-button"
                       aria-label="Lùi 10 giây" @click="seekBy(-10)">
-                      <Rewind class="size-3.5 sm:size-4" />
+                      <Rewind />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                      class="kr-hls-control-button"
                       aria-label="Tua 10 giây" @click="seekBy(10)">
-                      <FastForward class="size-3.5 sm:size-4" />
+                      <FastForward />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                      class="kr-hls-control-button"
                       :aria-label="isVideoMuted ? 'Bật âm' : 'Tắt âm'" @click="toggleMute">
-                      <VolumeX v-if="isVideoMuted" class="size-3.5 sm:size-4" />
-                      <Volume2 v-else class="size-3.5 sm:size-4" />
+                      <VolumeX v-if="isVideoMuted" />
+                      <Volume2 v-else />
                     </button>
-                    <input class="kr-volume-range hidden w-20 cursor-pointer sm:block" type="range" min="0" max="1"
+                    <input class="kr-volume-range hidden sm:block" type="range" min="0" max="1"
                       step="0.05" :value="videoVolume" @input="changeVolume">
-                    <span class="shrink-0 text-[11px] font-black text-slate-100 sm:text-xs">
-                      {{ formatPlayerTime(videoCurrentTime) }} / {{ formatPlayerTime(durationSeconds) }}
-                    </span>
                   </div>
 
-                  <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <div class="kr-hls-actions-right">
                     <div class="relative">
                       <button type="button"
-                        class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                        class="kr-hls-control-button"
                         :class="isSettingsOpen ? 'bg-emerald-400 text-slate-950' : ''" aria-label="Cài đặt player"
                         @click="isSettingsOpen = !isSettingsOpen; controlsVisible = true">
-                        <Settings class="size-3.5 sm:size-4" />
+                        <Settings />
                       </button>
 
                       <div v-if="isSettingsOpen"
@@ -804,19 +1112,19 @@ useHead(() => ({
                       </div>
                     </div>
                     <button type="button"
-                      class="hidden size-9 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:grid"
+                      class="kr-hls-control-button kr-hls-desktop-button"
                       aria-label="Picture in Picture" @click="togglePictureInPicture">
-                      <PictureInPicture2 class="size-4" />
+                      <PictureInPicture2 />
                     </button>
                     <button v-if="hasNextEpisode" type="button"
-                      class="hidden size-9 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:grid"
+                      class="kr-hls-control-button kr-hls-desktop-button"
                       aria-label="Tập tiếp theo" @click="playNextEpisode(true)">
-                      <SkipForward class="size-4" />
+                      <SkipForward />
                     </button>
                     <button type="button"
-                      class="grid size-8 cursor-pointer place-items-center rounded-full bg-white/12 text-white transition hover:bg-emerald-400 hover:text-slate-950 sm:size-9"
+                      class="kr-hls-control-button"
                       aria-label="Toàn màn hình" @click="toggleFullscreen">
-                      <Maximize class="size-3.5 sm:size-4" />
+                      <Maximize />
                     </button>
                   </div>
                 </div>
@@ -889,27 +1197,78 @@ useHead(() => ({
             <p v-if="movie.content" class="mt-4 text-sm leading-7 text-slate-200">{{ movie.content }}</p>
 
             <div class="mt-5 rounded-md bg-emerald-400 px-4 py-3 text-sm font-black text-slate-950">
-              Đang xem {{ activeEpisode?.name || 'Tập 1' }}
+              Đang xem {{ formatEpisodeName(activeEpisode?.name, selectedEpisode) }}
             </div>
 
-            <div v-if="servers.length > 1" class="mt-4 flex gap-2 overflow-x-auto pb-2">
-              <button v-for="(server, index) in servers" :key="server.name" type="button"
-                class="shrink-0 rounded px-4 py-2 text-sm font-black"
-                :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
-                @click="selectServer(index)">
-                {{ server.name }}
-              </button>
-            </div>
+            <div class="mt-6 border-t border-white/10 pt-4">
+              <div class="hidden">
+                <div>
+                  <p class="text-xs font-black uppercase tracking-wide text-emerald-200">Chá»n server</p>
+                  <h2 class="mt-1 text-[1.08rem] font-black sm:text-xl">Danh sÃ¡ch táº­p</h2>
+                </div>
+                <p class="text-xs font-bold text-slate-400">
+                  {{ serverLabel(activeServer, selectedServer) }}
+                </p>
+              </div>
 
-            <div v-if="activeServer?.episodes?.length"
-              class="mt-3 grid grid-cols-3 gap-2 rounded-md border border-white/10 p-3 sm:grid-cols-4 lg:grid-cols-6">
-              <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
-                :to="episodeLink(index)"
-                class="inline-flex items-center justify-center gap-2 rounded-md px-3 py-3 text-center text-sm font-black transition"
-                :class="selectedEpisode === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
-                <Play class="size-3 fill-current" />
-                {{ episode.name }}
-              </NuxtLink>
+              <div v-if="servers.length > 1" class="hidden">
+                <button v-for="(server, index) in servers" :key="`${server.name}-${index}-episode-server`" type="button"
+                  class="shrink-0 rounded px-4 py-2 text-sm font-black"
+                  :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
+                  @click="selectServer(index)">
+                  {{ serverLabel(server, index) }}
+                </button>
+              </div>
+
+              <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div class="inline-flex shrink-0 items-center gap-3 text-white">
+                  <Menu class="size-5 text-emerald-300" />
+                  <button type="button"
+                    class="inline-flex items-center gap-2 border-r border-white/15 pr-5 text-xl font-black">
+                    Phần 1
+                    <span class="text-xs text-slate-400">v</span>
+                  </button>
+                </div>
+
+                <div v-if="servers.length > 1"
+                  class="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 lg:pb-0">
+                  <button v-for="(server, index) in servers" :key="`${server.name}-${index}-episode-server-pill`"
+                    type="button"
+                    class="inline-flex shrink-0 items-center gap-2 rounded-md border px-4 py-2 text-sm font-black transition"
+                    :class="selectedServer === index ? 'border-white/35 bg-white/12 text-white' : 'border-transparent bg-transparent text-slate-300 hover:bg-white/8 hover:text-white'"
+                    @click="selectServer(index)">
+                    <span class="size-3 rounded-sm border border-current" aria-hidden="true" />
+                    {{ serverLabel(server, index) }}
+                  </button>
+                </div>
+
+                <div v-else class="text-sm font-bold text-slate-300">
+                  {{ serverLabel(activeServer, selectedServer) }}
+                </div>
+
+                <div class="hidden shrink-0 items-center gap-2 text-xs font-bold text-slate-300 lg:flex">
+                  <span>Rút gọn</span>
+                  <span
+                    class="relative inline-flex h-5 w-9 items-center rounded-full bg-emerald-400/18 ring-1 ring-emerald-300/35">
+                    <span class="ml-auto mr-1 size-3 rounded-full bg-emerald-300" />
+                  </span>
+                </div>
+              </div>
+
+              <div v-if="activeServer?.episodes?.length"
+                class="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+                <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
+                  :to="episodeLink(index)"
+                  class="inline-flex h-14 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-black transition"
+                  :class="selectedEpisode === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                  <Play class="size-3 fill-current" />
+                  {{ formatEpisodeName(episode.name, index) }}
+                </NuxtLink>
+              </div>
+
+              <p v-else class="mt-4 rounded-md border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
+                ChÆ°a cÃ³ táº­p xem tá»« server nÃ y.
+              </p>
             </div>
           </section>
 
@@ -931,38 +1290,190 @@ useHead(() => ({
 </template>
 
 <style scoped>
+.kr-hls-controls {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 10;
+  padding: 8px 14px 14px;
+  background: linear-gradient(180deg, transparent, rgb(0 0 0 / 0.78) 22%, rgb(0 0 0 / 0.92));
+}
+
+.kr-hls-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.8);
+}
+
+.kr-hls-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.kr-hls-actions-left,
+.kr-hls-actions-right {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+}
+
+.kr-hls-actions-right {
+  flex-shrink: 0;
+}
+
+.kr-hls-control-button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  cursor: pointer;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: white;
+  transition: color 0.16s ease, transform 0.16s ease;
+}
+
+.kr-hls-control-button:hover {
+  color: rgb(52 211 153);
+  transform: scale(1.08);
+}
+
+.kr-hls-control-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.kr-hls-control-button.is-primary {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  border: 2px solid white;
+}
+
+.kr-hls-control-button.is-primary svg {
+  width: 17px;
+  height: 17px;
+}
+
+.kr-hls-desktop-button {
+  display: grid;
+}
+
 .kr-hls-range,
 .kr-volume-range {
-  height: 6px;
+  display: block;
+  width: 100%;
+  height: 4px;
   appearance: none;
   border-radius: 999px;
   background:
-    linear-gradient(90deg, rgb(56 189 248) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.22) 0);
+    linear-gradient(90deg, rgb(52 211 153) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.18) 0);
+  cursor: pointer;
   outline: none;
 }
 
 .kr-volume-range {
+  width: 112px;
+  height: 3px;
   background:
-    linear-gradient(90deg, rgb(56 189 248) v-bind('`${videoVolume * 100}%`'), rgb(255 255 255 / 0.22) 0);
+    linear-gradient(90deg, white v-bind('`${videoVolume * 100}%`'), rgb(255 255 255 / 0.25) 0);
 }
 
 .kr-hls-range::-webkit-slider-thumb,
 .kr-volume-range::-webkit-slider-thumb {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   appearance: none;
   border-radius: 999px;
   background: white;
-  box-shadow: 0 0 0 5px rgb(56 189 248 / 0.22);
+  box-shadow: 0 0 0 3px rgb(52 211 153 / 0.22);
 }
 
 .kr-hls-range::-moz-range-thumb,
 .kr-volume-range::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   border: 0;
   border-radius: 999px;
   background: white;
-  box-shadow: 0 0 0 5px rgb(56 189 248 / 0.22);
+  box-shadow: 0 0 0 3px rgb(52 211 153 / 0.22);
+}
+
+.kr-volume-range::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  box-shadow: none;
+}
+
+.kr-volume-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  box-shadow: none;
+}
+
+.kr-hls-edge-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 12;
+  height: 4px;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(52 211 153) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.24) 0);
+  transition: opacity 0.18s ease;
+}
+
+@media (max-width: 640px) {
+  .kr-hls-desktop-button {
+    display: none;
+  }
+
+  .kr-hls-controls {
+    padding: 6px 10px 10px;
+  }
+
+  .kr-hls-time-row {
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+  .kr-hls-actions {
+    gap: 8px;
+    margin-top: 9px;
+  }
+
+  .kr-hls-actions-left,
+  .kr-hls-actions-right {
+    gap: 8px;
+  }
+
+  .kr-hls-control-button {
+    width: 25px;
+    height: 25px;
+    flex-basis: 25px;
+  }
+
+  .kr-hls-control-button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .kr-hls-control-button.is-primary {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
 }
 </style>

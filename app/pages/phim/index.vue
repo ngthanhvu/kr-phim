@@ -8,7 +8,6 @@ const page = ref(Math.max(Number(route.query.page || 1), 1))
 const keyword = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const debouncedKeyword = ref(keyword.value.trim())
 const type = ref(typeof route.query.type === 'string' ? route.query.type : 'all')
-const source = ref(typeof route.query.source === 'string' ? route.query.source : 'all')
 const sourceOptions = [
   { label: 'Tất cả API', value: 'all' },
   { label: 'OPhim', value: 'ophim' },
@@ -30,17 +29,12 @@ watch(type, () => {
   page.value = 1
 })
 
-watch(source, () => {
-  page.value = 1
-})
-
-watch([page, debouncedKeyword, type, source], () => {
+watch([page, debouncedKeyword, type], () => {
   router.replace({
     query: {
       page: page.value > 1 ? page.value : undefined,
       q: debouncedKeyword.value || undefined,
       type: type.value !== 'all' ? type.value : undefined,
-      source: source.value !== 'all' ? source.value : undefined,
     },
   })
 })
@@ -49,7 +43,6 @@ const { data, pending, error } = await useFetch('/api/movies', {
   query: computed(() => ({
     page: page.value,
     keyword: debouncedKeyword.value || undefined,
-    source: source.value !== 'all' ? source.value : undefined,
   })),
 })
 
@@ -67,6 +60,23 @@ const filteredMovies = computed(() => {
 })
 const totalPages = computed(() => Number(data.value?.pagination?.totalPages || data.value?.pagination?.total_pages || 0))
 const sourceStatus = computed(() => data.value?.sources ?? [])
+
+function movieSourcesQuery(movie: any) {
+  return (movie.sources || [{ source: movie.source, slug: movie.slug }])
+    .filter((source: any) => source.source && source.slug)
+    .map((source: any) => `${source.source}:${source.slug}`)
+    .join(',')
+}
+
+function movieLink(movie: any) {
+  return {
+    path: `/phim/${movie.slug}`,
+    query: {
+      source: movie.source,
+      srcs: movieSourcesQuery(movie),
+    },
+  }
+}
 
 function nextPage() {
   page.value += 1
@@ -132,16 +142,7 @@ useHead({
         </div>
       </div>
 
-      <div class="mb-6 flex flex-wrap gap-2 text-sm font-black text-slate-200">
-        <button v-for="option in sourceOptions" :key="option.value" type="button"
-          class="rounded-full border border-white/10 px-4 py-2 transition"
-          :class="source === option.value ? 'bg-emerald-300 text-slate-950' : 'bg-white/8 hover:bg-white/14 hover:text-white'"
-          @click="source = option.value">
-          {{ option.label }}
-        </button>
-      </div>
-
-      <div v-if="sourceStatus.length" class="mb-8 flex flex-wrap gap-2 text-xs text-slate-300">
+      <div v-if="sourceStatus.length" class="hidden">
         <span v-for="source in sourceStatus" :key="source.name"
           class="rounded-full border border-white/10 bg-white/8 px-3 py-1">
           {{ source.name }}: {{ source.ok ? 'sẵn sàng' : 'đang bị chặn' }}
@@ -158,7 +159,7 @@ useHead({
 
       <div v-else class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
         <NuxtLink v-for="movie in filteredMovies" :key="`${movie.source}-${movie.slug}`"
-          :to="{ path: `/phim/${movie.slug}`, query: { source: movie.source } }" class="group">
+          :to="movieLink(movie)" class="group">
           <div
             class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-emerald-300/60">
             <img :src="movie.thumb || movie.poster" :alt="movie.name"
@@ -167,8 +168,8 @@ useHead({
               <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>
               <p class="mt-1 truncate text-xs text-emerald-100">{{ movie.episode || movie.year || movie.quality }}</p>
             </div>
-            <span class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
-              {{ movie.source }}
+            <span v-if="movie.sources?.length > 1" class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
+              {{ movie.sources.length }} server
             </span>
           </div>
         </NuxtLink>
