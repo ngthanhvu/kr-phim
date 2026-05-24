@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { Clock3, Trash2 } from 'lucide-vue-next'
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
@@ -65,7 +65,13 @@ onMounted(async () => {
 })
 
 useHead({
-  title: 'Lịch sử xem - KR Phim',
+  title: 'Lịch sử xem - CineK',
+  meta: [
+    {
+      name: 'description',
+      content: 'Xem lại lịch sử xem phim trên CineK và tiếp tục các tập phim Hàn Quốc đang xem dở.',
+    },
+  ],
 })
 </script>
 
@@ -76,7 +82,7 @@ useHead({
     <section class="mx-auto max-w-390 px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pt-32 xl:px-10">
       <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm font-black uppercase text-emerald-300">Thành viên</p>
+          <p class="text-sm font-black uppercase text-yellow-300">Thành viên</p>
           <h1 class="mt-2 text-3xl font-black sm:text-4xl">Lịch sử xem</h1>
         </div>
         <button v-if="historyItems.length" type="button"
@@ -95,20 +101,20 @@ useHead({
         <NuxtLink v-for="item in historyItems" :key="`${item.source}-${item.slug}`" :to="watchHistoryLink(item)"
           class="group block min-w-0">
           <div
-            class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-emerald-300/60">
+            class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-yellow-300/60">
             <img v-if="item.thumb || item.poster" :src="item.thumb || item.poster" :alt="item.name"
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div v-else class="grid h-full w-full place-items-center bg-white/8">
-              <Clock3 class="size-10 text-emerald-300" />
+              <Clock3 class="size-10 text-yellow-300" />
             </div>
             <div class="absolute inset-x-0 bottom-0 h-1 bg-white/18">
-              <span class="block h-full bg-emerald-300" :style="{ width: `${watchProgressPercent(item)}%` }" />
+              <span class="block h-full bg-yellow-300" :style="{ width: `${watchProgressPercent(item)}%` }" />
             </div>
             <span
               class="absolute bottom-3 right-3 rounded bg-black/70 px-2 py-1 text-[11px] font-black text-white opacity-0 transition group-hover:opacity-100">
               Xem tiếp
             </span>
-            <span class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
+            <span class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs font-black text-slate-950">
               {{ item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}` }}
             </span>
           </div>
@@ -121,13 +127,13 @@ useHead({
 
       <div v-else
         class="flex min-h-80 flex-col items-center justify-center rounded-lg border border-white/10 bg-white/6 p-6 text-center">
-        <Clock3 class="size-12 text-emerald-300" />
+        <Clock3 class="size-12 text-yellow-300" />
         <h2 class="mt-4 text-xl font-black">Chưa có lịch sử xem</h2>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-300">
           Phim bạn đã xem sẽ xuất hiện ở đây để bạn có thể xem tiếp nhanh hơn.
         </p>
         <NuxtLink to="/phim"
-          class="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-emerald-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white">
+          class="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-yellow-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white">
           Duyệt phim
         </NuxtLink>
       </div>

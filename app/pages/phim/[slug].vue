@@ -1,8 +1,8 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ChevronDown, Heart, Play, Plus, Share2, Star } from 'lucide-vue-next'
 
 const route = useRoute()
-const requestedSource = computed(() => String(route.query.source || 'ophim'))
+const requestedSource = computed(() => String(route.query.source || 'nguonc'))
 const requestedSources = computed(() => typeof route.query.srcs === 'string' ? route.query.srcs : '')
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
@@ -28,7 +28,7 @@ const { data: movie, pending, error } = await useFetch(() => `/api/movies/${rout
 
 const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value])
-const activeSource = computed(() => String(activeServer.value?.source || movie.value?.source || route.query.source || 'ophim'))
+const activeSource = computed(() => String(activeServer.value?.source || movie.value?.source || route.query.source || 'nguonc'))
 const activeSourceSlug = computed(() => String(activeServer.value?.sourceSlug || movie.value?.slug || route.params.slug))
 const activeSourceServerIndex = computed(() => Number(activeServer.value?.sourceServerIndex ?? 0))
 const sourceOptions = computed(() =>
@@ -144,7 +144,7 @@ async function shareMovie() {
   if (!import.meta.client || !movie.value) return
 
   const shareUrl = window.location.href
-  const shareTitle = `${movie.value.name} - KR Phim`
+  const shareTitle = `${movie.value.name} - CineK`
 
   try {
     if (navigator.share) {
@@ -181,11 +181,25 @@ watch([libraryItem, user], () => {
 })
 
 useHead(() => ({
-  title: movie.value ? `${movie.value.name} - KR Phim` : 'Đang tải phim - KR Phim',
+  title: movie.value ? `${movie.value.name} - Xem phim online - CineK` : 'Đang tải phim - CineK',
   meta: [
     {
       name: 'description',
-      content: movie.value?.content || 'Xem phim Hàn Quốc Vietsub.',
+      content: movie.value
+        ? `Xem thông tin phim ${movie.value.name}${movie.value.originName ? ` (${movie.value.originName})` : ''}, danh sách tập, diễn viên và các server xem phim tại CineK.`
+        : 'Xem phim Hàn Quốc online tại CineK với Vietsub, thuyết minh và lồng tiếng.',
+    },
+    {
+      property: 'og:title',
+      content: movie.value ? `${movie.value.name} - CineK` : 'CineK - Xem phim Hàn Quốc online',
+    },
+    {
+      property: 'og:description',
+      content: movie.value?.content || 'Xem thông tin phim, trailer, diễn viên và danh sách tập mới trên CineK.',
+    },
+    {
+      property: 'og:image',
+      content: movie.value?.poster || movie.value?.thumb || '/icon.png',
     },
   ],
 }))
@@ -204,7 +218,7 @@ useHead(() => ({
     <div v-else-if="error || !movie" class="mx-auto flex min-h-screen max-w-4xl items-center px-4 pt-36 lg:pt-24">
       <div>
         <h1 class="text-3xl font-black">Không mở được phim</h1>
-        <p class="mt-3 text-slate-300">Nguồn phim có thể đang chặn request hoặc phim chưa có tập xem.</p>
+        <p class="mt-3 text-slate-300">Phim có thể đang được cập nhật hoặc hiện chưa có tập xem.</p>
       </div>
     </div>
 
@@ -223,7 +237,7 @@ useHead(() => ({
                 class="mx-auto aspect-2/3 w-29 rounded-md object-cover shadow-xl shadow-black/40 sm:w-52 lg:w-full">
 
               <h1 class="mt-4 text-[1.35rem] font-black leading-tight sm:text-2xl lg:mt-5">{{ movie.name }}</h1>
-              <p v-if="movie.originName" class="mt-1 text-sm font-bold text-slate-100 sm:text-emerald-200">{{
+              <p v-if="movie.originName" class="mt-1 text-sm font-bold text-slate-100 sm:text-yellow-200">{{
                 movie.originName }}</p>
 
               <div class="mt-3 hidden flex-wrap justify-center gap-2 text-xs font-black sm:flex lg:justify-start">
@@ -231,7 +245,7 @@ useHead(() => ({
                 <span v-if="movie.episode" class="rounded bg-white/12 px-2 py-1">{{ movie.episode }}</span>
                 <span v-if="movie.time" class="rounded bg-white/12 px-2 py-1">{{ movie.time }}</span>
                 <span v-if="movie.rating" class="inline-flex items-center gap-1 rounded bg-white/12 px-2 py-1">
-                  <Star class="size-3 fill-emerald-300 text-emerald-300" />
+                  <Star class="size-3 fill-yellow-300 text-yellow-300" />
                   {{ movie.rating.toFixed(1) }}
                 </span>
               </div>
@@ -258,7 +272,7 @@ useHead(() => ({
             <section
               class="mt-0 rounded-none border-y border-white/10 bg-transparent px-0 pb-0 pt-3 shadow-none sm:mt-0 sm:rounded-md sm:border sm:bg-[#15161b]/95 sm:p-5 sm:shadow-2xl sm:shadow-black/40 lg:p-5">
               <button type="button"
-                class="mx-auto flex items-center gap-1 pb-3 text-sm font-bold text-emerald-200 sm:hidden"
+                class="mx-auto flex items-center gap-1 pb-3 text-sm font-bold text-yellow-200 sm:hidden"
                 :aria-expanded="movieInfoOpen" @click="movieInfoOpen = !movieInfoOpen">
                 <span>Thông tin phim</span>
                 <ChevronDown class="size-4 transition" :class="movieInfoOpen ? 'rotate-180' : ''" />
@@ -280,11 +294,11 @@ useHead(() => ({
               </div>
 
               <div class="hidden">
-                <p class="text-sm font-black text-white">Nguồn API</p>
+                <p class="text-sm font-black text-white">Nguồn xem</p>
                 <div class="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
                   <NuxtLink v-for="source in sourceOptions" :key="source.value" :to="sourceLink(source.value)"
                     class="shrink-0 rounded-md px-4 py-2 text-sm font-black transition"
-                    :class="activeSource === source.value ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                    :class="activeSource === source.value ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
                     {{ source.label }}
                   </NuxtLink>
                 </div>
@@ -294,7 +308,7 @@ useHead(() => ({
                 class="flex flex-col gap-4 border-b border-white/10 py-4 sm:flex-row sm:items-center sm:justify-between sm:py-5">
                 <div class="flex flex-wrap justify-center gap-3 sm:justify-start">
                   <NuxtLink :to="firstWatchLink"
-                    class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-emerald-400 to-emerald-300 px-7 text-sm font-black text-slate-950 transition hover:from-emerald-300 hover:to-white sm:w-auto">
+                    class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-yellow-400 to-yellow-300 px-7 text-sm font-black text-slate-950 transition hover:from-yellow-300 hover:to-white sm:w-auto">
                     <Play class="size-4 fill-current" />
                     Xem Ngay
                   </NuxtLink>
@@ -302,42 +316,42 @@ useHead(() => ({
 
                 <div class="flex flex-col gap-3 sm:items-end">
                   <div class="hidden">
-                    <span class="text-xs font-black text-slate-300">Nguồn API</span>
+                    <span class="text-xs font-black text-slate-300">Nguồn xem</span>
                     <NuxtLink v-for="source in sourceOptions" :key="source.value" :to="sourceLink(source.value)"
                       class="shrink-0 rounded-md px-4 py-2 text-sm font-black transition"
-                      :class="activeSource === source.value ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                      :class="activeSource === source.value ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
                       {{ source.label }}
                     </NuxtLink>
                   </div>
 
                   <div class="flex items-center justify-between gap-3 px-8 sm:justify-center sm:px-0">
                   <button type="button"
-                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold transition hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
-                    :class="isFavoriteMovie ? 'text-emerald-300' : 'text-white'" aria-label="Yêu thích"
+                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold transition hover:text-yellow-200 disabled:cursor-not-allowed disabled:opacity-70"
+                    :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white'" aria-label="Yêu thích"
                     :disabled="actionBusy" @click="toggleFavorite">
                     <Heart class="size-5" :class="isFavoriteMovie ? 'fill-current' : ''" />
                     <span>{{ isFavoriteMovie ? 'Đã thích' : 'Yêu thích' }}</span>
                   </button>
                   <button type="button"
-                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
+                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-yellow-200 disabled:cursor-not-allowed disabled:opacity-70"
                     aria-label="Thêm vào" :disabled="actionBusy" @click="addToWatchLater">
                     <Plus class="size-5" />
                     <span>Thêm vào</span>
                   </button>
                   <button type="button"
-                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-emerald-200"
+                    class="flex cursor-pointer flex-col items-center gap-1 text-xs font-bold text-white transition hover:text-yellow-200"
                     aria-label="Chia sẻ" @click="shareMovie">
                     <Share2 class="size-5" />
                     <span>Chia sẻ</span>
                   </button>
                   <div v-if="movie.rating"
-                    class="inline-flex items-center gap-1.5 rounded-full bg-emerald-400 px-3 py-1.5 text-sm font-black text-slate-950">
+                    class="inline-flex items-center gap-1.5 rounded-full bg-yellow-400 px-3 py-1.5 text-sm font-black text-slate-950">
                     <Star class="size-3.5 fill-current" />
                     {{ movie.rating.toFixed(1) }}
                   </div>
                 </div>
                 <p v-if="actionMessage"
-                  class="mt-2 text-center text-xs font-bold text-emerald-200 sm:text-right">
+                  class="mt-2 text-center text-xs font-bold text-yellow-200 sm:text-right">
                   {{ actionMessage }}
                 </p>
               </div>
@@ -346,10 +360,10 @@ useHead(() => ({
               <div
                 class="mt-3 flex justify-between gap-6 border-b border-white/10 px-6 text-sm font-black sm:mt-0 sm:justify-center sm:px-0 sm:pt-5">
                 <button type="button" class="px-5 pb-3 sm:px-0"
-                  :class="activeTab === 'episodes' ? 'border-b-2 border-emerald-300 text-emerald-200' : 'text-slate-300'"
+                  :class="activeTab === 'episodes' ? 'border-b-2 border-yellow-300 text-yellow-200' : 'text-slate-300'"
                   @click="activeTab = 'episodes'">Tập phim</button>
                 <button type="button" class="px-5 pb-3 sm:px-0"
-                  :class="activeTab === 'actors' ? 'border-b-2 border-emerald-300 text-emerald-200' : 'text-slate-300'"
+                  :class="activeTab === 'actors' ? 'border-b-2 border-yellow-300 text-yellow-200' : 'text-slate-300'"
                   @click="activeTab = 'actors'">Diễn viên</button>
               </div>
 
@@ -359,7 +373,7 @@ useHead(() => ({
                 <div v-if="servers.length > 1" class="mt-3 flex gap-2 overflow-x-auto pb-2">
                   <button v-for="(server, index) in servers" :key="server.name" type="button"
                     class="shrink-0 rounded px-4 py-2 text-sm font-black"
-                    :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
+                    :class="selectedServer === index ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
                     @click="selectedServer = index">
                     {{ serverLabel(server, index) }}
                   </button>
@@ -369,13 +383,13 @@ useHead(() => ({
                   class="mt-3 grid grid-cols-3 gap-2 rounded-md border border-white/10 p-3 sm:grid-cols-3 lg:grid-cols-6">
                   <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
                     :to="episodeLink(index)"
-                    class="rounded-md bg-white/10 px-4 py-3 text-center text-sm font-black text-white transition first:bg-emerald-400 first:text-slate-950 hover:bg-emerald-400 hover:text-slate-950">
+                    class="rounded-md bg-white/10 px-4 py-3 text-center text-sm font-black text-white transition first:bg-yellow-400 first:text-slate-950 hover:bg-yellow-400 hover:text-slate-950">
                     {{ formatEpisodeName(episode.name, index) }}
                   </NuxtLink>
                 </div>
 
                 <p v-else class="mt-4 rounded-md border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
-                  Chưa có tập xem từ nguồn này.
+                  Chưa có tập xem từ server này.
                 </p>
               </div>
 
@@ -388,13 +402,13 @@ useHead(() => ({
                     <img v-if="actor.avatar" :src="actor.avatar" :alt="actor.name"
                       class="size-14 shrink-0 rounded-md object-cover">
                     <div v-else
-                      class="grid size-14 shrink-0 place-items-center rounded-md bg-emerald-400/18 text-lg font-black text-emerald-100 ring-1 ring-emerald-300/20">
+                      class="grid size-14 shrink-0 place-items-center rounded-md bg-yellow-400/18 text-lg font-black text-yellow-100 ring-1 ring-yellow-300/20">
                       {{ actorInitial(actor.name) }}
                     </div>
 
                     <div class="min-w-0">
                       <p class="truncate text-sm font-black text-white">{{ actor.name }}</p>
-                      <p class="mt-1 truncate text-xs font-semibold text-emerald-200">
+                      <p class="mt-1 truncate text-xs font-semibold text-yellow-200">
                         {{ actor.originalName || 'Tên quốc tế đang cập nhật' }}
                       </p>
                       <p class="mt-1 truncate text-xs font-semibold text-slate-400">
@@ -405,7 +419,7 @@ useHead(() => ({
                 </div>
 
                 <p v-else class="mt-4 rounded-md border border-white/10 bg-slate-900/70 p-4 text-sm text-slate-300">
-                  Nguồn này chưa có dữ liệu diễn viên.
+                  Mục này chưa có dữ liệu diễn viên.
                 </p>
               </div>
             </section>

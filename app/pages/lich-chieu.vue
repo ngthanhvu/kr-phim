@@ -119,11 +119,19 @@ function selectNextDay() {
 }
 
 useHead({
-  title: 'Lịch chiếu - KR Phim',
+  title: 'Lịch cập nhật phim - CineK',
   meta: [
     {
       name: 'description',
-      content: 'Lịch cập nhật tập mới từ các nguồn phim OPhim, NguonC và KKPhim.',
+      content: 'Theo dõi lịch cập nhật phim Hàn Quốc mới trên CineK, xem nhanh các tập phim và nội dung mới theo từng ngày.',
+    },
+    {
+      property: 'og:title',
+      content: 'Lịch cập nhật phim - CineK',
+    },
+    {
+      property: 'og:description',
+      content: 'Lịch phim Hàn Quốc mới cập nhật theo ngày, giúp bạn không bỏ lỡ tập mới và phim mới trên CineK.',
     },
   ],
 })
@@ -273,7 +281,7 @@ useHead({
 }
 
 .schedule-day-tab.active {
-  border-top-color: #00dc82;
+  border-top-color: #facc15;
   background: rgba(255, 255, 255, 0.09);
 }
 
@@ -294,7 +302,7 @@ useHead({
 }
 
 .schedule-day-tab.active .schedule-day-name {
-  color: #00dc82;
+  color: #facc15;
 }
 
 .schedule-arrow {
@@ -360,7 +368,7 @@ useHead({
 }
 
 .schedule-card:hover {
-  border-color: rgba(110, 231, 183, 0.42);
+  border-color: rgba(125, 211, 252, 0.42);
   background: #424650;
   transform: translateY(-2px);
 }
@@ -419,7 +427,7 @@ useHead({
   width: 40px;
   height: 40px;
   margin-bottom: 16px;
-  color: #6ee7b7;
+  color: #fde047;
 }
 
 .schedule-empty p {

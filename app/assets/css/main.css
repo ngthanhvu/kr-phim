@@ -3,12 +3,12 @@
 
 @theme {
   --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
-  --color-nuxt-50: #ecfff7;
-  --color-nuxt-100: #d3ffec;
-  --color-nuxt-300: #7dffc8;
-  --color-nuxt-400: #00dc82;
-  --color-nuxt-500: #00bd71;
-  --color-nuxt-950: #061f17;
+  --color-cinek-50: #fefce8;
+  --color-cinek-100: #fef9c3;
+  --color-cinek-300: #fde047;
+  --color-cinek-400: #facc15;
+  --color-cinek-500: #eab308;
+  --color-cinek-950: #422006;
 }
 
 html {
@@ -18,8 +18,8 @@ html {
 body {
   min-width: 320px;
   background:
-    radial-gradient(circle at 15% 0%, rgba(0, 220, 130, 0.26), transparent 34rem),
-    linear-gradient(135deg, #061f17 0%, #09231b 46%, #020617 100%);
+    radial-gradient(circle at 15% 0%, rgba(234, 179, 8, 0.22), transparent 34rem),
+    linear-gradient(135deg, #201a05 0%, #17130a 46%, #020617 100%);
   color: #f8fbff;
 }
 
@@ -29,13 +29,30 @@ input {
   font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
 }
 
+button:not(:disabled),
+a[href],
+[role="button"],
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+label[for],
+select:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
 ::-webkit-scrollbar {
   height: 0.7rem;
   width: 0.7rem;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 220, 130, 0.55);
+  background: rgba(234, 179, 8, 0.68);
   border-radius: 999px;
 }
 

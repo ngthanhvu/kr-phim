@@ -63,7 +63,8 @@ const OPHIM_IMAGE = 'https://img.ophim.live/uploads/movies/'
 const NGUONC_BASE = 'https://phim.nguonc.com'
 const KKPHIM_BASE = 'https://phimapi.com'
 const KKPHIM_IMAGE = 'https://phimimg.com/'
-const SOURCE_NAMES: Source[] = ['ophim', 'nguonc', 'kkphim']
+const SOURCE_NAMES: Source[] = ['nguonc', 'ophim', 'kkphim']
+const DEFAULT_SOURCE: Source = 'nguonc'
 
 function toArray<T>(value: T[] | T | undefined | null): T[] {
   if (!value) return []
@@ -353,7 +354,7 @@ async function requestJson<T>(url: string): Promise<T> {
   return await $fetch<T>(url, {
     headers: {
       accept: 'application/json',
-      'user-agent': 'KR-Phim/1.0',
+      'user-agent': 'CineK/1.0',
     },
     retry: 0,
     timeout: 12000,
@@ -542,7 +543,7 @@ export async function getKkphimDetail(slug: string): Promise<MovieDetail> {
   }
 }
 
-export function parseSourceRefs(value: unknown, fallbackSource: Source, fallbackSlug: string): MovieSourceRef[] {
+export function parseSourceRefs(value: unknown, fallbackSource: unknown, fallbackSlug: string): MovieSourceRef[] {
   const refs = typeof value === 'string'
     ? value.split(',').map((item) => {
         const [source, ...slugParts] = item.split(':')
@@ -551,8 +552,20 @@ export function parseSourceRefs(value: unknown, fallbackSource: Source, fallback
       }).filter(Boolean) as MovieSourceRef[]
     : []
 
-  if (refs.length) return refs
-  return [{ source: fallbackSource, slug: fallbackSlug }]
+  const uniqueRefs = refs.filter((ref, index, allRefs) =>
+    index === allRefs.findIndex((item) => item.source === ref.source && item.slug === ref.slug),
+  )
+
+  if (uniqueRefs.length) {
+    const preferredSource = isSource(fallbackSource) ? fallbackSource : DEFAULT_SOURCE
+    return [
+      ...uniqueRefs.filter((ref) => ref.source === preferredSource),
+      ...uniqueRefs.filter((ref) => ref.source !== preferredSource),
+    ]
+  }
+
+  const source = isSource(fallbackSource) ? fallbackSource : DEFAULT_SOURCE
+  return [{ source, slug: fallbackSlug }]
 }
 
 export async function getMovieDetailGroup(refs: MovieSourceRef[]): Promise<MovieDetail> {

@@ -1,10 +1,10 @@
-# KR Phim
+# CineK
 
-KR Phim is a Korean movie streaming web app built with Nuxt and Tailwind CSS. It aggregates Korean-only movie data from the OPhim, NguonC, and KKPhim APIs, normalizes the responses on the server, and presents the content with a Netflix-inspired Nuxt-green interface.
+CineK is a Korean movie streaming web app built with Nuxt and Tailwind CSS. It uses NguonC movie data, normalizes the responses on the server, and presents the content with a blue Netflix-inspired interface.
 
 ## Features
 
-- Korean-only movie catalogue from OPhim, NguonC, and KKPhim.
+- Korean-only movie catalogue from NguonC.
 - Netflix-style home page with a large hero carousel.
 - Floating movie preview cards on home page hover.
 - Browse page with search, type filters, and pagination.
@@ -36,8 +36,6 @@ server/
   api/movies/[slug].get.ts   Movie detail API endpoint
   utils/movies.ts            API adapters and normalization helpers
 API_nguonc.md                NguonC API notes
-API_ophim.md                 OPhim API notes
-API_kkphim.md                KKPhim API notes
 ```
 
 ## Setup
@@ -104,7 +102,7 @@ Stop the container:
 docker compose down
 ```
 
-The Compose service is named `kr-phim` and maps host port `3002` to container port `3002`.
+The Compose service is named `cinek` and maps host port `3002` to container port `3002`.
 
 ## Available Routes
 
@@ -113,20 +111,16 @@ The Compose service is named `kr-phim` and maps host port `3002` to container po
 - `/phim?type=series` - Browse Korean series.
 - `/phim?type=single` - Browse Korean movies.
 - `/phim?q=keyword` - Search Korean movies.
-- `/phim/[slug]?source=ophim` - Movie detail page from OPhim.
-- `/phim/[slug]?source=nguonc` - Movie detail page from NguonC.
-- `/phim/[slug]?source=kkphim` - Movie detail page from KKPhim.
+- `/phim/[slug]` - Movie detail page from NguonC.
 
 ## API Notes
 
 The app does not call external movie APIs directly from the browser. Instead, Nuxt server endpoints request and normalize movie data:
 
-- OPhim list/detail data is handled in `server/utils/movies.ts`.
 - NguonC list/detail data is handled in `server/utils/movies.ts`.
-- KKPhim list/detail data is handled in `server/utils/movies.ts`.
 - Only Korean movies are kept in the normalized result.
 
-If one source is unavailable, the list endpoint still returns data from the other sources when possible and includes source status metadata.
+The public server endpoints use NguonC as the single movie API source.
 
 ## Scripts
 

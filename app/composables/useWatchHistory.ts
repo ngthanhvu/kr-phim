@@ -13,7 +13,8 @@ export type WatchHistoryItem = {
   updatedAt?: number
 }
 
-const watchHistoryKey = 'kr-phim-watch-history'
+const watchHistoryKey = 'cinek-watch-history'
+const legacyWatchHistoryKey = 'kr-phim-watch-history'
 
 function normalizeHistoryItem(item: any): WatchHistoryItem | null {
   const slug = item?.slug
@@ -43,7 +44,7 @@ function readLocalHistory() {
   if (!import.meta.client) return []
 
   try {
-    const raw = window.localStorage.getItem(watchHistoryKey)
+    const raw = window.localStorage.getItem(watchHistoryKey) || window.localStorage.getItem(legacyWatchHistoryKey)
     const history = raw ? JSON.parse(raw) : []
 
     return Array.isArray(history)
@@ -149,7 +150,10 @@ export function useWatchHistory() {
   }
 
   async function clearWatchHistory() {
-    if (import.meta.client) window.localStorage.removeItem(watchHistoryKey)
+    if (import.meta.client) {
+      window.localStorage.removeItem(watchHistoryKey)
+      window.localStorage.removeItem(legacyWatchHistoryKey)
+    }
 
     if (user.value) {
       await $supabase

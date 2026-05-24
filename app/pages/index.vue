@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { BookPlus, ChevronLeft, ChevronRight, Heart, Info, Play, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Heart, Info, Play, Trash2 } from 'lucide-vue-next'
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
-const { data, pending, error } = await useFetch('/api/movies', {
+const { data, pending, error } = useFetch('/api/movies', {
   query: {
     page: 1,
   },
+  lazy: true,
+  default: () => ({
+    items: [],
+    sources: [],
+  }),
 })
 
 const movies = computed(() => data.value?.items ?? [])
@@ -35,6 +40,25 @@ const heroDescription = computed(() => {
 
   return fallback.length ? fallback.join('. ') : 'Phim Hàn Quốc Vietsub mới cập nhật.'
 })
+
+const rows = computed(() => [
+  {
+    title: 'Mới cập nhật',
+    to: '/phim',
+    items: movies.value.slice(0, 12),
+  },
+  {
+    title: 'Phim bộ Hàn Quốc',
+    to: '/phim?type=series',
+    items: movies.value.filter((movie: any) => movie.type !== 'single').slice(0, 12),
+  },
+  {
+    title: 'Phim lẻ & đặc biệt',
+    to: '/phim?type=single',
+    items: movies.value.filter((movie: any) => movie.type === 'single' || movie.episode === 'Full').slice(0, 12),
+  },
+])
+const topTrending = computed(() => uniqueHeroMovies(movies.value).slice(0, 10))
 
 function comparableMovieText(value?: string) {
   return String(value || '')
@@ -96,65 +120,6 @@ function previousHero() {
   heroIndex.value = (heroIndex.value - 1 + heroSlides.value.length) % heroSlides.value.length
 }
 
-watch(heroSlides, (slides) => {
-  if (heroIndex.value >= slides.length) {
-    heroIndex.value = 0
-  }
-})
-
-watch(hero, async (currentHero) => {
-  if (!currentHero?.slug) {
-    heroDetail.value = null
-    return
-  }
-
-  const cacheKey = `${currentHero.source}:${currentHero.slug}`
-  if (heroDetailCache.has(cacheKey)) {
-    heroDetail.value = heroDetailCache.get(cacheKey)
-    return
-  }
-
-  heroDetail.value = null
-  try {
-    const detail = await $fetch(`/api/movies/${currentHero.slug}`, {
-      query: {
-        source: currentHero.source,
-        srcs: movieSourcesQuery(currentHero) || undefined,
-      },
-    })
-    heroDetailCache.set(cacheKey, detail)
-
-    if (hero.value?.slug === currentHero.slug && hero.value?.source === currentHero.source) {
-      heroDetail.value = detail
-    }
-  } catch {
-    heroDetail.value = null
-  }
-}, { immediate: true })
-
-onMounted(() => {
-  initAuth()
-  heroTimer = setInterval(nextHero, 6500)
-  loadWatchHistory()
-  window.addEventListener('storage', loadWatchHistory)
-})
-
-onBeforeUnmount(() => {
-  if (heroTimer) clearInterval(heroTimer)
-  if (import.meta.client) window.removeEventListener('storage', loadWatchHistory)
-})
-
-async function loadWatchHistory() {
-  if (!import.meta.client) return
-  watchHistory.value = await fetchWatchHistory(12)
-}
-
-async function clearWatchHistory() {
-  if (!import.meta.client) return
-  await removeWatchHistory()
-  watchHistory.value = []
-}
-
 function watchHistoryLink(item: WatchHistoryItem) {
   return {
     path: `/xem/${item.slug}`,
@@ -196,128 +161,156 @@ function watchProgressLabel(item: WatchHistoryItem) {
   return item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}`
 }
 
-const rows = computed(() => [
-  {
-    title: 'Mới cập nhật',
-    to: '/phim',
-    items: movies.value.slice(0, 12),
-  },
-  {
-    title: 'Phim bộ Hàn Quốc',
-    to: '/phim?type=series',
-    items: movies.value.filter((movie: any) => movie.type !== 'single').slice(0, 12),
-  },
-  {
-    title: 'Phim lẻ & đặc biệt',
-    to: '/phim?type=single',
-    items: movies.value.filter((movie: any) => movie.type === 'single' || movie.episode === 'Full').slice(0, 12),
-  },
-])
+async function loadWatchHistory() {
+  if (!import.meta.client) return
+  watchHistory.value = await fetchWatchHistory(12)
+}
 
-const apiRows = computed(() => [
-  {
-    title: 'Mới cập nhật từ tất cả nguồn',
-    to: '/phim',
-    items: movies.value.slice(0, 12),
-  },
-  {
-    title: 'OPhim',
-    to: '/phim?source=ophim',
-    items: movies.value.filter((movie: any) => movie.source === 'ophim').slice(0, 12),
-  },
-  {
-    title: 'NguonC',
-    to: '/phim?source=nguonc',
-    items: movies.value.filter((movie: any) => movie.source === 'nguonc').slice(0, 12),
-  },
-  {
-    title: 'KKPhim',
-    to: '/phim?source=kkphim',
-    items: movies.value.filter((movie: any) => movie.source === 'kkphim').slice(0, 12),
-  },
-])
+async function clearWatchHistory() {
+  if (!import.meta.client) return
+  await removeWatchHistory()
+  watchHistory.value = []
+}
+
+watch(heroSlides, (slides) => {
+  if (heroIndex.value >= slides.length) {
+    heroIndex.value = 0
+  }
+})
+
+watch(hero, async (currentHero) => {
+  if (!currentHero?.slug) {
+    heroDetail.value = null
+    return
+  }
+
+  const cacheKey = `${currentHero.source}:${currentHero.slug}`
+  if (heroDetailCache.has(cacheKey)) {
+    heroDetail.value = heroDetailCache.get(cacheKey)
+    return
+  }
+
+  heroDetail.value = null
+  try {
+    const detail = await $fetch(`/api/movies/${currentHero.slug}`, {
+      query: {
+        source: currentHero.source,
+        srcs: movieSourcesQuery(currentHero) || undefined,
+      },
+    })
+    heroDetailCache.set(cacheKey, detail)
+
+    if (hero.value?.slug === currentHero.slug && hero.value?.source === currentHero.source) {
+      heroDetail.value = detail
+    }
+  } catch {
+    heroDetail.value = null
+  }
+}, { immediate: true })
 
 watch(user, () => {
   loadWatchHistory()
 })
 
+onMounted(() => {
+  initAuth()
+  heroTimer = setInterval(nextHero, 6500)
+  loadWatchHistory()
+  window.addEventListener('storage', loadWatchHistory)
+})
+
+onBeforeUnmount(() => {
+  if (heroTimer) clearInterval(heroTimer)
+  if (import.meta.client) window.removeEventListener('storage', loadWatchHistory)
+})
+
 useHead({
-  title: 'KR Phim - Phim Hàn Quốc',
+  title: 'CineK - Xem phim Hàn Quốc online',
   meta: [
     {
       name: 'description',
-      content: 'Xem phim Hàn Quốc Vietsub từ OPhim, NguồnC và KKPhim với giao diện xanh Nuxt hiện đại.',
+      content: 'Xem phim Hàn Quốc online tại CineK với kho phim bộ, phim lẻ, show mới cập nhật, hỗ trợ Vietsub, thuyết minh và lồng tiếng.',
+    },
+    {
+      property: 'og:title',
+      content: 'CineK - Xem phim Hàn Quốc online',
+    },
+    {
+      property: 'og:description',
+      content: 'Kho phim Hàn Quốc online mới cập nhật, trải nghiệm xem mượt trên điện thoại, máy tính bảng và desktop.',
     },
   ],
 })
 </script>
 
 <template>
-  <main class="min-h-screen overflow-hidden">
+  <main class="min-h-screen overflow-hidden bg-black">
     <AppHeader />
 
     <section v-if="hero"
-      class="relative h-130 min-h-130 overflow-hidden pt-20 sm:h-160 sm:min-h-160 sm:pt-24 lg:h-190 lg:min-h-190 lg:pt-16">
+      class="relative h-155 min-h-155 overflow-hidden pt-20 sm:h-170 sm:min-h-170 sm:pt-24 lg:h-180 lg:min-h-190 lg:pt-0">
       <TransitionGroup name="hero-fade">
         <img v-for="(slide, index) in heroSlides" v-show="index === heroIndex" :key="`${slide.source}-${slide.slug}`"
-          :src="slide.poster || slide.thumb" :alt="slide.name" class="absolute inset-0 h-full w-full object-cover">
+          :src="slide.poster || slide.thumb" :alt="slide.name"
+          class="absolute inset-0 h-full w-full object-cover object-center opacity-72 lg:object-[72%_center]">
       </TransitionGroup>
-      <div class="absolute inset-0 bg-linear-to-r from-slate-950 via-slate-950/76 to-slate-950/10" />
-      <div class="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/20 to-slate-950/30" />
-      <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-linear-to-l from-emerald-950/18 to-transparent lg:block" />
+
+      <div class="absolute inset-0 bg-linear-to-r from-black via-black/76 to-black/14" />
+      <div class="absolute inset-0 bg-linear-to-t from-black via-black/16 to-black/34" />
 
       <div
-        class="relative mx-auto grid h-full max-w-390 content-center px-4 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16 lg:px-8 lg:pb-28 xl:px-10">
-        <div class="max-w-5xl">
-          <p class="mb-2 text-xs font-semibold text-emerald-200 sm:mb-3 sm:text-sm">
-            Chỉ phim Hàn Quốc
-          </p>
-          <h1 class="max-w-5xl text-2xl font-black leading-tight text-white drop-shadow-2xl sm:text-4xl lg:text-6xl">
+        class="relative mx-auto h-full max-w-390 px-4 pb-22 pt-20 sm:px-6 sm:pb-26 sm:pt-14 lg:px-8 lg:pb-0 lg:pt-38 xl:px-10">
+        <div class="max-w-140">
+          <h1 class="text-4xl font-black leading-tight text-white drop-shadow-2xl sm:text-5xl lg:text-[50px]">
             {{ hero.name }}
           </h1>
-          <p class="mt-2 max-w-2xl text-sm text-emerald-100 sm:mt-3 sm:text-lg">
+          <p class="mt-3 max-w-2xl text-sm font-black text-yellow-300 sm:text-base">
             {{ hero.originName || 'Kho phim Hàn Vietsub mới cập nhật' }}
           </p>
-          <div class="mt-3 flex flex-wrap gap-1.5 text-xs font-bold text-slate-100 sm:mt-5 sm:gap-2 sm:text-sm">
-            <span v-if="hero.rating" class="rounded bg-black/35 px-2 py-1.5 ring-1 ring-white/10 sm:px-3 sm:py-2">IMDb
-              {{ hero.rating.toFixed(1) }}</span>
-            <span v-if="hero.quality" class="rounded bg-emerald-300 px-2 py-1.5 text-slate-950 sm:px-3 sm:py-2">{{
-              hero.quality }}</span>
-            <span v-if="hero.lang" class="rounded bg-white px-2 py-1.5 text-slate-950 sm:px-3 sm:py-2">{{ hero.lang
-            }}</span>
-            <span v-if="hero.year" class="rounded bg-black/35 px-2 py-1.5 ring-1 ring-white/10 sm:px-3 sm:py-2">{{
-              hero.year }}</span>
-            <span v-if="hero.episode" class="rounded bg-black/35 px-2 py-1.5 ring-1 ring-white/10 sm:px-3 sm:py-2">{{
-              hero.episode }}</span>
+
+          <div class="mt-4 flex flex-wrap gap-1.5 text-[13px] font-black text-white sm:gap-2">
+            <span v-if="hero.rating"
+              class="rounded-md bg-yellow-400 px-2.5 py-1.5 text-slate-950 shadow-lg shadow-yellow-950/30">
+              TMDb {{ hero.rating.toFixed(1) }}
+            </span>
+            <span v-if="hero.quality" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
+              {{ hero.quality }}
+            </span>
+            <span v-if="hero.lang" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
+              {{ hero.lang }}
+            </span>
+            <span v-if="hero.year" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
+              {{ hero.year }}
+            </span>
+            <span v-if="hero.episode" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
+              {{ hero.episode }}
+            </span>
           </div>
-          <div v-if="hero.categories?.length"
-            class="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold text-white sm:mt-4 sm:gap-2 sm:text-sm">
+
+          <div v-if="hero.categories?.length" class="mt-2 flex flex-wrap gap-1.5 text-[11px] font-black text-white">
             <span v-for="category in hero.categories.slice(0, 4)" :key="category"
-              class="rounded bg-white/12 px-2 py-1 backdrop-blur sm:px-3 sm:py-1.5">
+              class="rounded-md bg-white/12 px-2.5 py-1.5 backdrop-blur">
               {{ category }}
             </span>
           </div>
-          <p class="mt-3 line-clamp-3 max-w-2xl text-xs leading-6 text-slate-100 sm:mt-5 sm:text-sm sm:leading-7">
+
+          <p class="mt-6 line-clamp-3 max-w-130 text-base font-bold leading-7 text-white drop-shadow">
             {{ heroDescription }}
           </p>
-          <div class="mt-6 flex items-center gap-3 sm:mt-8 sm:gap-4">
+
+          <div class="mt-9 flex items-center gap-3">
             <NuxtLink :to="movieLink(hero)"
-              class="grid size-12 shrink-0 place-items-center rounded-full bg-emerald-300 text-slate-950 shadow-2xl shadow-emerald-950/50 transition hover:scale-105 hover:bg-white sm:size-16"
+              class="grid size-14 shrink-0 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-2xl shadow-yellow-950/50 transition hover:scale-105 hover:bg-yellow-300 sm:size-16"
               aria-label="Xem ngay">
-              <Play class="size-6 fill-current sm:size-7" />
+              <Play class="ml-1 size-7 fill-current" />
             </NuxtLink>
             <button type="button"
-              class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-black/28 text-white backdrop-blur transition hover:bg-white/16 sm:size-12"
+              class="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 sm:size-11"
               aria-label="Yêu thích">
               <Heart class="size-4 sm:size-5" />
             </button>
-            <button type="button"
-              class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-black/28 text-white backdrop-blur transition hover:bg-white/16 sm:size-12"
-              aria-label="Thêm vào thư viện">
-              <BookPlus class="size-4 sm:size-5" />
-            </button>
             <NuxtLink :to="movieLink(hero)"
-              class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-black/28 text-white backdrop-blur transition hover:bg-white/16 sm:size-12"
+              class="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 sm:size-11"
               aria-label="Thông tin phim">
               <Info class="size-4 sm:size-5" />
             </NuxtLink>
@@ -325,28 +318,24 @@ useHead({
         </div>
 
         <div
-          class="absolute bottom-8 right-4 hidden max-w-[calc(100%-2rem)] items-center gap-2 sm:flex sm:bottom-12 sm:right-6 sm:gap-3 lg:right-8">
+          class="absolute bottom-14 right-4 hidden max-w-[calc(100%-2rem)] items-center gap-3 sm:flex sm:right-6 lg:bottom-18 lg:right-8 xl:right-10">
           <button type="button"
-            class="hidden size-9 shrink-0 place-items-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur transition hover:bg-white/15 sm:size-10 sm:grid"
+            class="hidden size-9 shrink-0 place-items-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur transition hover:bg-white/15"
             aria-label="Phim trước" @click="previousHero">
             <ChevronLeft class="size-4 sm:size-5" />
           </button>
 
-          <div class="no-scrollbar flex gap-2 overflow-x-auto pb-2 sm:gap-3">
+          <div class="no-scrollbar flex gap-3 overflow-x-auto pb-2">
             <button v-for="(slide, index) in heroSlides" :key="`${slide.source}-${slide.slug}-thumb`" type="button"
-              class="relative h-12 w-20 shrink-0 overflow-hidden rounded-md border bg-slate-900 shadow-lg shadow-black/30 transition sm:h-16 sm:w-32"
-              :class="index === heroIndex ? 'border-emerald-300 ring-2 ring-emerald-300/45' : 'border-white/15 opacity-70 hover:opacity-100'"
+              class="relative h-14.5 w-26 shrink-0 overflow-hidden rounded-md border bg-slate-900 shadow-lg shadow-black/30 transition"
+              :class="index === heroIndex ? 'border-white ring-2 ring-white/40' : 'border-white/15 opacity-70 hover:opacity-100'"
               @click="selectHero(index)">
               <img :src="slide.thumb || slide.poster" :alt="slide.name" class="h-full w-full object-cover">
-              <span
-                class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-1 py-0.5 text-[9px] font-semibold text-white sm:text-[10px]">
-                {{ slide.name }}
-              </span>
             </button>
           </div>
 
           <button type="button"
-            class="hidden size-9 shrink-0 place-items-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur transition hover:bg-white/15 sm:size-10 sm:grid"
+            class="hidden size-9 shrink-0 place-items-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur transition hover:bg-white/15"
             aria-label="Phim tiếp theo" @click="nextHero">
             <ChevronRight class="size-4 sm:size-5" />
           </button>
@@ -354,14 +343,35 @@ useHead({
       </div>
     </section>
 
-    <section v-else class="mx-auto flex min-h-screen max-w-7xl items-center px-4 pt-36 sm:px-6 lg:px-8 lg:pt-24">
-      <div>
-        <h1 class="text-4xl font-black text-white">KR Phim</h1>
+    <section v-else-if="pending"
+      class="mx-auto flex min-h-screen max-w-390 items-center px-4 pt-36 sm:px-6 lg:px-8 lg:pt-24 xl:px-10">
+      <div class="w-full">
+        <div class="h-12 w-4/5 animate-pulse rounded bg-white/10 sm:h-14" />
+        <div class="mt-4 h-5 w-1/2 animate-pulse rounded bg-yellow-300/20" />
+        <div class="mt-5 flex flex-wrap gap-2">
+          <div class="h-8 w-16 animate-pulse rounded-md bg-yellow-300/20" />
+          <div class="h-8 w-18 animate-pulse rounded-md bg-white/10" />
+          <div class="h-8 w-14 animate-pulse rounded-md bg-white/10" />
+          <div class="h-8 w-20 animate-pulse rounded-md bg-white/10" />
+        </div>
+        <div class="mt-8 space-y-3">
+          <div class="h-4 animate-pulse rounded bg-white/10" />
+          <div class="h-4 w-11/12 animate-pulse rounded bg-white/10" />
+          <div class="h-4 w-4/5 animate-pulse rounded bg-white/10" />
+        </div>
+        <div class="mt-9 flex items-center gap-3">
+          <div class="size-14 animate-pulse rounded-full bg-yellow-300/25 sm:size-16" />
+          <div class="size-10 animate-pulse rounded-full bg-white/10 sm:size-11" />
+          <div class="size-10 animate-pulse rounded-full bg-white/10 sm:size-11" />
+        </div>
+      </div>
+      <div class="hidden">
+        <h1 class="text-4xl font-black text-white">CineK</h1>
         <p class="mt-3 text-slate-300">Đang tải kho phim Hàn Quốc...</p>
       </div>
     </section>
 
-    <div class="relative z-10 mx-auto -mt-10 max-w-390 px-4 pb-16 sm:px-6 lg:px-8 xl:px-10">
+    <div class="relative z-10 mx-auto max-w-390 px-4 pb-16 pt-8 sm:px-6 lg:px-8 xl:px-10">
       <div v-if="sourceStatus.length" class="hidden">
         <span v-for="source in sourceStatus" :key="source.name"
           class="rounded-full border border-white/10 bg-white/8 px-3 py-1">
@@ -373,11 +383,38 @@ useHead({
         Không tải được dữ liệu phim. Vui lòng thử lại sau.
       </p>
 
+      <section v-if="topTrending.length" class="mb-12">
+        <div class="mb-5 flex items-center gap-3">
+          <h2 class="text-2xl font-black uppercase text-white">
+            TOP 10 <span class="text-yellow-400">CineK</span>
+          </h2>
+          <span class="hidden text-xs font-black uppercase tracking-[0.35em] text-slate-500 sm:inline">
+            Thịnh hành hôm nay
+          </span>
+        </div>
+
+        <div class="no-scrollbar -mx-4 ml-0.5 flex snap-x gap-4 overflow-x-auto px-4 pb-5 sm:ml-0">
+          <div v-for="(movie, index) in topTrending" :key="`${movie.source}-${movie.slug}-trending`"
+            class="w-44 shrink-0 snap-start sm:w-52 xl:w-56">
+            <HomeMovieCard :movie="movie" />
+            <div class="mt-2 grid grid-cols-[2.2rem_1fr] gap-2">
+              <span class="text-4xl font-black italic leading-none text-yellow-400">{{ index + 1 }}</span>
+              <span class="min-w-0 pt-1">
+                <span class="block truncate text-sm font-black text-white">{{ movie.name }}</span>
+                <span class="mt-0.5 block truncate text-xs font-semibold text-slate-500">
+                  {{ movie.originName || movie.quality || movie.year }}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section v-if="watchHistory.length" class="mb-12">
         <div class="mb-4 flex items-center justify-between gap-4">
-          <h2 class="text-2xl font-extrabold text-white">Tiếp Tục Xem</h2>
+          <h2 class="text-2xl font-extrabold text-white">Tiếp tục xem</h2>
           <button type="button"
-            class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-white/8 text-white transition hover:border-emerald-300/60 hover:bg-white/14"
+            class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-white/8 text-white transition hover:border-yellow-400/60 hover:bg-white/14"
             aria-label="Xóa lịch sử xem" @click="clearWatchHistory">
             <Trash2 class="size-4" />
           </button>
@@ -387,14 +424,13 @@ useHead({
           <NuxtLink v-for="item in watchHistory" :key="`${item.source}-${item.slug}`" :to="watchHistoryLink(item)"
             class="group block w-44 shrink-0 snap-start sm:w-52 xl:w-56">
             <div
-              class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-emerald-300/60">
+              class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-yellow-400/60">
               <img :src="item.thumb || item.poster" :alt="item.name"
                 class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
               <div class="absolute inset-x-0 bottom-0 h-1 bg-white/18">
-                <span class="block h-full bg-emerald-300" :style="{ width: `${watchProgressPercent(item)}%` }" />
+                <span class="block h-full bg-yellow-400" :style="{ width: `${watchProgressPercent(item)}%` }" />
               </div>
-              <span
-                class="absolute left-2 top-2 rounded bg-emerald-400 px-2 py-1 text-xs font-black text-slate-950">
+              <span class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs font-black text-slate-950">
                 {{ item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}` }}
               </span>
               <span
@@ -418,7 +454,7 @@ useHead({
         :id="index === 0 ? 'latest' : index === 1 ? 'series' : 'movies'" :key="row.title" class="mb-12">
         <div class="mb-4 flex items-end justify-between gap-4">
           <h2 class="text-2xl font-extrabold text-white">{{ row.title }}</h2>
-          <NuxtLink :to="row.to" class="text-sm font-semibold text-emerald-200 hover:text-white">
+          <NuxtLink :to="row.to" class="text-sm font-semibold text-yellow-300 hover:text-white">
             Xem thêm
           </NuxtLink>
         </div>

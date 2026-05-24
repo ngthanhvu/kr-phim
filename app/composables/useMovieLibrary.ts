@@ -8,8 +8,10 @@ export type LibraryMovieItem = {
   updatedAt?: number
 }
 
-const favoriteKey = 'kr-phim-favorites'
-const watchLaterKey = 'kr-phim-watch-later'
+const favoriteKey = 'cinek-favorites'
+const watchLaterKey = 'cinek-watch-later'
+const legacyFavoriteKey = 'kr-phim-favorites'
+const legacyWatchLaterKey = 'kr-phim-watch-later'
 
 function normalizeLibraryItem(item: any): LibraryMovieItem | null {
   if (!item?.slug || !item?.name) return null
@@ -27,11 +29,11 @@ function normalizeLibraryItem(item: any): LibraryMovieItem | null {
   }
 }
 
-function readLocalItems(key: string) {
+function readLocalItems(key: string, legacyKey?: string) {
   if (!import.meta.client) return []
 
   try {
-    const raw = window.localStorage.getItem(key)
+    const raw = window.localStorage.getItem(key) || (legacyKey ? window.localStorage.getItem(legacyKey) : null)
     const items = raw ? JSON.parse(raw) : []
 
     return Array.isArray(items)
@@ -47,12 +49,18 @@ function writeLocalItems(key: string, items: LibraryMovieItem[]) {
   window.localStorage.setItem(key, JSON.stringify(items))
 }
 
+function legacyKeyFor(key: string) {
+  if (key === favoriteKey) return legacyFavoriteKey
+  if (key === watchLaterKey) return legacyWatchLaterKey
+  return undefined
+}
+
 export function useMovieLibrary() {
   const { $supabase } = useNuxtApp()
   const { user } = useSupabaseAuth()
 
   async function loadItems(key: string, table: string, limit = 30) {
-    const localItems = readLocalItems(key)
+    const localItems = readLocalItems(key, legacyKeyFor(key))
 
     if (user.value) {
       const { data, error } = await $supabase
@@ -82,7 +90,7 @@ export function useMovieLibrary() {
 
     const nextItems = [
       normalizedItem,
-      ...readLocalItems(key).filter((savedItem) => !(savedItem.slug === normalizedItem.slug && savedItem.source === normalizedItem.source)),
+      ...readLocalItems(key, legacyKeyFor(key)).filter((savedItem) => !(savedItem.slug === normalizedItem.slug && savedItem.source === normalizedItem.source)),
     ].slice(0, 50)
 
     writeLocalItems(key, nextItems)
@@ -108,7 +116,7 @@ export function useMovieLibrary() {
   }
 
   async function removeItem(key: string, table: string, item: LibraryMovieItem) {
-    const nextItems = readLocalItems(key)
+    const nextItems = readLocalItems(key, legacyKeyFor(key))
       .filter((savedItem) => !(savedItem.slug === item.slug && savedItem.source === item.source))
     writeLocalItems(key, nextItems)
 
@@ -123,7 +131,7 @@ export function useMovieLibrary() {
   }
 
   async function isSaved(key: string, table: string, item: LibraryMovieItem) {
-    const localSaved = readLocalItems(key)
+    const localSaved = readLocalItems(key, legacyKeyFor(key))
       .some((savedItem) => savedItem.slug === item.slug && savedItem.source === item.source)
 
     if (!user.value) return localSaved

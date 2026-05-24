@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { Clock3, Heart, Mail, UserRound } from 'lucide-vue-next'
 
 const { user, loading, initAuth } = useSupabaseAuth()
@@ -21,7 +21,13 @@ onMounted(() => {
 })
 
 useHead({
-  title: 'Trang cá nhân - KR Phim',
+  title: 'Trang cá nhân - CineK',
+  meta: [
+    {
+      name: 'description',
+      content: 'Quản lý tài khoản CineK, đồng bộ lịch sử xem, danh sách yêu thích và các phim muốn xem sau.',
+    },
+  ],
 })
 </script>
 
@@ -31,7 +37,7 @@ useHead({
 
     <section class="mx-auto max-w-390 px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pt-32 xl:px-10">
       <div class="mb-6">
-        <p class="text-sm font-black uppercase text-emerald-300">Thành viên</p>
+        <p class="text-sm font-black uppercase text-yellow-300">Thành viên</p>
         <h1 class="mt-2 text-3xl font-black sm:text-4xl">Trang cá nhân</h1>
       </div>
 
@@ -43,15 +49,15 @@ useHead({
         <section class="rounded-lg border border-white/10 bg-white/6 p-5 sm:p-6">
           <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
             <img :src="memberAvatar" :alt="memberName"
-              class="size-24 shrink-0 rounded-full object-cover ring-4 ring-emerald-300/30">
+              class="size-24 shrink-0 rounded-full object-cover ring-4 ring-yellow-300/30">
             <div class="min-w-0">
               <h2 class="truncate text-2xl font-black">{{ memberName }}</h2>
               <p class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-300">
-                <Mail class="size-4 text-emerald-300" />
+                <Mail class="size-4 text-yellow-300" />
                 {{ user.email }}
               </p>
               <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-400">
-                Tài khoản này dùng để đồng bộ lịch sử xem và các dữ liệu cá nhân của bạn trên KR Phim.
+                Tài khoản này dùng để đồng bộ lịch sử xem và các dữ liệu cá nhân của bạn trên CineK.
               </p>
             </div>
           </div>
@@ -60,7 +66,7 @@ useHead({
         <aside class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           <NuxtLink to="/lich-su"
             class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/6 p-4 transition hover:bg-white/10">
-            <span class="grid size-10 place-items-center rounded-md bg-emerald-300 text-slate-950">
+            <span class="grid size-10 place-items-center rounded-md bg-yellow-300 text-slate-950">
               <Clock3 class="size-5" />
             </span>
             <span>
@@ -70,7 +76,7 @@ useHead({
           </NuxtLink>
           <NuxtLink to="/yeu-thich"
             class="flex items-center gap-3 rounded-lg border border-white/10 bg-white/6 p-4 transition hover:bg-white/10">
-            <span class="grid size-10 place-items-center rounded-md bg-white/10 text-emerald-300">
+            <span class="grid size-10 place-items-center rounded-md bg-white/10 text-yellow-300">
               <Heart class="size-5 fill-current" />
             </span>
             <span>
@@ -82,7 +88,7 @@ useHead({
       </div>
 
       <div v-else class="rounded-lg border border-white/10 bg-white/6 p-6">
-        <UserRound class="size-10 text-emerald-300" />
+        <UserRound class="size-10 text-yellow-300" />
         <h2 class="mt-4 text-xl font-black">Bạn chưa đăng nhập</h2>
         <p class="mt-2 text-sm leading-6 text-slate-300">
           Bấm nút Thành viên trên header để đăng nhập hoặc đăng ký tài khoản.

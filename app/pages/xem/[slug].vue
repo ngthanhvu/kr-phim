@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import type Hls from 'hls.js'
 import {
   FastForward,
@@ -76,11 +76,12 @@ const {
   saveWatchLater,
 } = useMovieLibrary()
 
-const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`, {
+const { data: movie, pending, error } = useFetch(() => `/api/movies/${route.params.slug}`, {
   query: computed(() => ({
     source: route.query.source,
     srcs: route.query.srcs,
   })),
+  lazy: true,
   watch: [() => route.query.source, () => route.query.srcs],
 })
 
@@ -735,6 +736,9 @@ function handlePlayerTap(event: MouseEvent) {
 
 function handleTouchStart(event: TouchEvent) {
   const touch = event.touches[0]
+
+  if (!touch) return
+
   touchStartX = touch.clientX
   touchStartY = touch.clientY
   touchStartAt = Date.now()
@@ -742,7 +746,10 @@ function handleTouchStart(event: TouchEvent) {
 
 function handleTouchEnd(event: TouchEvent) {
   if (!videoRef.value) return
+
   const touch = event.changedTouches[0]
+  if (!touch) return
+
   const deltaX = touch.clientX - touchStartX
   const deltaY = touch.clientY - touchStartY
   const elapsed = Date.now() - touchStartAt
@@ -754,7 +761,11 @@ function handleTouchEnd(event: TouchEvent) {
   }
 
   if (Math.abs(deltaY) > 48 && Math.abs(deltaY) > Math.abs(deltaX)) {
-    const nextVolume = Math.min(Math.max(videoVolume.value + (deltaY < 0 ? 0.1 : -0.1), 0), 1)
+    const nextVolume = Math.min(
+      Math.max(videoVolume.value + (deltaY < 0 ? 0.1 : -0.1), 0),
+      1
+    )
+
     videoVolume.value = Number(nextVolume.toFixed(1))
     videoRef.value.volume = videoVolume.value
     videoRef.value.muted = videoVolume.value === 0
@@ -826,7 +837,7 @@ async function shareMovie() {
   try {
     if (navigator.share) {
       await navigator.share({
-        title: `${movie.value.name} - KR Phim`,
+        title: `${movie.value.name} - CineK`,
         text: activeEpisode.value?.name || movie.value.originName || movie.value.name,
         url: window.location.href,
       })
@@ -891,11 +902,25 @@ watch([libraryItem, user], () => {
 })
 
 useHead(() => ({
-  title: movie.value ? `Xem ${movie.value.name} - ${activeEpisode.value?.name || 'Tập 1'} - KR Phim` : 'Đang tải phim - KR Phim',
+  title: movie.value ? `Xem ${movie.value.name} - ${activeEpisode.value?.name || 'Tập 1'} - CineK` : 'Đang tải phim - CineK',
   meta: [
     {
       name: 'description',
-      content: movie.value?.content || 'Xem phim Hàn Quốc Vietsub.',
+      content: movie.value
+        ? `Xem ${movie.value.name} ${activeEpisode.value?.name || 'Tập 1'} online tại CineK, hỗ trợ Vietsub, thuyết minh, lồng tiếng và nhiều server xem.`
+        : 'Xem phim Hàn Quốc online tại CineK với trình phát mượt, hỗ trợ nhiều server xem.',
+    },
+    {
+      property: 'og:title',
+      content: movie.value ? `Xem ${movie.value.name} - CineK` : 'CineK - Xem phim Hàn Quốc online',
+    },
+    {
+      property: 'og:description',
+      content: movie.value?.content || 'Xem phim Hàn Quốc online với trải nghiệm mượt trên CineK.',
+    },
+    {
+      property: 'og:image',
+      content: movie.value?.poster || movie.value?.thumb || '/icon.png',
     },
   ],
 }))
@@ -905,61 +930,131 @@ useHead(() => ({
   <main class="min-h-screen bg-[#08090d] text-white">
     <AppHeader />
 
-    <div v-if="pending" class="mx-auto min-h-screen max-w-390 px-4 pt-36 sm:px-6 lg:px-8 lg:pt-28 xl:px-10">
-      <div class="aspect-video animate-pulse rounded-md bg-white/10" />
-    </div>
+    <Transition name="watch-page" mode="out-in">
+      <section v-if="pending && !movie" key="loading"
+        class="mx-auto max-w-390 px-3 pb-16 pt-24 sm:px-6 sm:pt-36 lg:px-8 lg:pt-28 xl:px-10">
+        <div class="h-5 w-28 animate-pulse rounded bg-white/10" />
 
-    <div v-else-if="error || !movie" class="mx-auto flex min-h-screen max-w-4xl items-center px-4 pt-36 lg:pt-24">
-      <div>
-        <h1 class="text-3xl font-black">Không mở được phim</h1>
-        <p class="mt-3 text-slate-300">Nguồn phim có thể đang chặn request hoặc phim chưa có tập xem.</p>
+        <div class="mt-4 overflow-hidden rounded-md border border-white/10 bg-black shadow-2xl shadow-black/40">
+          <div class="border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
+            <div class="grid grid-cols-2 gap-2">
+              <div class="h-10 animate-pulse rounded-md bg-white/10" />
+              <div class="h-10 animate-pulse rounded-md bg-white/10" />
+            </div>
+          </div>
+          <div class="relative aspect-video overflow-hidden bg-slate-950">
+            <div class="absolute left-3 top-3 hidden h-8 w-36 animate-pulse rounded-md bg-white/10 sm:block" />
+            <div class="absolute right-3 top-3 hidden h-8 w-44 animate-pulse rounded-md bg-white/10 sm:block" />
+            <div class="absolute inset-0 grid place-items-center">
+              <Loader2 class="size-10 animate-spin text-yellow-300" />
+            </div>
+          </div>
+          <div class="flex items-center justify-center gap-7 border-t border-white/10 px-4 py-4 sm:justify-start">
+            <div class="h-4 w-20 animate-pulse rounded bg-white/10" />
+            <div class="h-4 w-20 animate-pulse rounded bg-white/10" />
+            <div class="h-4 w-20 animate-pulse rounded bg-white/10" />
+          </div>
+        </div>
+
+        <div class="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+          <section>
+            <div class="flex gap-4">
+              <div class="hidden h-28 w-20 animate-pulse rounded-md bg-white/10 sm:block" />
+              <div class="min-w-0 flex-1">
+                <div class="h-7 w-3/4 animate-pulse rounded bg-white/10" />
+                <div class="mt-3 h-4 w-1/2 animate-pulse rounded bg-yellow-300/20" />
+                <div class="mt-4 flex flex-wrap gap-2">
+                  <div class="h-7 w-14 animate-pulse rounded bg-white/10" />
+                  <div class="h-7 w-20 animate-pulse rounded bg-white/10" />
+                  <div class="h-7 w-16 animate-pulse rounded bg-white/10" />
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 space-y-3">
+              <div class="h-4 animate-pulse rounded bg-white/10" />
+              <div class="h-4 w-11/12 animate-pulse rounded bg-white/10" />
+              <div class="h-4 w-4/5 animate-pulse rounded bg-white/10" />
+            </div>
+            <div class="mt-5 h-12 animate-pulse rounded-md bg-yellow-300/20" />
+            <div class="mt-6 border-t border-white/10 pt-4">
+              <div class="h-9 w-32 animate-pulse rounded bg-white/10" />
+              <div class="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+                <div v-for="index in 12" :key="index" class="h-14 animate-pulse rounded-md bg-white/10" />
+              </div>
+            </div>
+          </section>
+
+          <aside class="hidden rounded-md border border-white/10 bg-white/5 p-5 sm:block lg:self-start">
+            <div class="h-5 w-32 animate-pulse rounded bg-white/10" />
+            <div class="mt-5 space-y-4">
+              <div class="h-4 animate-pulse rounded bg-white/10" />
+              <div class="h-4 w-5/6 animate-pulse rounded bg-white/10" />
+              <div class="h-4 w-2/3 animate-pulse rounded bg-white/10" />
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <div v-else-if="error || !movie" key="error"
+        class="mx-auto flex min-h-screen max-w-4xl items-center px-4 pt-36 lg:pt-24">
+        <div>
+          <h1 class="text-3xl font-black">Không mở được phim</h1>
+          <p class="mt-3 text-slate-300">Phim có thể đang được cập nhật hoặc hiện chưa có tập xem.</p>
+        </div>
       </div>
-    </div>
 
-    <template v-else>
-      <section class="mx-auto max-w-390 px-3 pb-16 pt-24 sm:px-6 sm:pt-36 lg:px-8 lg:pt-28 xl:px-10">
-        <NuxtLink :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs } }"
-          class="text-sm font-bold text-slate-100 hover:text-emerald-200">
+      <section v-else key="content"
+        class="relative mx-auto max-w-390 px-3 pb-16 pt-24 sm:px-6 sm:pt-36 lg:px-8 lg:pt-28 xl:px-10">
+        <div v-if="pending"
+          class="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-yellow-400/10">
+          <span class="kr-loading-line block h-full w-1/3 rounded-full bg-yellow-300" />
+        </div>
+
+        <NuxtLink
+          :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs } }"
+          class="text-sm font-bold text-slate-100 hover:text-yellow-200">
           ‹ Chi tiết phim
         </NuxtLink>
 
         <div class="mt-4 overflow-hidden rounded-md border border-white/10 bg-black shadow-2xl shadow-black/40">
           <div class="border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
             <div class="grid grid-cols-2 gap-2">
-            <button type="button"
-              class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
-              :class="playerMode === 'embed' ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
-              :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
-              Nhúng
-            </button>
-            <button type="button"
-              class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
-              :class="playerMode === 'hls' ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
-              :disabled="!canUseHls" @click="selectPlayerMode('hls')">
-              HLS
-            </button>
+              <button type="button"
+                class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
+                :class="playerMode === 'embed' ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-slate-100'"
+                :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
+                Nhúng
+              </button>
+              <button type="button"
+                class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
+                :class="playerMode === 'hls' ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-slate-100'"
+                :disabled="!canUseHls" @click="selectPlayerMode('hls')">
+                HLS
+              </button>
             </div>
 
-            <div v-if="servers.length > 1" class="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
+            <!-- <div v-if="servers.length > 1" class="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
               <button v-for="(server, index) in servers" :key="`${server.name}-${index}-mobile-player`" type="button"
                 class="shrink-0 rounded-md px-3 py-2 text-xs font-black transition"
-                :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-slate-100'"
+                :class="selectedServer === index ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-slate-100'"
                 @click="selectServer(index)">
                 {{ serverLabel(server, index) }}
               </button>
-            </div>
+            </div> -->
           </div>
 
           <div class="relative aspect-video bg-slate-950">
             <div
               class="absolute left-3 top-3 z-20 hidden rounded-md border border-white/10 bg-black/65 p-1 text-xs font-black text-white backdrop-blur sm:inline-flex">
-              <button type="button" class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'embed' ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+              <button type="button"
+                class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
+                :class="playerMode === 'embed' ? 'bg-yellow-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
                 :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
                 Nhúng
               </button>
-              <button type="button" class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'hls' ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+              <button type="button"
+                class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
+                :class="playerMode === 'hls' ? 'bg-yellow-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
                 :disabled="!canUseHls" @click="selectPlayerMode('hls')">
                 HLS
               </button>
@@ -970,10 +1065,19 @@ useHead(() => ({
               <div class="no-scrollbar flex max-w-full gap-1 overflow-x-auto">
                 <button v-for="(server, index) in servers" :key="`${server.name}-${index}-player`" type="button"
                   class="shrink-0 rounded px-3 py-1.5 transition"
-                  :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
+                  :class="selectedServer === index ? 'bg-yellow-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
                   @click="selectServer(index)">
                   {{ serverLabel(server, index) }}
                 </button>
+              </div>
+            </div>
+
+            <div v-if="pending"
+              class="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-black/45 text-yellow-200 backdrop-blur-[1px]">
+              <div
+                class="inline-flex items-center gap-3 rounded-full border border-yellow-300/25 bg-black/70 px-4 py-2 text-xs font-black shadow-xl shadow-black/30">
+                <Loader2 class="size-4 animate-spin" />
+                Đang tải phim
               </div>
             </div>
 
@@ -986,16 +1090,17 @@ useHead(() => ({
               @mouseleave="controlsVisible = false" @touchstart.passive="handleTouchStart"
               @touchend.passive="handleTouchEnd">
               <video ref="videoRef" class="h-full w-full bg-black object-contain" playsinline
-                @loadedmetadata="updateVideoMetadata" @timeupdate="updateVideoTime"
-                @canplay="handleVideoCanPlay" @waiting="handleVideoWaiting"
-                @playing="handleVideoPlaying" @play="isVideoPlaying = true; showControlsTemporarily()"
+                @loadedmetadata="updateVideoMetadata" @timeupdate="updateVideoTime" @canplay="handleVideoCanPlay"
+                @waiting="handleVideoWaiting" @playing="handleVideoPlaying"
+                @play="isVideoPlaying = true; showControlsTemporarily()"
                 @pause="isVideoPlaying = false; controlsVisible = true" @ended="handleVideoEnded"
                 @error="handleVideoError" />
 
-              <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/35" />
+              <div
+                class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/35" />
 
               <div v-if="isVideoBuffering"
-                class="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/20 text-emerald-200">
+                class="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/20 text-yellow-200">
                 <Loader2 class="size-10 animate-spin" />
               </div>
 
@@ -1005,13 +1110,14 @@ useHead(() => ({
               </div>
 
               <button v-if="videoCurrentTime < skipIntroSeconds && durationSeconds > 180" type="button"
-                class="absolute bottom-24 right-4 z-20 rounded-md bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg transition hover:bg-white"
+                class="absolute bottom-24 right-4 z-20 rounded-md border border-yellow-300/80 bg-black/55 px-4 py-2 text-xs font-black text-yellow-200 shadow-lg shadow-black/30 backdrop-blur transition hover:border-yellow-200 hover:bg-yellow-400 hover:text-slate-950"
                 @click="skipIntro">
                 Bỏ intro
               </button>
 
-              <button v-if="skipOutroSeconds && videoCurrentTime > skipOutroSeconds - 45 && hasNextEpisode" type="button"
-                class="absolute bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-md bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 shadow-lg transition hover:bg-white"
+              <button v-if="skipOutroSeconds && videoCurrentTime > skipOutroSeconds - 45 && hasNextEpisode"
+                type="button"
+                class="absolute bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-md border border-yellow-300/80 bg-black/55 px-4 py-2 text-xs font-black text-yellow-200 shadow-lg shadow-black/30 backdrop-blur transition hover:border-yellow-200 hover:bg-yellow-400 hover:text-slate-950"
                 @click="playNextEpisode(true)">
                 <SkipForward class="size-4" /> Tập tiếp
               </button>
@@ -1023,7 +1129,7 @@ useHead(() => ({
                 @pointerdown="handlePlayerPointerDown" @pointerup="stopHoldSpeed" @pointercancel="stopHoldSpeed"
                 @pointerleave="stopHoldSpeed" @contextmenu.prevent>
                 <span
-                  class="grid size-12 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-950/30 sm:size-16">
+                  class="grid size-12 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-xl shadow-yellow-950/30 sm:size-16">
                   <Pause v-if="isVideoPlaying" class="size-5 fill-current sm:size-7" />
                   <Play v-else class="size-5 fill-current sm:size-7" />
                 </span>
@@ -1043,41 +1149,34 @@ useHead(() => ({
                   <span>{{ formatPlayerTime(videoCurrentTime) }}</span>
                   <span>{{ formatPlayerTime(durationSeconds) }}</span>
                 </div>
-                <input class="kr-hls-range" type="range" min="0" :max="durationSeconds || 0"
-                  :value="videoCurrentTime" step="1" @input="seekHlsPlayer">
+                <input class="kr-hls-range" type="range" min="0" :max="durationSeconds || 0" :value="videoCurrentTime"
+                  step="1" @input="seekHlsPlayer">
                 <div class="kr-hls-actions">
                   <div class="kr-hls-actions-left">
-                    <button type="button"
-                      class="kr-hls-control-button is-primary"
+                    <button type="button" class="kr-hls-control-button is-primary"
                       :aria-label="isVideoPlaying ? 'Tạm dừng' : 'Phát phim'" @click="toggleHlsPlayback">
                       <Pause v-if="isVideoPlaying" class="fill-current" />
                       <Play v-else class="fill-current" />
                     </button>
-                    <button type="button"
-                      class="kr-hls-control-button"
-                      aria-label="Lùi 10 giây" @click="seekBy(-10)">
+                    <button type="button" class="kr-hls-control-button" aria-label="Lùi 10 giây" @click="seekBy(-10)">
                       <Rewind />
                     </button>
-                    <button type="button"
-                      class="kr-hls-control-button"
-                      aria-label="Tua 10 giây" @click="seekBy(10)">
+                    <button type="button" class="kr-hls-control-button" aria-label="Tua 10 giây" @click="seekBy(10)">
                       <FastForward />
                     </button>
-                    <button type="button"
-                      class="kr-hls-control-button"
-                      :aria-label="isVideoMuted ? 'Bật âm' : 'Tắt âm'" @click="toggleMute">
+                    <button type="button" class="kr-hls-control-button" :aria-label="isVideoMuted ? 'Bật âm' : 'Tắt âm'"
+                      @click="toggleMute">
                       <VolumeX v-if="isVideoMuted" />
                       <Volume2 v-else />
                     </button>
-                    <input class="kr-volume-range hidden sm:block" type="range" min="0" max="1"
-                      step="0.05" :value="videoVolume" @input="changeVolume">
+                    <input class="kr-volume-range hidden sm:block" type="range" min="0" max="1" step="0.05"
+                      :value="videoVolume" @input="changeVolume">
                   </div>
 
                   <div class="kr-hls-actions-right">
                     <div class="relative">
-                      <button type="button"
-                        class="kr-hls-control-button"
-                        :class="isSettingsOpen ? 'bg-emerald-400 text-slate-950' : ''" aria-label="Cài đặt player"
+                      <button type="button" class="kr-hls-control-button"
+                        :class="isSettingsOpen ? 'bg-yellow-400 text-slate-950' : ''" aria-label="Cài đặt player"
                         @click="isSettingsOpen = !isSettingsOpen; controlsVisible = true">
                         <Settings />
                       </button>
@@ -1105,25 +1204,23 @@ useHead(() => ({
                           :value="selectedQuality" :disabled="!qualityLevels.length" aria-label="Chất lượng"
                           @change="changeQuality">
                           <option class="bg-slate-950" value="-1">Auto</option>
-                          <option v-for="level in qualityLevels" :key="level.level" class="bg-slate-950" :value="level.level">
+                          <option v-for="level in qualityLevels" :key="level.level" class="bg-slate-950"
+                            :value="level.level">
                             {{ level.label }}
                           </option>
                         </select>
                       </div>
                     </div>
-                    <button type="button"
-                      class="kr-hls-control-button kr-hls-desktop-button"
+                    <button type="button" class="kr-hls-control-button kr-hls-desktop-button"
                       aria-label="Picture in Picture" @click="togglePictureInPicture">
                       <PictureInPicture2 />
                     </button>
-                    <button v-if="hasNextEpisode" type="button"
-                      class="kr-hls-control-button kr-hls-desktop-button"
+                    <button v-if="hasNextEpisode" type="button" class="kr-hls-control-button kr-hls-desktop-button"
                       aria-label="Tập tiếp theo" @click="playNextEpisode(true)">
                       <SkipForward />
                     </button>
-                    <button type="button"
-                      class="kr-hls-control-button"
-                      aria-label="Toàn màn hình" @click="toggleFullscreen">
+                    <button type="button" class="kr-hls-control-button" aria-label="Toàn màn hình"
+                      @click="toggleFullscreen">
                       <Maximize />
                     </button>
                   </div>
@@ -1136,7 +1233,7 @@ useHead(() => ({
               <div class="absolute inset-0 bg-black/45" />
               <div class="absolute inset-0 grid place-items-center">
                 <span
-                  class="grid size-16 place-items-center rounded-full bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-950/30">
+                  class="grid size-16 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-xl shadow-yellow-950/30">
                   <Play class="size-7 fill-current" />
                 </span>
                 <span v-if="playerMode === 'hls' && !canUseHls"
@@ -1150,25 +1247,26 @@ useHead(() => ({
           <div
             class="flex items-center justify-center gap-7 border-t border-white/10 px-4 py-4 text-xs font-bold text-slate-100 sm:justify-start sm:gap-4 sm:py-3">
             <button type="button"
-              class="inline-flex cursor-pointer items-center gap-2 hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
-              :class="isFavoriteMovie ? 'text-emerald-300' : ''" :disabled="actionBusy" @click="toggleFavorite">
+              class="inline-flex cursor-pointer items-center gap-2 hover:text-yellow-200 disabled:cursor-not-allowed disabled:opacity-70"
+              :class="isFavoriteMovie ? 'text-yellow-300' : ''" :disabled="actionBusy" @click="toggleFavorite">
               <Heart class="size-4 sm:size-3" :class="isFavoriteMovie ? 'fill-current' : ''" />
               {{ isFavoriteMovie ? 'Đã thích' : 'Yêu thích' }}
             </button>
             <button type="button"
-              class="inline-flex cursor-pointer items-center gap-2 hover:text-emerald-200 disabled:cursor-not-allowed disabled:opacity-70"
+              class="inline-flex cursor-pointer items-center gap-2 hover:text-yellow-200 disabled:cursor-not-allowed disabled:opacity-70"
               :disabled="actionBusy" @click="addToWatchLater">
               <Plus class="size-4 sm:size-3" /> Thêm vào
             </button>
-            <button type="button" class="inline-flex cursor-pointer items-center gap-2 hover:text-emerald-200"
+            <button type="button" class="inline-flex cursor-pointer items-center gap-2 hover:text-yellow-200"
               @click="shareMovie">
               <Share2 class="size-4 sm:size-3" /> Chia sẻ
             </button>
-            <span v-if="actionMessage" class="hidden text-xs font-bold text-emerald-200 sm:inline">
+            <span v-if="actionMessage" class="hidden text-xs font-bold text-yellow-200 sm:inline">
               {{ actionMessage }}
             </span>
           </div>
-          <p v-if="actionMessage" class="border-t border-white/10 px-4 pb-3 text-center text-xs font-bold text-emerald-200 sm:hidden">
+          <p v-if="actionMessage"
+            class="border-t border-white/10 px-4 pb-3 text-center text-xs font-bold text-yellow-200 sm:hidden">
             {{ actionMessage }}
           </p>
         </div>
@@ -1180,13 +1278,13 @@ useHead(() => ({
                 class="hidden h-28 w-20 rounded-md object-cover sm:block">
               <div>
                 <h1 class="text-[1.35rem] font-black leading-tight sm:text-2xl">{{ movie.name }}</h1>
-                <p v-if="movie.originName" class="mt-1 text-sm font-bold text-emerald-200">{{ movie.originName }}</p>
+                <p v-if="movie.originName" class="mt-1 text-sm font-bold text-yellow-200">{{ movie.originName }}</p>
                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-black">
                   <span v-if="movie.quality" class="rounded bg-white/12 px-2 py-1">{{ movie.quality }}</span>
                   <span v-if="movie.episode" class="rounded bg-white/12 px-2 py-1">{{ movie.episode }}</span>
                   <span v-if="movie.time" class="rounded bg-white/12 px-2 py-1">{{ movie.time }}</span>
                   <span v-if="movie.rating"
-                    class="inline-flex items-center gap-1 rounded bg-emerald-400 px-2 py-1 text-slate-950">
+                    class="inline-flex items-center gap-1 rounded bg-yellow-400 px-2 py-1 text-slate-950">
                     <Star class="size-3 fill-current" />
                     {{ movie.rating.toFixed(1) }}
                   </span>
@@ -1196,14 +1294,14 @@ useHead(() => ({
 
             <p v-if="movie.content" class="mt-4 text-sm leading-7 text-slate-200">{{ movie.content }}</p>
 
-            <div class="mt-5 rounded-md bg-emerald-400 px-4 py-3 text-sm font-black text-slate-950">
+            <div class="mt-5 rounded-md bg-yellow-400 px-4 py-3 text-sm font-black text-slate-950">
               Đang xem {{ formatEpisodeName(activeEpisode?.name, selectedEpisode) }}
             </div>
 
             <div class="mt-6 border-t border-white/10 pt-4">
               <div class="hidden">
                 <div>
-                  <p class="text-xs font-black uppercase tracking-wide text-emerald-200">Chá»n server</p>
+                  <p class="text-xs font-black uppercase tracking-wide text-yellow-200">Chá»n server</p>
                   <h2 class="mt-1 text-[1.08rem] font-black sm:text-xl">Danh sÃ¡ch táº­p</h2>
                 </div>
                 <p class="text-xs font-bold text-slate-400">
@@ -1214,7 +1312,7 @@ useHead(() => ({
               <div v-if="servers.length > 1" class="hidden">
                 <button v-for="(server, index) in servers" :key="`${server.name}-${index}-episode-server`" type="button"
                   class="shrink-0 rounded px-4 py-2 text-sm font-black"
-                  :class="selectedServer === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
+                  :class="selectedServer === index ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'"
                   @click="selectServer(index)">
                   {{ serverLabel(server, index) }}
                 </button>
@@ -1222,11 +1320,10 @@ useHead(() => ({
 
               <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <div class="inline-flex shrink-0 items-center gap-3 text-white">
-                  <Menu class="size-5 text-emerald-300" />
+                  <Menu class="size-5 text-yellow-300" />
                   <button type="button"
                     class="inline-flex items-center gap-2 border-r border-white/15 pr-5 text-xl font-black">
                     Phần 1
-                    <span class="text-xs text-slate-400">v</span>
                   </button>
                 </div>
 
@@ -1249,8 +1346,8 @@ useHead(() => ({
                 <div class="hidden shrink-0 items-center gap-2 text-xs font-bold text-slate-300 lg:flex">
                   <span>Rút gọn</span>
                   <span
-                    class="relative inline-flex h-5 w-9 items-center rounded-full bg-emerald-400/18 ring-1 ring-emerald-300/35">
-                    <span class="ml-auto mr-1 size-3 rounded-full bg-emerald-300" />
+                    class="relative inline-flex h-5 w-9 items-center rounded-full bg-yellow-400/18 ring-1 ring-yellow-300/35">
+                    <span class="ml-auto mr-1 size-3 rounded-full bg-yellow-300" />
                   </span>
                 </div>
               </div>
@@ -1260,7 +1357,7 @@ useHead(() => ({
                 <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
                   :to="episodeLink(index)"
                   class="inline-flex h-14 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-black transition"
-                  :class="selectedEpisode === index ? 'bg-emerald-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
+                  :class="selectedEpisode === index ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-white hover:bg-white/16'">
                   <Play class="size-3 fill-current" />
                   {{ formatEpisodeName(episode.name, index) }}
                 </NuxtLink>
@@ -1285,11 +1382,36 @@ useHead(() => ({
           </aside>
         </div>
       </section>
-    </template>
+    </Transition>
   </main>
 </template>
 
 <style scoped>
+.watch-page-enter-active,
+.watch-page-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.watch-page-enter-from,
+.watch-page-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.kr-loading-line {
+  animation: kr-loading-slide 1s ease-in-out infinite;
+}
+
+@keyframes kr-loading-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(320%);
+  }
+}
+
 .kr-hls-controls {
   position: absolute;
   inset-inline: 0;
@@ -1346,7 +1468,7 @@ useHead(() => ({
 }
 
 .kr-hls-control-button:hover {
-  color: rgb(52 211 153);
+  color: rgb(250 204 21);
   transform: scale(1.08);
 }
 
@@ -1378,8 +1500,7 @@ useHead(() => ({
   height: 4px;
   appearance: none;
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, rgb(52 211 153) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.18) 0);
+  background: linear-gradient(90deg, rgb(250 204 21) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.18) 0);
   cursor: pointer;
   outline: none;
 }
@@ -1387,8 +1508,7 @@ useHead(() => ({
 .kr-volume-range {
   width: 112px;
   height: 3px;
-  background:
-    linear-gradient(90deg, white v-bind('`${videoVolume * 100}%`'), rgb(255 255 255 / 0.25) 0);
+  background: linear-gradient(90deg, white v-bind('`${videoVolume * 100}%`'), rgb(255 255 255 / 0.25) 0);
 }
 
 .kr-hls-range::-webkit-slider-thumb,
@@ -1398,7 +1518,7 @@ useHead(() => ({
   appearance: none;
   border-radius: 999px;
   background: white;
-  box-shadow: 0 0 0 3px rgb(52 211 153 / 0.22);
+  box-shadow: 0 0 0 3px rgb(250 204 21 / 0.25);
 }
 
 .kr-hls-range::-moz-range-thumb,
@@ -1408,7 +1528,7 @@ useHead(() => ({
   border: 0;
   border-radius: 999px;
   background: white;
-  box-shadow: 0 0 0 3px rgb(52 211 153 / 0.22);
+  box-shadow: 0 0 0 3px rgb(250 204 21 / 0.25);
 }
 
 .kr-volume-range::-webkit-slider-thumb {
@@ -1430,8 +1550,7 @@ useHead(() => ({
   z-index: 12;
   height: 4px;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgb(52 211 153) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.24) 0);
+  background: linear-gradient(90deg, rgb(250 204 21) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.24) 0);
   transition: opacity 0.18s ease;
 }
 

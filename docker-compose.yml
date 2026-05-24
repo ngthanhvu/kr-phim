@@ -1,9 +1,9 @@
 services:
-  kr-phim:
+  cinek:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kr-phim
+    container_name: cinek
     restart: unless-stopped
     environment:
       NODE_ENV: production
