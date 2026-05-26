@@ -393,6 +393,7 @@ useHead({
   margin: 0;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   color: #fff;
   font-size: 15px;
   font-weight: 800;

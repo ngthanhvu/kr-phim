@@ -13,7 +13,20 @@ const { data, pending, error } = useFetch('/api/movies', {
   }),
 })
 
+const { data: additionalData } = useFetch('/api/movies', {
+  query: {
+    page: 2,
+  },
+  lazy: true,
+  default: () => ({
+    items: [],
+    sources: [],
+  }),
+})
+
 const movies = computed(() => data.value?.items ?? [])
+const additionalMovies = computed(() => additionalData.value?.items ?? [])
+const homeCatalog = computed(() => uniqueHeroMovies([...movies.value, ...additionalMovies.value]))
 const heroIndex = ref(0)
 const heroSlides = computed(() => uniqueHeroMovies(movies.value).slice(0, 6))
 const hero = computed(() => heroSlides.value[heroIndex.value] ?? movies.value[0])
@@ -40,25 +53,6 @@ const heroDescription = computed(() => {
 
   return fallback.length ? fallback.join('. ') : 'Phim Hàn Quốc Vietsub mới cập nhật.'
 })
-
-const rows = computed(() => [
-  {
-    title: 'Mới cập nhật',
-    to: '/phim',
-    items: movies.value.slice(0, 12),
-  },
-  {
-    title: 'Phim bộ Hàn Quốc',
-    to: '/phim?type=series',
-    items: movies.value.filter((movie: any) => movie.type !== 'single').slice(0, 12),
-  },
-  {
-    title: 'Phim lẻ & đặc biệt',
-    to: '/phim?type=single',
-    items: movies.value.filter((movie: any) => movie.type === 'single' || movie.episode === 'Full').slice(0, 12),
-  },
-])
-const topTrending = computed(() => uniqueHeroMovies(movies.value).slice(0, 10))
 
 function comparableMovieText(value?: string) {
   return String(value || '')
@@ -88,6 +82,56 @@ function uniqueHeroMovies(items: any[]) {
 
   return uniqueItems
 }
+
+function movieListKey(movie: any) {
+  return comparableMovieText(movie?.originName || movie?.name || movie?.slug)
+}
+
+function withoutMovies(items: any[], excluded: any[]) {
+  const excludedKeys = new Set(excluded.map(movieListKey))
+  return items.filter((item) => !excludedKeys.has(movieListKey(item)))
+}
+
+function movieUpdateTime(movie: any) {
+  return movie?.updatedAt ? new Date(movie.updatedAt).getTime() || 0 : 0
+}
+
+const topTrending = computed(() => [...homeCatalog.value]
+  .sort((a: any, b: any) => (Number(b.rating) || 0) - (Number(a.rating) || 0)
+    || movieUpdateTime(b) - movieUpdateTime(a))
+  .slice(0, 10))
+
+const latestMovies = computed(() => withoutMovies(homeCatalog.value, topTrending.value)
+  .sort((a: any, b: any) => movieUpdateTime(b) - movieUpdateTime(a))
+  .slice(0, 12))
+
+const seriesMovies = computed(() => withoutMovies(
+  homeCatalog.value.filter((movie: any) => movie.type !== 'single'),
+  [...topTrending.value, ...latestMovies.value],
+).slice(0, 12))
+
+const singleMovies = computed(() => withoutMovies(
+  homeCatalog.value.filter((movie: any) => movie.type === 'single' || movie.episode === 'Full'),
+  [...topTrending.value, ...latestMovies.value, ...seriesMovies.value],
+).slice(0, 12))
+
+const rows = computed(() => [
+  {
+    title: 'Mới cập nhật',
+    to: '/phim',
+    items: latestMovies.value,
+  },
+  {
+    title: 'Phim bộ Hàn Quốc',
+    to: '/phim?type=series',
+    items: seriesMovies.value,
+  },
+  {
+    title: 'Phim lẻ & đặc biệt',
+    to: '/phim?type=single',
+    items: singleMovies.value,
+  },
+])
 
 function movieSourcesQuery(movie: any) {
   return (movie?.sources || [{ source: movie?.source, slug: movie?.slug }])
@@ -389,7 +433,7 @@ useHead({
             TOP 10 <span class="text-yellow-400">CineK</span>
           </h2>
           <span class="hidden text-xs font-black uppercase tracking-[0.35em] text-slate-500 sm:inline">
-            Thịnh hành hôm nay
+            Gợi ý nổi bật
           </span>
         </div>
 
