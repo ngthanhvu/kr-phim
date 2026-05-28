@@ -29,6 +29,7 @@ const actionMessage = ref('')
 const actionBusy = ref(false)
 const progressSeconds = ref(0)
 const playerMode = ref<'embed' | 'hls'>('embed')
+const playerViewportRef = ref<HTMLElement | null>(null)
 const playerShellRef = ref<HTMLElement | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
 const isVideoPlaying = ref(false)
@@ -61,6 +62,7 @@ let lastTapX = 0
 let holdRestoreRate = 1
 let ignoreNextTap = false
 let hlsFatalRetryCount = 0
+let autoOrientationFullscreen = false
 let hlsPlayer: Hls | undefined
 let progressTimer: ReturnType<typeof setInterval> | undefined
 let lastSavedProgress = 0
@@ -187,6 +189,8 @@ async function startPlayer() {
   if (playerMode.value === 'hls') {
     nextTick(() => setupHlsPlayer(true))
   }
+
+  nextTick(() => handleOrientationFullscreen())
 }
 
 function selectPlayerMode(mode: 'embed' | 'hls') {
@@ -580,52 +584,117 @@ function changeQuality(event: Event) {
   showControlsTemporarily()
 }
 
-async function toggleFullscreen() {
-  if (!import.meta.client || !videoRef.value) return
-
-  const video = videoRef.value as HTMLVideoElement & {
-    webkitEnterFullscreen?: () => void
-    webkitRequestFullscreen?: () => Promise<void> | void
-  }
-  const target = (playerShellRef.value || video.parentElement || video) as HTMLElement & {
-    webkitRequestFullscreen?: () => Promise<void> | void
-  }
+function getDocumentFullscreenElement() {
+  if (!import.meta.client) return null
   const documentWithWebkit = document as Document & {
     webkitFullscreenElement?: Element | null
+  }
+
+  return document.fullscreenElement || documentWithWebkit.webkitFullscreenElement || null
+}
+
+async function enterPlayerFullscreen() {
+  if (!import.meta.client) return false
+
+  const video = videoRef.value as (HTMLVideoElement & {
+    webkitEnterFullscreen?: () => void
+    webkitRequestFullscreen?: () => Promise<void> | void
+  }) | null
+  const target = (playerShellRef.value || playerViewportRef.value || video?.parentElement || video) as (HTMLElement & {
+    webkitRequestFullscreen?: () => Promise<void> | void
+  }) | null
+
+  if (!target && !video) return false
+
+  try {
+    if (target?.requestFullscreen) {
+      await target.requestFullscreen()
+      return true
+    }
+
+    if (target?.webkitRequestFullscreen) {
+      await target.webkitRequestFullscreen()
+      return true
+    }
+
+    if (video?.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen()
+      return true
+    }
+  } catch {
+    try {
+      video?.webkitEnterFullscreen?.()
+      return Boolean(video)
+    } catch {
+      return false
+    }
+  }
+
+  return false
+}
+
+async function exitPlayerFullscreen() {
+  const documentWithWebkit = document as Document & {
     webkitExitFullscreen?: () => Promise<void> | void
   }
 
+  if (document.exitFullscreen) await document.exitFullscreen()
+  else await documentWithWebkit.webkitExitFullscreen?.()
+}
+
+async function toggleFullscreen() {
+  if (!import.meta.client) return
+
   try {
-    if (document.fullscreenElement || documentWithWebkit.webkitFullscreenElement) {
-      if (document.exitFullscreen) await document.exitFullscreen()
-      else await documentWithWebkit.webkitExitFullscreen?.()
+    if (getDocumentFullscreenElement()) {
+      await exitPlayerFullscreen()
       return
     }
 
-    if (target.requestFullscreen) {
-      await target.requestFullscreen()
-      return
-    }
-
-    if (target.webkitRequestFullscreen) {
-      await target.webkitRequestFullscreen()
-      return
-    }
-
-    video.webkitEnterFullscreen?.()
+    await enterPlayerFullscreen()
   } catch {
-    video.webkitEnterFullscreen?.()
+    await enterPlayerFullscreen()
   }
 }
 
 function updateFullscreenState() {
   if (!import.meta.client) return
-  const documentWithWebkit = document as Document & {
-    webkitFullscreenElement?: Element | null
-  }
-  const fullscreenElement = document.fullscreenElement || documentWithWebkit.webkitFullscreenElement
-  isHlsFullscreen.value = Boolean(fullscreenElement && playerShellRef.value?.contains(fullscreenElement))
+  const fullscreenElement = getDocumentFullscreenElement()
+  const playerElement = playerShellRef.value || playerViewportRef.value
+  isHlsFullscreen.value = Boolean(
+    fullscreenElement
+    && playerElement
+    && (playerElement.contains(fullscreenElement) || fullscreenElement.contains(playerElement)),
+  )
   if (!isHlsFullscreen.value) edgeProgressVisible.value = false
+  if (!fullscreenElement) autoOrientationFullscreen = false
+}
+
+function isMobileLandscapeViewport() {
+  if (!import.meta.client) return false
+  const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
+  const isSmallScreen = window.matchMedia?.('(max-width: 940px)').matches ?? window.innerWidth <= 940
+  const isLandscape = window.matchMedia?.('(orientation: landscape)').matches ?? window.innerWidth > window.innerHeight
+
+  return isCoarsePointer && isSmallScreen && isLandscape
+}
+
+async function handleOrientationFullscreen() {
+  if (!import.meta.client || !hasStarted.value) return
+
+  const fullscreenElement = getDocumentFullscreenElement()
+  if (!isMobileLandscapeViewport()) {
+    if (fullscreenElement && autoOrientationFullscreen) await exitPlayerFullscreen()
+    return
+  }
+
+  if (fullscreenElement) return
+
+  autoOrientationFullscreen = await enterPlayerFullscreen()
+  if (autoOrientationFullscreen) {
+    controlsVisible.value = false
+    showFullscreenProgressOnly()
+  }
 }
 
 async function togglePictureInPicture() {
@@ -858,6 +927,9 @@ onMounted(async () => {
   document.addEventListener('keydown', handleKeyboardShortcut)
   document.addEventListener('fullscreenchange', updateFullscreenState)
   document.addEventListener('webkitfullscreenchange', updateFullscreenState)
+  window.addEventListener('orientationchange', handleOrientationFullscreen)
+  window.addEventListener('resize', handleOrientationFullscreen)
+  screen.orientation?.addEventListener?.('change', handleOrientationFullscreen)
 })
 
 onBeforeUnmount(() => {
@@ -873,6 +945,9 @@ onBeforeUnmount(() => {
   if (import.meta.client) document.removeEventListener('keydown', handleKeyboardShortcut)
   if (import.meta.client) document.removeEventListener('fullscreenchange', updateFullscreenState)
   if (import.meta.client) document.removeEventListener('webkitfullscreenchange', updateFullscreenState)
+  if (import.meta.client) window.removeEventListener('orientationchange', handleOrientationFullscreen)
+  if (import.meta.client) window.removeEventListener('resize', handleOrientationFullscreen)
+  if (import.meta.client) screen.orientation?.removeEventListener?.('change', handleOrientationFullscreen)
 })
 
 watch(() => route.query, () => {
@@ -1043,7 +1118,7 @@ useHead(() => ({
             </div> -->
           </div>
 
-          <div class="relative aspect-video bg-slate-950">
+          <div ref="playerViewportRef" class="relative aspect-video bg-slate-950">
             <div
               class="absolute left-3 top-3 z-20 hidden rounded-md border border-white/10 bg-black/65 p-1 text-xs font-black text-white backdrop-blur sm:inline-flex">
               <button type="button"
