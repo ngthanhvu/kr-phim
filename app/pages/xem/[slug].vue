@@ -1172,7 +1172,7 @@ useHead(() => ({
                 @error="handleVideoError" />
 
               <div
-                class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-black/35" />
+                class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-linear-to-b from-black/35 to-transparent" />
 
               <div v-if="isVideoBuffering"
                 class="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/20 text-yellow-200">
@@ -1219,7 +1219,7 @@ useHead(() => ({
                 :class="edgeProgressVisible || (isHlsFullscreen && !shouldShowHlsControls) ? 'opacity-100' : 'opacity-0'" />
 
               <div class="kr-hls-controls text-white transition"
-                :class="shouldShowHlsControls ? 'opacity-100' : 'pointer-events-none opacity-0'">
+                :class="shouldShowHlsControls ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0'">
                 <div class="kr-hls-time-row">
                   <span>{{ formatPlayerTime(videoCurrentTime) }}</span>
                   <span>{{ formatPlayerTime(durationSeconds) }}</span>
@@ -1493,7 +1493,9 @@ useHead(() => ({
   bottom: 0;
   z-index: 10;
   padding: 8px 14px 14px;
-  background: linear-gradient(180deg, transparent, rgb(0 0 0 / 0.78) 22%, rgb(0 0 0 / 0.92));
+  background: linear-gradient(180deg, transparent, rgb(0 0 0 / 0.22) 42%, rgb(0 0 0 / 0.48));
+  will-change: opacity, transform;
+  transition: opacity 0.24s ease, transform 0.24s ease;
 }
 
 .kr-hls-time-row {
@@ -1626,7 +1628,7 @@ useHead(() => ({
   height: 4px;
   pointer-events: none;
   background: linear-gradient(90deg, rgb(250 204 21) v-bind('`${progressPercent}%`'), rgb(255 255 255 / 0.24) 0);
-  transition: opacity 0.18s ease;
+  transition: opacity 0.24s ease;
 }
 
 @media (max-width: 640px) {
