@@ -58,8 +58,7 @@ const allowRegistration = ref(true)
               <p class="text-sm font-semibold text-white">Chế độ bảo trì</p>
               <p class="mt-1 text-xs text-slate-400">Tạm thời tắt website để bảo trì</p>
             </div>
-            <input v-model="maintenanceMode" type="checkbox"
-              class="h-5 w-5 cursor-pointer rounded border-white/20 bg-white/5 text-yellow-400 focus:ring-yellow-400/50">
+            <AdminToggle v-model="maintenanceMode" />
           </label>
 
           <label class="flex cursor-pointer items-center justify-between rounded-lg border border-white/5 bg-white/5 p-4 transition hover:border-white/10">
@@ -67,8 +66,7 @@ const allowRegistration = ref(true)
               <p class="text-sm font-semibold text-white">Cho phép đăng ký</p>
               <p class="mt-1 text-xs text-slate-400">Cho phép người dùng mới đăng ký tài khoản</p>
             </div>
-            <input v-model="allowRegistration" type="checkbox"
-              class="h-5 w-5 cursor-pointer rounded border-white/20 bg-white/5 text-yellow-400 focus:ring-yellow-400/50">
+            <AdminToggle v-model="allowRegistration" />
           </label>
         </div>
       </div>

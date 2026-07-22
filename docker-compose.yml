@@ -1,4 +1,27 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: cinek-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: cinek
+      MYSQL_USER: cinek
+      MYSQL_PASSWORD: cinekpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: cinek-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   cinek:
     build:
       context: .
@@ -8,8 +31,17 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 3002
+      DATABASE_URL: mysql://cinek:cinekpassword@mysql:3306/cinek
+      REDIS_URL: redis://redis:6379
     ports:
       - "3002:3002"
     volumes:
       - .:/app
       - /app/node_modules
+    depends_on:
+      - mysql
+      - redis
+
+volumes:
+  mysql_data:
+  redis_data:

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1784692643696,
+      "tag": "0000_regular_quentin_quire",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1784693272000,
+      "tag": "0001_lively_nightmare",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1784694350192,
+      "tag": "0002_small_black_panther",
+      "breakpoints": true
+    }
+  ]
+}
