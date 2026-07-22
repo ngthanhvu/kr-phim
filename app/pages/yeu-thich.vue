@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Heart, UserRound } from 'lucide-vue-next'
+import { Heart } from 'lucide-vue-next'
 import type { LibraryMovieItem } from '~/composables/useMovieLibrary'
 
-const { user, loading: authLoading, initAuth } = useSupabaseAuth()
 const { loadFavorites } = useMovieLibrary()
 const favoriteItems = ref<LibraryMovieItem[]>([])
 const loading = ref(true)
@@ -23,12 +22,7 @@ function movieLink(item: LibraryMovieItem) {
 }
 
 onMounted(async () => {
-  await initAuth()
   await refreshFavorites()
-})
-
-watch(user, () => {
-  refreshFavorites()
 })
 
 useHead({
@@ -52,7 +46,7 @@ useHead({
         <h1 class="mt-2 text-3xl font-black sm:text-4xl">Yêu thích</h1>
       </div>
 
-      <div v-if="loading || authLoading" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div v-if="loading" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <div v-for="item in 12" :key="item" class="aspect-2/3 animate-pulse rounded-md bg-white/10" />
       </div>
 
@@ -75,7 +69,7 @@ useHead({
         </NuxtLink>
       </div>
 
-      <div v-else-if="user"
+      <div v-else
         class="flex min-h-80 flex-col items-center justify-center rounded-lg border border-white/10 bg-white/6 p-6 text-center">
         <Heart class="size-12 text-yellow-300" />
         <h2 class="mt-4 text-xl font-black">Chưa có phim yêu thích</h2>
@@ -86,14 +80,6 @@ useHead({
           class="mt-5 inline-flex h-11 items-center justify-center rounded-md bg-yellow-300 px-5 text-sm font-black text-slate-950 transition hover:bg-white">
           Duyệt phim
         </NuxtLink>
-      </div>
-
-      <div v-else class="rounded-lg border border-white/10 bg-white/6 p-6">
-        <UserRound class="size-10 text-yellow-300" />
-        <h2 class="mt-4 text-xl font-black">Bạn chưa đăng nhập</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-300">
-          Đăng nhập để đồng bộ danh sách yêu thích, hoặc vẫn có thể lưu tạm trên thiết bị này.
-        </p>
       </div>
     </section>
   </main>

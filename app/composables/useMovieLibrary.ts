@@ -56,31 +56,15 @@ function legacyKeyFor(key: string) {
 }
 
 export function useMovieLibrary() {
-  const { $supabase } = useNuxtApp()
-  const { user } = useSupabaseAuth()
-
-  async function loadItems(key: string, table: string, limit = 30) {
+  async function loadItems(key: string, limit = 30) {
     const localItems = readLocalItems(key, legacyKeyFor(key))
-
-    if (user.value) {
-      const { data, error } = await $supabase
-        .from(table)
-        .select('source, slug, name, origin_name, thumb, poster, updated_at')
-        .eq('user_id', user.value.id)
-        .order('updated_at', { ascending: false })
-        .limit(limit)
-
-      if (!error && data) {
-        return data.map(normalizeLibraryItem).filter(Boolean) as LibraryMovieItem[]
-      }
-    }
 
     return localItems
       .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
       .slice(0, limit)
   }
 
-  async function saveItem(key: string, table: string, item: LibraryMovieItem) {
+  async function saveItem(key: string, item: LibraryMovieItem) {
     const normalizedItem = normalizeLibraryItem({
       ...item,
       updatedAt: Date.now(),
@@ -95,63 +79,25 @@ export function useMovieLibrary() {
 
     writeLocalItems(key, nextItems)
 
-    if (user.value) {
-      await $supabase
-        .from(table)
-        .upsert({
-          user_id: user.value.id,
-          source: normalizedItem.source,
-          slug: normalizedItem.slug,
-          name: normalizedItem.name,
-          origin_name: normalizedItem.originName || null,
-          thumb: normalizedItem.thumb || null,
-          poster: normalizedItem.poster || null,
-          updated_at: new Date(normalizedItem.updatedAt || Date.now()).toISOString(),
-        }, {
-          onConflict: 'user_id,source,slug',
-        })
-    }
-
     return true
   }
 
-  async function removeItem(key: string, table: string, item: LibraryMovieItem) {
+  async function removeItem(key: string, item: LibraryMovieItem) {
     const nextItems = readLocalItems(key, legacyKeyFor(key))
       .filter((savedItem) => !(savedItem.slug === item.slug && savedItem.source === item.source))
     writeLocalItems(key, nextItems)
-
-    if (user.value) {
-      await $supabase
-        .from(table)
-        .delete()
-        .eq('user_id', user.value.id)
-        .eq('source', item.source)
-        .eq('slug', item.slug)
-    }
   }
 
-  async function isSaved(key: string, table: string, item: LibraryMovieItem) {
-    const localSaved = readLocalItems(key, legacyKeyFor(key))
+  async function isSaved(key: string, item: LibraryMovieItem) {
+    return readLocalItems(key, legacyKeyFor(key))
       .some((savedItem) => savedItem.slug === item.slug && savedItem.source === item.source)
-
-    if (!user.value) return localSaved
-
-    const { data, error } = await $supabase
-      .from(table)
-      .select('slug')
-      .eq('user_id', user.value.id)
-      .eq('source', item.source)
-      .eq('slug', item.slug)
-      .maybeSingle()
-
-    return error ? localSaved : Boolean(data)
   }
 
   return {
-    loadFavorites: (limit?: number) => loadItems(favoriteKey, 'favorite_movies', limit),
-    saveFavorite: (item: LibraryMovieItem) => saveItem(favoriteKey, 'favorite_movies', item),
-    removeFavorite: (item: LibraryMovieItem) => removeItem(favoriteKey, 'favorite_movies', item),
-    isFavorite: (item: LibraryMovieItem) => isSaved(favoriteKey, 'favorite_movies', item),
-    saveWatchLater: (item: LibraryMovieItem) => saveItem(watchLaterKey, 'watch_later_movies', item),
+    loadFavorites: (limit?: number) => loadItems(favoriteKey, limit),
+    saveFavorite: (item: LibraryMovieItem) => saveItem(favoriteKey, item),
+    removeFavorite: (item: LibraryMovieItem) => removeItem(favoriteKey, item),
+    isFavorite: (item: LibraryMovieItem) => isSaved(favoriteKey, item),
+    saveWatchLater: (item: LibraryMovieItem) => saveItem(watchLaterKey, item),
   }
 }

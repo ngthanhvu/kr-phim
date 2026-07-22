@@ -10,7 +10,6 @@ const activeTab = ref<'episodes' | 'actors'>('episodes')
 const isFavoriteMovie = ref(false)
 const actionMessage = ref('')
 const actionBusy = ref(false)
-const { user, initAuth } = useSupabaseAuth()
 const {
   isFavorite,
   saveFavorite,
@@ -126,7 +125,7 @@ async function toggleFavorite() {
   } else {
     await saveFavorite(libraryItem.value)
     isFavoriteMovie.value = true
-    flashActionMessage(user.value ? 'Đã lưu vào yêu thích.' : 'Đã lưu yêu thích trên thiết bị này.')
+    flashActionMessage('Đã lưu vào yêu thích.')
   }
   actionBusy.value = false
 }
@@ -137,7 +136,7 @@ async function addToWatchLater() {
   actionBusy.value = true
   await saveWatchLater(libraryItem.value)
   actionBusy.value = false
-  flashActionMessage(user.value ? 'Đã thêm vào danh sách xem sau.' : 'Đã thêm vào danh sách xem sau trên thiết bị này.')
+  flashActionMessage('Đã thêm vào danh sách xem sau.')
 }
 
 async function shareMovie() {
@@ -164,7 +163,6 @@ async function shareMovie() {
 }
 
 onMounted(async () => {
-  await initAuth()
   await refreshFavoriteState()
 })
 
@@ -176,7 +174,7 @@ watch(requestedSources, () => {
   selectedServer.value = 0
 })
 
-watch([libraryItem, user], () => {
+watch(libraryItem, () => {
   refreshFavoriteState()
 })
 

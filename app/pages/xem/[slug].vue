@@ -70,7 +70,6 @@ const {
   loadWatchHistory: fetchWatchHistory,
   saveWatchHistory: persistWatchHistory,
 } = useWatchHistory()
-const { user, initAuth } = useSupabaseAuth()
 const {
   isFavorite,
   saveFavorite,
@@ -886,7 +885,7 @@ async function toggleFavorite() {
   } else {
     await saveFavorite(libraryItem.value)
     isFavoriteMovie.value = true
-    flashActionMessage(user.value ? 'Đã lưu vào yêu thích.' : 'Đã lưu yêu thích trên thiết bị này.')
+    flashActionMessage('Đã lưu vào yêu thích.')
   }
   actionBusy.value = false
 }
@@ -897,7 +896,7 @@ async function addToWatchLater() {
   actionBusy.value = true
   await saveWatchLater(libraryItem.value)
   actionBusy.value = false
-  flashActionMessage(user.value ? 'Đã thêm vào danh sách xem sau.' : 'Đã thêm vào danh sách xem sau trên thiết bị này.')
+  flashActionMessage('Đã thêm vào danh sách xem sau.')
 }
 
 async function shareMovie() {
@@ -921,7 +920,6 @@ async function shareMovie() {
 }
 
 onMounted(async () => {
-  await initAuth()
   await refreshFavoriteState()
   document.addEventListener('visibilitychange', handleVisibilityChange)
   document.addEventListener('keydown', handleKeyboardShortcut)
@@ -972,7 +970,7 @@ watch([canUseEmbed, canUseHls], () => {
   immediate: true,
 })
 
-watch([libraryItem, user], () => {
+watch(libraryItem, () => {
   refreshFavoriteState()
 })
 

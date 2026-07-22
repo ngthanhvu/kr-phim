@@ -2,7 +2,6 @@
 import { Clock3, Trash2 } from 'lucide-vue-next'
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
-const { initAuth } = useSupabaseAuth()
 const { loadWatchHistory, clearWatchHistory } = useWatchHistory()
 const historyItems = ref<WatchHistoryItem[]>([])
 const loading = ref(true)
@@ -60,7 +59,6 @@ async function removeHistory() {
 }
 
 onMounted(async () => {
-  await initAuth()
   await refreshHistory()
 })
 

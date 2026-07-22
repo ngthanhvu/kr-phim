@@ -33,7 +33,6 @@ const hero = computed(() => heroSlides.value[heroIndex.value] ?? movies.value[0]
 const heroDetail = ref<any>(null)
 const sourceStatus = computed(() => data.value?.sources ?? [])
 const watchHistory = ref<WatchHistoryItem[]>([])
-const { user, initAuth } = useSupabaseAuth()
 const {
   loadWatchHistory: fetchWatchHistory,
   clearWatchHistory: removeWatchHistory,
@@ -252,12 +251,7 @@ watch(hero, async (currentHero) => {
   }
 }, { immediate: true })
 
-watch(user, () => {
-  loadWatchHistory()
-})
-
 onMounted(() => {
-  initAuth()
   heroTimer = setInterval(nextHero, 6500)
   loadWatchHistory()
   window.addEventListener('storage', loadWatchHistory)
