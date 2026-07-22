@@ -2,10 +2,11 @@
 import {
   Heart,
   History,
+  LogOut,
   Menu,
   Search,
+  Settings,
   User,
-  UserRound,
   X,
 } from 'lucide-vue-next'
 
@@ -14,6 +15,17 @@ const router = useRouter()
 const keyword = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const mobileMenuOpen = ref(false)
 const memberMenuOpen = ref(false)
+const authModalOpen = ref(false)
+
+const { user, fetchUser, logout: doLogout } = useAuth()
+await fetchUser()
+
+const displayName = computed(() => {
+  if (!user.value) return ''
+  return user.value.name || user.value.email?.split('@')[0] || 'Thành viên'
+})
+
+const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 
 const navItems = [
   { label: 'Trang chủ', to: '/' },
@@ -23,10 +35,17 @@ const navItems = [
   { label: 'Phim lẻ', to: '/phim?type=single' },
 ]
 
-const memberMenuItems = [
-  { label: 'Yêu thích', icon: Heart, to: '/yeu-thich' },
-  { label: 'Lịch sử', icon: History, to: '/lich-su' },
-]
+const memberMenuItems = computed(() => {
+  const items = [
+    { label: 'Trang cá nhân', icon: User, to: '/thanh-vien' },
+    { label: 'Yêu thích', icon: Heart, to: '/yeu-thich' },
+    { label: 'Lịch sử', icon: History, to: '/lich-su' },
+  ]
+  if (user.value?.role === 'admin') {
+    items.push({ label: 'Trang quản trị', icon: Settings, to: '/admin' })
+  }
+  return items
+})
 
 function isActive(to: string) {
   if (to === '/') return route.path === '/'
@@ -45,8 +64,22 @@ function closeMobileMenu() {
   mobileMenuOpen.value = false
 }
 
+function openAuthModal() {
+  authModalOpen.value = true
+}
+
 function handleMemberClick() {
+  if (!user.value) {
+    openAuthModal()
+    return
+  }
   memberMenuOpen.value = !memberMenuOpen.value
+}
+
+async function handleLogout() {
+  await doLogout()
+  memberMenuOpen.value = false
+  router.push('/')
 }
 
 watch(() => route.path, () => {
@@ -56,7 +89,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <header class="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-slate-950/78 backdrop-blur-xl">
+  <header class="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
     <nav class="mx-auto flex max-w-390 items-center gap-3 px-4 py-3 sm:px-6 lg:gap-6 lg:px-8 xl:px-10">
       <AppLogo />
 
@@ -81,18 +114,37 @@ watch(() => route.path, () => {
         <button type="button"
           class="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-2.5 pl-1 text-xs font-black text-slate-950 shadow-xl shadow-black/20 transition hover:bg-yellow-100"
           aria-label="Tài khoản thành viên" @click="handleMemberClick">
-          <User class="ml-1 size-4 fill-current" />
-          <span>Thành viên</span>
+          <template v-if="user">
+            <span class="grid size-7 place-items-center rounded-full bg-yellow-400/20 text-xs font-black text-yellow-400">
+              {{ displayInitial }}
+            </span>
+            <span class="max-w-24 truncate">{{ displayName }}</span>
+          </template>
+          <template v-else>
+            <User class="ml-1 size-4 fill-current" />
+            <span>Đăng nhập</span>
+          </template>
         </button>
 
         <Transition name="member-menu">
-          <div v-if="memberMenuOpen"
-            class="absolute right-0 top-[calc(100%+0.75rem)] w-64 overflow-hidden rounded-lg border border-white/10 bg-[#101116] py-2 text-sm font-semibold text-slate-200 shadow-2xl shadow-black/40">
+          <div v-if="user && memberMenuOpen"
+            class="absolute right-0 top-[calc(100%+0.5rem)] w-52 overflow-hidden rounded-xl border border-white/8 bg-[#101116]/95 py-1.5 text-sm text-slate-300 shadow-xl shadow-black/50 backdrop-blur-xl">
+            <div class="border-b border-white/6 px-4 py-2.5">
+              <p class="truncate text-xs font-semibold text-white">{{ displayName }}</p>
+              <p class="truncate text-[11px] text-slate-500">{{ user.email }}</p>
+            </div>
             <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
-              class="flex h-12 w-full cursor-pointer items-center gap-3 px-5 text-left transition hover:bg-white/8 hover:text-white">
-              <component :is="item.icon" class="size-4 shrink-0" />
-              {{ item.label }}
+              class="flex h-9 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/6 hover:text-white">
+              <component :is="item.icon" class="size-3.5 shrink-0" />
+              <span class="text-[13px] font-medium">{{ item.label }}</span>
             </NuxtLink>
+            <div class="my-1 border-t border-white/6" />
+            <button type="button"
+              class="flex h-9 w-full cursor-pointer items-center gap-2.5 px-4 text-[13px] font-medium text-red-400/80 transition hover:bg-red-400/8 hover:text-red-400"
+              @click="handleLogout">
+              <LogOut class="size-3.5 shrink-0" />
+              Đăng xuất
+            </button>
           </div>
         </Transition>
       </div>
@@ -117,6 +169,17 @@ watch(() => route.path, () => {
                 <X class="size-5" />
               </button>
             </div>
+
+            <div v-if="user" class="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+              <span class="grid size-9 place-items-center rounded-full bg-yellow-400/10 text-sm font-black text-yellow-400">
+                {{ displayInitial }}
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-white">{{ displayName }}</p>
+                <p class="truncate text-xs text-slate-400">{{ user.email }}</p>
+              </div>
+            </div>
+
             <nav class="flex flex-col gap-1 p-4">
               <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to"
                 class="rounded-lg px-4 py-3 text-base font-semibold text-slate-200 transition hover:bg-white/8 hover:text-yellow-200"
@@ -125,17 +188,35 @@ watch(() => route.path, () => {
               </NuxtLink>
             </nav>
             <div class="border-t border-white/10 p-4">
-              <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
-                class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-semibold text-slate-200 transition hover:bg-white/8 hover:text-white"
-                @click="closeMobileMenu">
-                <component :is="item.icon" class="size-4 shrink-0" />
-                {{ item.label }}
-              </NuxtLink>
+              <template v-if="user">
+                <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
+                  class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-semibold text-slate-200 transition hover:bg-white/8 hover:text-white"
+                  @click="closeMobileMenu">
+                  <component :is="item.icon" class="size-4 shrink-0" />
+                  {{ item.label }}
+                </NuxtLink>
+                <div class="my-2 border-t border-white/10" />
+                <button type="button"
+                  class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-black text-red-400 transition hover:bg-white/8 hover:text-red-300"
+                  @click="handleLogout">
+                  <LogOut class="size-4 shrink-0" />
+                  Đăng xuất
+                </button>
+              </template>
+              <template v-else>
+                <button type="button"
+                  class="flex h-11 w-full cursor-pointer items-center justify-center rounded-lg bg-yellow-400 px-4 text-sm font-black text-slate-950 transition hover:bg-yellow-300"
+                  @click="closeMobileMenu(); openAuthModal()">
+                  Đăng nhập
+                </button>
+              </template>
             </div>
           </div>
         </div>
       </Transition>
     </Teleport>
+
+    <AuthModal v-model="authModalOpen" />
   </header>
 </template>
 

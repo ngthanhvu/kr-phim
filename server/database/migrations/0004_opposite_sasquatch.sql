@@ -1,0 +1,1 @@
+ALTER TABLE `movies` ADD `api_updated_at` timestamp;

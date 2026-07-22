@@ -1,5 +1,5 @@
 import { movies } from '../../database/schema'
-import { desc, like, sql } from 'drizzle-orm'
+import { desc, eq, like, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const db = useDb()
@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(movies)
       .where(whereClause)
-      .orderBy(desc(movies.syncedAt))
+      .orderBy(desc(movies.apiUpdatedAt), desc(movies.year), desc(movies.syncedAt))
       .limit(limit)
       .offset(offset),
     db

@@ -1,5 +1,17 @@
 import { mysqlTable, varchar, text, int, boolean, timestamp, json } from 'drizzle-orm/mysql-core'
 
+export const users = mysqlTable('users', {
+  id: int('id').primaryKey().autoincrement(),
+  name: varchar('name', { length: 200 }),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
+  role: varchar('role', { length: 50 }).notNull().default('user'),
+  avatar: text('avatar'),
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow().onUpdateNow(),
+})
+
 export const movies = mysqlTable('movies', {
   id: int('id').primaryKey().autoincrement(),
   source: varchar('source', { length: 50 }).notNull(),
@@ -24,10 +36,13 @@ export const movies = mysqlTable('movies', {
   customContent: text('custom_content'),
   customEpisodes: json('custom_episodes').$type<{ name: string, linkEmbed?: string, linkM3u8?: string }[]>(),
   active: boolean('active').notNull().default(false),
+  apiUpdatedAt: timestamp('api_updated_at'),
   syncedAt: timestamp('synced_at').notNull().defaultNow(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow().onUpdateNow(),
 })
 
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
 export type Movie = typeof movies.$inferSelect
 export type NewMovie = typeof movies.$inferInsert

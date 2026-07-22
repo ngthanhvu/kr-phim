@@ -22,6 +22,20 @@
       "when": 1784694350192,
       "tag": "0002_small_black_panther",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1784704595989,
+      "tag": "0003_slow_masked_marvel",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1784707891329,
+      "tag": "0004_opposite_sasquatch",
+      "breakpoints": true
     }
   ]
 }

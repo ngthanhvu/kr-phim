@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(movies)
       .where(whereClause)
-      .orderBy(desc(movies.syncedAt))
+      .orderBy(desc(movies.apiUpdatedAt), desc(movies.year), desc(movies.syncedAt))
       .limit(limit)
       .offset(offset),
     db

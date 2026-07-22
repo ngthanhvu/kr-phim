@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Edit, Search, Trash2 } from 'lucide-vue-next'
+import { Edit, Mail, Search, Trash2, ToggleLeft, ToggleRight, UserRound } from 'lucide-vue-next'
 
 definePageMeta({
   layout: 'admin',
@@ -17,32 +17,52 @@ let searchTimeout: ReturnType<typeof setTimeout> | undefined
 watch(searchInput, (val) => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    debouncedKeyword.value = val.trim().toLowerCase()
+    debouncedKeyword.value = val.trim()
   }, 300)
 })
 
-const allUsers = [
-  { id: 1, name: 'Nguyễn Văn A', email: 'nguyenvana@example.com', role: 'admin', joined: '2024-01-01', status: 'active' },
-  { id: 2, name: 'Trần Thị B', email: 'tranthib@example.com', role: 'user', joined: '2024-01-05', status: 'active' },
-  { id: 3, name: 'Lê Văn C', email: 'levanc@example.com', role: 'user', joined: '2024-01-10', status: 'active' },
-  { id: 4, name: 'Phạm Thị D', email: 'phamthid@example.com', role: 'user', joined: '2024-01-12', status: 'inactive' },
-  { id: 5, name: 'Hoàng Văn E', email: 'hoangvane@example.com', role: 'moderator', joined: '2024-01-15', status: 'active' },
-]
-
-const filteredUsers = computed(() => {
-  if (!debouncedKeyword.value) return allUsers
-  const kw = debouncedKeyword.value
-  return allUsers.filter((u) =>
-    u.name.toLowerCase().includes(kw) || u.email.toLowerCase().includes(kw),
-  )
+const { data, refresh } = await useFetch('/api/admin/thanh-vien', {
+  query: computed(() => ({
+    keyword: debouncedKeyword.value,
+  })),
 })
+
+const { data: currentUser } = await useFetch('/api/auth/me')
+
+async function toggleActive(member: any) {
+  await $fetch(`/api/admin/thanh-vien/${member.id}`, {
+    method: 'PATCH',
+    body: { active: !member.active },
+  })
+  await refresh()
+}
+
+async function changeRole(member: any, role: string) {
+  await $fetch(`/api/admin/thanh-vien/${member.id}`, {
+    method: 'PATCH',
+    body: { role },
+  })
+  await refresh()
+}
+
+async function deleteMember(member: any) {
+  if (!confirm(`Xoá thành viên "${member.name || member.email}"?`)) return
+  try {
+    await $fetch(`/api/admin/thanh-vien/${member.id}`, { method: 'DELETE' })
+    await refresh()
+  } catch (err: any) {
+    alert(err?.data?.message || 'Xoá thất bại')
+  }
+}
+
+const members = computed(() => data.value?.items || [])
 </script>
 
 <template>
   <div>
     <div class="mb-6">
       <h1 class="text-2xl font-black text-white">Quản lý thành viên</h1>
-      <p class="mt-1 text-sm text-slate-400">Quản lý tài khoản thành viên CineK</p>
+      <p class="mt-1 text-sm text-slate-400">Quản lý tài khoản thành viên CineK ({{ data?.total || 0 }} thành viên)</p>
     </div>
 
     <div class="rounded-xl border border-white/10 bg-slate-900/50">
@@ -67,45 +87,48 @@ const filteredUsers = computed(() => {
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
-            <tr v-for="user in filteredUsers" :key="user.id" class="transition hover:bg-white/5">
-              <td class="px-4 py-3 text-center text-sm text-slate-400">{{ filteredUsers.indexOf(user) + 1 }}</td>
+            <tr v-for="member in members" :key="member.id" class="transition hover:bg-white/5">
+              <td class="px-4 py-3 text-center text-sm text-slate-400">{{ members.indexOf(member) + 1 }}</td>
               <td class="px-4 py-3 text-center">
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-semibold text-white">{{ user.name }}</p>
-                  <p class="truncate text-xs text-slate-400">{{ user.email }}</p>
+                  <p class="truncate text-sm font-semibold text-white">{{ member.name || '—' }}</p>
+                  <p class="truncate text-xs text-slate-400">{{ member.email }}</p>
                 </div>
               </td>
               <td class="px-4 py-3 text-center">
-                <span class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                <select :value="member.role"
+                  class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white outline-none"
                   :class="{
-                    'bg-red-400/10 text-red-400': user.role === 'admin',
-                    'bg-blue-400/10 text-blue-400': user.role === 'moderator',
-                    'bg-slate-400/10 text-slate-400': user.role === 'user',
-                  }">
-                  {{ user.role === 'admin' ? 'Admin' : user.role === 'moderator' ? 'Moderator' : 'User' }}
-                </span>
+                    'text-red-400': member.role === 'admin',
+                    'text-blue-400': member.role === 'moderator',
+                    'text-slate-400': member.role === 'user',
+                  }"
+                  @change="changeRole(member, ($event.target as HTMLSelectElement).value)">
+                  <option value="user" class="bg-slate-900">User</option>
+                  <option value="moderator" class="bg-slate-900">Moderator</option>
+                  <option value="admin" class="bg-slate-900">Admin</option>
+                </select>
               </td>
               <td class="px-4 py-3 text-center">
-                <span class="rounded-full px-2.5 py-1 text-xs font-semibold"
-                  :class="user.status === 'active' ? 'bg-green-400/10 text-green-400' : 'bg-slate-400/10 text-slate-400'">
-                  {{ user.status === 'active' ? 'Hoạt động' : 'Khóa' }}
-                </span>
+                <AdminToggle :model-value="member.active"
+                  @update:model-value="(val: boolean) => { member.active = val; toggleActive(member) }" />
               </td>
-              <td class="px-4 py-3 text-center text-sm text-slate-400">{{ user.joined }}</td>
+              <td class="px-4 py-3 text-center text-sm text-slate-400">
+                {{ new Date(member.createdAt).toLocaleDateString('vi-VN') }}
+              </td>
               <td class="px-4 py-3 text-center">
                 <div class="flex items-center justify-center gap-1">
                   <button type="button"
-                    class="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white">
-                    <Edit class="size-4" />
-                  </button>
-                  <button type="button"
-                    class="grid size-8 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10">
+                    class="grid size-8 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10"
+                    :disabled="currentUser?.id === member.id"
+                    :title="currentUser?.id === member.id ? 'Không thể xoá chính mình' : 'Xoá thành viên'"
+                    @click="deleteMember(member)">
                     <Trash2 class="size-4" />
                   </button>
                 </div>
               </td>
             </tr>
-            <tr v-if="!filteredUsers.length">
+            <tr v-if="!members.length">
               <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-400">
                 {{ debouncedKeyword ? 'Không tìm thấy thành viên nào.' : 'Chưa có thành viên nào.' }}
               </td>
@@ -115,7 +138,7 @@ const filteredUsers = computed(() => {
       </div>
 
       <div class="flex items-center justify-between border-t border-white/10 p-4">
-        <p class="text-sm text-slate-400">Hiển thị {{ filteredUsers.length }} / {{ allUsers.length }} thành viên</p>
+        <p class="text-sm text-slate-400">Hiển thị {{ members.length }} / {{ data?.total || 0 }} thành viên</p>
       </div>
     </div>
   </div>

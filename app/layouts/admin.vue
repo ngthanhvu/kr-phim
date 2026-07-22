@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  BarChart3,
   Film,
   Home,
   LogOut,
@@ -11,7 +10,12 @@ import {
 } from 'lucide-vue-next'
 
 const route = useRoute()
+const router = useRouter()
 const sidebarOpen = ref(false)
+
+const { data: user } = await useFetch('/api/auth/me', {
+  headers: useRequestHeaders(['cookie']),
+})
 
 const navItems = [
   { label: 'Dashboard', icon: Home, to: '/admin' },
@@ -28,6 +32,14 @@ function isActive(to: string) {
 function closeSidebar() {
   sidebarOpen.value = false
 }
+
+async function handleLogout() {
+  await $fetch('/api/auth/logout', { method: 'POST' })
+  await navigateTo('/admin/login')
+}
+
+const displayName = computed(() => user.value?.name || user.value?.email?.split('@')[0] || 'Admin')
+const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 </script>
 
 <template>
@@ -59,12 +71,18 @@ function closeSidebar() {
         </NuxtLink>
       </nav>
 
-      <div class="absolute inset-x-0 bottom-0 border-t border-white/10 p-4">
+      <div class="absolute inset-x-0 bottom-0 space-y-1 border-t border-white/10 p-4">
         <NuxtLink to="/"
           class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white">
           <Home class="size-5" />
           Về trang chủ
         </NuxtLink>
+        <button type="button"
+          class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-red-400 transition hover:bg-red-400/10"
+          @click="handleLogout">
+          <LogOut class="size-5" />
+          Đăng xuất
+        </button>
       </div>
     </aside>
 
@@ -77,14 +95,12 @@ function closeSidebar() {
         </button>
 
         <div class="ml-auto flex items-center gap-3">
-          <div class="flex items-center gap-3">
-            <div class="grid size-9 place-items-center rounded-full bg-yellow-400/10">
-              <span class="text-sm font-black text-yellow-400">A</span>
-            </div>
-            <div class="hidden sm:block">
-              <p class="text-sm font-semibold text-white">Admin</p>
-              <p class="text-xs text-slate-400">Administrator</p>
-            </div>
+          <div class="grid size-9 place-items-center rounded-full bg-yellow-400/10">
+            <span class="text-sm font-black text-yellow-400">{{ displayInitial }}</span>
+          </div>
+          <div class="hidden sm:block">
+            <p class="text-sm font-semibold text-white">{{ displayName }}</p>
+            <p class="text-xs capitalize text-slate-400">{{ user?.role || 'admin' }}</p>
           </div>
         </div>
       </header>

@@ -66,6 +66,7 @@ export default defineEventHandler(async (event) => {
           categories: movie.categories || null,
           countries: movie.countries || null,
           sources: movie.sources || null,
+          apiUpdatedAt: movie.updatedAt ? new Date(movie.updatedAt) : null,
           syncedAt: new Date(),
         })
         .where(eq(movies.id, existing[0].id))
@@ -88,6 +89,7 @@ export default defineEventHandler(async (event) => {
         categories: movie.categories || null,
         countries: movie.countries || null,
         sources: movie.sources || null,
+        apiUpdatedAt: movie.updatedAt ? new Date(movie.updatedAt) : null,
         active: false,
       })
       created++
