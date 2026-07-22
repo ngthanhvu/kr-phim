@@ -134,6 +134,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               <th class="w-12 px-4 py-3 text-center">STT</th>
               <th class="px-4 py-3 text-center">Phim</th>
               <th class="px-4 py-3 text-center">Nguồn</th>
+              <th class="px-4 py-3 text-center">Lượt xem</th>
               <th class="px-4 py-3 text-center">Trạng thái</th>
               <th class="px-4 py-3 text-center">Chỉnh sửa</th>
               <th class="px-4 py-3 text-center">Thao tác</th>
@@ -154,6 +155,9 @@ const totalPages = computed(() => data.value?.totalPages || 1)
                 <span class="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white">
                   {{ movie.source?.toUpperCase() }}
                 </span>
+              </td>
+              <td class="px-4 py-3 text-center text-sm text-slate-300">
+                {{ (movie.views || 0).toLocaleString() }}
               </td>
               <td class="px-4 py-3 text-center">
                 <span class="rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -188,7 +192,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               </td>
             </tr>
             <tr v-if="!movies.length">
-              <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-400">
+              <td colspan="7" class="px-4 py-12 text-center text-sm text-slate-400">
                 {{ debouncedKeyword ? 'Không tìm thấy phim nào.' : 'Chưa có phim nào. Bấm "Đồng bộ từ API" để lấy phim.' }}
               </td>
             </tr>

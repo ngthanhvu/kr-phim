@@ -76,6 +76,7 @@ function mapMovieToResponse(movie: any) {
     lang: movie.lang || undefined,
     type: movie.type || undefined,
     rating: movie.rating || undefined,
+    views: movie.views || 0,
     categories: movie.categories || [],
     countries: movie.countries || [],
     sources: movie.sources || [],

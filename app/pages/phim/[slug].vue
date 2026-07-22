@@ -6,6 +6,7 @@ const requestedSource = computed(() => String(route.query.source || 'nguonc'))
 const requestedSources = computed(() => typeof route.query.srcs === 'string' ? route.query.srcs : '')
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
+const contentExpanded = ref(false)
 const activeTab = ref<'episodes' | 'actors'>('episodes')
 const isFavoriteMovie = ref(false)
 const actionMessage = ref('')
@@ -164,6 +165,10 @@ async function shareMovie() {
 
 onMounted(async () => {
   await refreshFavoriteState()
+  await $fetch(`/api/movies/${route.params.slug}/view`, {
+    method: 'POST',
+    query: { source: route.query.source },
+  }).catch(() => {})
 })
 
 watch(requestedSource, () => {
@@ -253,10 +258,16 @@ useHead(() => ({
               </div>
 
               <div class="mt-4 hidden space-y-3 text-sm leading-6 text-slate-300 sm:block lg:mt-5">
-                <p v-if="movie.content">
+                <div v-if="movie.content">
                   <span class="block font-black text-white">Giới thiệu:</span>
-                  {{ movie.content }}
-                </p>
+                  <p class="mt-1" :class="contentExpanded ? '' : 'line-clamp-3'">{{ movie.content }}</p>
+                  <button type="button"
+                    class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-yellow-300 transition hover:text-yellow-200"
+                    @click="contentExpanded = !contentExpanded">
+                    {{ contentExpanded ? 'Thu gọn' : 'Xem thêm' }}
+                    <ChevronDown class="size-3 transition" :class="contentExpanded ? 'rotate-180' : ''" />
+                  </button>
+                </div>
                 <p><span class="font-black text-white">Số tập:</span> {{
                   episodeCount || movie.episode || 'Đang cập nhật'
                 }}</p>
@@ -278,10 +289,16 @@ useHead(() => ({
 
               <div v-if="movieInfoOpen"
                 class="mb-4 space-y-3 border-b border-white/10 pb-4 text-sm leading-6 text-slate-300 sm:hidden">
-                <p v-if="movie.content">
+                <div v-if="movie.content">
                   <span class="block font-black text-white">Giới thiệu:</span>
-                  {{ movie.content }}
-                </p>
+                  <p class="mt-1" :class="contentExpanded ? '' : 'line-clamp-3'">{{ movie.content }}</p>
+                  <button type="button"
+                    class="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-yellow-300 transition hover:text-yellow-200"
+                    @click="contentExpanded = !contentExpanded">
+                    {{ contentExpanded ? 'Thu gọn' : 'Xem thêm' }}
+                    <ChevronDown class="size-3 transition" :class="contentExpanded ? 'rotate-180' : ''" />
+                  </button>
+                </div>
                 <p><span class="font-black text-white">Số tập:</span> {{
                   episodeCount || movie.episode || 'Đang cập nhật'
                 }}</p>

@@ -89,7 +89,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <header class="fixed inset-x-0 top-0 z-50 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+  <header class="fixed inset-x-0 top-0 z-50 bg-linear-to-b from-black/80 via-black/40 to-transparent">
     <nav class="mx-auto flex max-w-390 items-center gap-3 px-4 py-3 sm:px-6 lg:gap-6 lg:px-8 xl:px-10">
       <AppLogo />
 
@@ -115,7 +115,8 @@ watch(() => route.path, () => {
           class="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-2.5 pl-1 text-xs font-black text-slate-950 shadow-xl shadow-black/20 transition hover:bg-yellow-100"
           aria-label="Tài khoản thành viên" @click="handleMemberClick">
           <template v-if="user">
-            <span class="grid size-7 place-items-center rounded-full bg-yellow-400/20 text-xs font-black text-yellow-400">
+            <span
+              class="grid size-7 place-items-center rounded-full bg-yellow-400/20 text-xs font-black text-yellow-400">
               {{ displayInitial }}
             </span>
             <span class="max-w-24 truncate">{{ displayName }}</span>
@@ -171,7 +172,8 @@ watch(() => route.path, () => {
             </div>
 
             <div v-if="user" class="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-              <span class="grid size-9 place-items-center rounded-full bg-yellow-400/10 text-sm font-black text-yellow-400">
+              <span
+                class="grid size-9 place-items-center rounded-full bg-yellow-400/10 text-sm font-black text-yellow-400">
                 {{ displayInitial }}
               </span>
               <div class="min-w-0">

@@ -97,6 +97,12 @@ const canUseHls = computed(() => Boolean(hlsPlayerUrl.value))
 const actorSummary = computed(() => (movie.value?.actors ?? []).map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
 const durationSeconds = computed(() => Math.floor(videoDuration.value || parseDurationSeconds(movie.value?.time || '')))
 const hasNextEpisode = computed(() => Boolean(activeServer.value?.episodes?.[selectedEpisode.value + 1]))
+
+function getProxyUrl(url: string): string {
+  const encoded = btoa(url)
+  return `/api/proxy-m3u8/${encoded}`
+}
+
 const progressPercent = computed(() => {
   if (!durationSeconds.value || !progressSeconds.value) return 0
   return Math.min(Math.max((progressSeconds.value / durationSeconds.value) * 100, 0), 100)
@@ -365,8 +371,13 @@ function formatPlayerTime(seconds = 0) {
   return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
 }
 
-async function setupHlsPlayer(autoplay = false) {
-  if (!import.meta.client || !videoRef.value || !hlsPlayerUrl.value) return
+async function setupHlsPlayer(autoplay = false, tryProxy = true) {
+  console.log('[HLS] Setup called', { tryProxy, hasVideoRef: !!videoRef.value, hlsUrl: hlsPlayerUrl.value })
+  
+  if (!import.meta.client || !videoRef.value || !hlsPlayerUrl.value) {
+    console.log('[HLS] Early return - missing requirements')
+    return
+  }
 
   destroyHlsPlayer()
   hlsFatalRetryCount = 0
@@ -378,59 +389,102 @@ async function setupHlsPlayer(autoplay = false) {
   video.muted = isVideoMuted.value
   video.playbackRate = playbackRate.value
 
-  if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = hlsPlayerUrl.value
+  // Use proxy if tryProxy is true, otherwise use direct URL
+  let sourceUrl = tryProxy ? getProxyUrl(hlsPlayerUrl.value) : hlsPlayerUrl.value
+  console.log('[HLS] Source URL:', sourceUrl)
+
+  // Force use hls.js when using proxy, as native HLS doesn't handle proxy URLs well
+  if (video.canPlayType('application/vnd.apple.mpegurl') && !tryProxy) {
+    console.log('[HLS] Using native HLS (Safari) - direct URL only')
+    // Native HLS (Safari) - only when using direct URL
+    video.src = sourceUrl
     scheduleHlsFallback()
+
+    // Listen for errors on native HLS
+    const handleError = () => {
+      console.log('[HLS] Native HLS error, falling back to hls.js')
+      video.removeEventListener('error', handleError)
+      // Fall back to hls.js instead of embed
+      tryProxy = false
+      setupHlsPlayer(autoplay, false)
+    }
+    video.addEventListener('error', handleError)
   } else {
-    const { default: HlsPlayer } = await import('hls.js')
+    console.log('[HLS] Using hls.js library')
+    try {
+      const { default: HlsPlayer } = await import('hls.js')
 
-    if (!HlsPlayer.isSupported()) {
-      fallbackToEmbed('Trình duyệt chưa hỗ trợ HLS, đã chuyển sang chế độ Nhúng.')
-      return
-    }
-
-    if (!HlsPlayer.isSupported()) {
-      hlsErrorMessage.value = 'Trình duyệt chưa hỗ trợ HLS, bạn dùng chế độ Nhúng nhé.'
-      return
-    }
-
-    hlsPlayer = new HlsPlayer({
-      enableWorker: true,
-      lowLatencyMode: true,
-    })
-    hlsPlayer.on(HlsPlayer.Events.MANIFEST_PARSED, () => {
-      clearHlsFallbackTimer()
-      qualityLevels.value = hlsPlayer?.levels
-        .map((level, index) => ({
-          label: level.height ? `${level.height}p` : `${Math.round((level.bitrate || 0) / 1000)}kbps`,
-          level: index,
-        }))
-        .filter((level) => level.label !== '0kbps') ?? []
-      selectedQuality.value = -1
-      applyResumeProgress()
-    })
-    hlsPlayer.on(HlsPlayer.Events.ERROR, (_event, data) => {
-      if (!data.fatal) return
-
-      hlsFatalRetryCount += 1
-      if (hlsFatalRetryCount >= 2) {
-        fallbackToEmbed('HLS tải không ổn định, đã chuyển sang chế độ Nhúng.')
+      if (!HlsPlayer.isSupported()) {
+        console.log('[HLS] hls.js not supported')
+        fallbackToEmbed('Trình duyệt chưa hỗ trợ HLS, đã chuyển sang chế độ Nhúng.')
         return
       }
 
-      if (data.type === HlsPlayer.ErrorTypes.NETWORK_ERROR) {
-        hlsErrorMessage.value = 'Mạng đang chập chờn, đang thử tải lại...'
-        hlsPlayer?.startLoad()
-      } else if (data.type === HlsPlayer.ErrorTypes.MEDIA_ERROR) {
-        hlsErrorMessage.value = 'Video bị lỗi giải mã, đang thử khôi phục...'
-        hlsPlayer?.recoverMediaError()
-      } else {
-        hlsErrorMessage.value = 'Link HLS đang lỗi, bạn chuyển sang chế độ Nhúng nhé.'
-      }
-    })
-    hlsPlayer.loadSource(hlsPlayerUrl.value)
-    hlsPlayer.attachMedia(video)
-    scheduleHlsFallback()
+      hlsPlayer = new HlsPlayer({
+        enableWorker: true,
+        lowLatencyMode: true,
+        xhrSetup: (xhr, url) => {
+          xhr.withCredentials = false
+        },
+      })
+      
+      hlsPlayer.on(HlsPlayer.Events.MANIFEST_PARSED, () => {
+        console.log('[HLS] Manifest parsed successfully')
+        clearHlsFallbackTimer()
+        qualityLevels.value = hlsPlayer?.levels
+          .map((level, index) => ({
+            label: level.height ? `${level.height}p` : `${Math.round((level.bitrate || 0) / 1000)}kbps`,
+            level: index,
+          }))
+          .filter((level) => level.label !== '0kbps') ?? []
+        selectedQuality.value = -1
+        applyResumeProgress()
+      })
+      
+      hlsPlayer.on(HlsPlayer.Events.ERROR, (_event, data) => {
+        console.log('[HLS] Error:', data.type, data.details, data.fatal)
+        if (!data.fatal) return
+
+        // If using proxy and it fails, try direct URL
+        if (tryProxy) {
+          console.log('[HLS] Proxy failed, trying direct URL')
+          hlsErrorMessage.value = 'Proxy lỗi, đang thử trực tiếp...'
+          hlsPlayer?.destroy()
+
+          // Retry with direct URL
+          setTimeout(() => {
+            setupHlsPlayer(autoplay, false)
+          }, 100)
+          return
+        }
+
+        hlsFatalRetryCount += 1
+        if (hlsFatalRetryCount >= 2) {
+          console.log('[HLS] Too many errors, falling back to embed')
+          fallbackToEmbed('HLS tải không ổn định, đã chuyển sang chế độ Nhúng.')
+          return
+        }
+
+        if (data.type === HlsPlayer.ErrorTypes.NETWORK_ERROR) {
+          hlsErrorMessage.value = 'Mạng đang chập chờn, đang thử tải lại...'
+          hlsPlayer?.startLoad()
+        } else if (data.type === HlsPlayer.ErrorTypes.MEDIA_ERROR) {
+          hlsErrorMessage.value = 'Video bị lỗi giải mã, đang thử khôi phục...'
+          hlsPlayer?.recoverMediaError()
+        } else {
+          hlsErrorMessage.value = 'Link HLS đang lỗi, bạn chuyển sang chế độ Nhúng nhé.'
+        }
+      })
+
+      console.log('[HLS] Loading source and attaching media')
+      hlsPlayer.loadSource(sourceUrl)
+      hlsPlayer.attachMedia(video)
+      scheduleHlsFallback()
+    } catch (error) {
+      console.error('[HLS] Setup error:', error)
+      fallbackToEmbed('Lỗi khởi tạo HLS player, đã chuyển sang chế độ Nhúng.')
+      return
+    }
   }
 
   if (autoplay) {

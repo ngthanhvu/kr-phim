@@ -96,8 +96,9 @@ function movieUpdateTime(movie: any) {
 }
 
 const topTrending = computed(() => [...homeCatalog.value]
-  .sort((a: any, b: any) => (Number(b.rating) || 0) - (Number(a.rating) || 0)
-    || movieUpdateTime(b) - movieUpdateTime(a))
+  .filter((movie: any) => (movie.views || 0) > 0)
+  .sort((a: any, b: any) => (Number(b.views) || 0) - (Number(a.views) || 0)
+    || (Number(b.rating) || 0) - (Number(a.rating) || 0))
   .slice(0, 10))
 
 const latestMovies = computed(() => withoutMovies(homeCatalog.value, topTrending.value)

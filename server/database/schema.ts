@@ -27,6 +27,7 @@ export const movies = mysqlTable('movies', {
   lang: varchar('lang', { length: 50 }),
   type: varchar('type', { length: 50 }),
   rating: int('rating'),
+  views: int('views').notNull().default(0),
   content: text('content'),
   categories: json('categories').$type<string[]>(),
   countries: json('countries').$type<string[]>(),

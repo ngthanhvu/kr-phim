@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { Circle, Heart, Play } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, Circle, Heart, Play } from 'lucide-vue-next'
 
 const props = defineProps<{
   movie: {
@@ -21,6 +21,7 @@ const props = defineProps<{
 }>()
 
 const isPreviewVisible = ref(false)
+const isDescriptionExpanded = ref(false)
 const previewStyle = ref<Record<string, string>>({})
 let hideTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -62,6 +63,7 @@ function scheduleHide() {
   if (hideTimer) clearTimeout(hideTimer)
   hideTimer = setTimeout(() => {
     isPreviewVisible.value = false
+    isDescriptionExpanded.value = false
   }, 90)
 }
 
@@ -137,13 +139,25 @@ onBeforeUnmount(() => {
               movie.episode }}</span>
           </div>
 
-          <p class="mt-3 line-clamp-2 text-xs font-bold leading-6 text-slate-200">
-            <template v-if="movie.countries?.length">{{ movie.countries.slice(0, 2).join(' • ') }}</template>
-            <template v-if="movie.countries?.length && movie.categories?.length"> • </template>
-            <template v-if="movie.categories?.length">{{ movie.categories.slice(0, 3).join(' • ') }}</template>
-            <template v-if="!movie.countries?.length && !movie.categories?.length">Phim Hàn Quốc Vietsub mới cập
-              nhật</template>
-          </p>
+          <div class="mt-3">
+            <p class="text-xs font-bold leading-6 text-slate-200" :class="isDescriptionExpanded ? '' : 'line-clamp-1'">
+              <template v-if="movie.countries?.length">{{ movie.countries.slice(0, 2).join(' • ') }}</template>
+              <template v-if="movie.countries?.length && movie.categories?.length"> • </template>
+              <template v-if="movie.categories?.length">{{ movie.categories.slice(0, 3).join(' • ') }}</template>
+              <template v-if="!movie.countries?.length && !movie.categories?.length">Phim Hàn Quốc Vietsub mới cập
+                nhật</template>
+            </p>
+            <button type="button"
+              class="mt-1 inline-flex items-center gap-0.5 text-[10px] font-semibold text-yellow-300 transition hover:text-yellow-200"
+              @click.stop="isDescriptionExpanded = !isDescriptionExpanded">
+              <template v-if="isDescriptionExpanded">
+                Thu gọn <ChevronUp class="size-3" />
+              </template>
+              <template v-else>
+                Xem thêm <ChevronDown class="size-3" />
+              </template>
+            </button>
+          </div>
         </div>
       </NuxtLink>
     </Transition>
