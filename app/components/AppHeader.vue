@@ -109,8 +109,7 @@ watch(() => route.path, () => {
           class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
       </form>
 
-      <div class="group/member relative hidden shrink-0 items-center gap-2.5 md:flex"
-        @mouseenter="memberMenuOpen = true" @mouseleave="memberMenuOpen = false">
+      <div class="group/member relative hidden shrink-0 items-center gap-2.5 md:flex">
         <button type="button"
           class="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-2.5 pl-1 text-xs font-black text-slate-950 shadow-xl shadow-black/20 transition hover:bg-yellow-100"
           aria-label="Tài khoản thành viên" @click="handleMemberClick">

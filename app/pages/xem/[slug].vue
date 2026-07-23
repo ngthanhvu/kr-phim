@@ -431,7 +431,7 @@ useHead(() => ({
     <AppHeader />
 
     <!-- Loading -->
-    <section v-if="pending && !movie" class="mx-auto max-w-[1400px] px-4 pt-20 sm:px-6 lg:px-8 xl:px-10">
+    <section v-if="pending && !movie" class="mx-auto max-w-350 px-4 pt-20 sm:px-6 lg:px-8 xl:px-10">
       <div class="-mx-4 mb-6 overflow-hidden sm:mx-0 sm:rounded-xl">
         <div class="aspect-video w-full animate-pulse rounded-none sm:rounded-t-xl bg-white/10" />
         <div class="flex h-14 items-center justify-between border-t border-white/5 bg-black px-4 sm:px-6">
@@ -456,7 +456,7 @@ useHead(() => ({
 
     <!-- Watch Page -->
     <template v-else>
-      <section class="mx-auto max-w-[1400px] px-4 pt-16 sm:px-6 lg:px-8 xl:px-10">
+      <section class="mx-auto max-w-350 px-4 pt-16 sm:px-6 lg:px-8 xl:px-10">
         <!-- Player -->
         <div class="-mx-4 mb-6 overflow-hidden sm:mx-0 sm:rounded-xl">
           <div ref="playerViewportRef" class="relative aspect-video bg-slate-950">
@@ -628,13 +628,13 @@ useHead(() => ({
             <!-- Movie Info Card -->
             <div class="mb-6 flex items-start gap-6 lg:gap-8">
               <div
-                class="hidden shrink-0 aspect-[2/3] w-32 rounded-xl overflow-hidden shadow-2xl sm:block md:w-40 lg:w-[150px]">
+                class="hidden shrink-0 aspect-2/3 w-32 rounded-xl overflow-hidden shadow-2xl sm:block md:w-40 lg:w-37.5">
                 <img :src="movie.poster || movie.thumb" :alt="movie.name" class="w-full h-full object-cover">
               </div>
               <div class="flex-1 flex flex-col gap-4 pt-1 w-full text-center sm:text-left">
                 <div>
                   <h1 class="text-2xl md:text-[28px] font-bold text-white mb-2 leading-tight">{{ movie.name }}</h1>
-                  <h2 class="text-[#eab308] text-sm md:text-[15px] font-medium opacity-90">{{ movie.originName }}</h2>
+                  <h2 class="text-cinek-500 text-sm md:text-[15px] font-medium opacity-90">{{ movie.originName }}</h2>
                 </div>
 
                 <!-- Badges -->
@@ -646,7 +646,7 @@ useHead(() => ({
                       movie.rating.toFixed(1) }}</span>
                   </span>
                   <span v-if="movie.quality"
-                    class="inline-flex items-center justify-center rounded-[4px] font-black h-[22px] px-2 text-[11px]"
+                    class="inline-flex items-center justify-center rounded-sm font-black h-5.5 px-2 text-[11px]"
                     style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%);color:#141414">{{
                       movie.quality }}</span>
                   <span v-if="movie.year"
@@ -666,9 +666,10 @@ useHead(() => ({
 
                 <!-- Episode Progress -->
                 <div v-if="episodeProgress.total"
-                  class="inline-flex self-center sm:self-start items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 border bg-[#eab308]/10 border-[#eab308]/20 text-[#eab308]">
+                  class="inline-flex self-center sm:self-start items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 border bg-cinek-500/10 border-cinek-500/20 text-cinek-500">
                   <Loader2 class="size-3.5 animate-spin" />
-                  <span class="text-xs font-medium">Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total }} tập</span>
+                  <span class="text-xs font-medium">Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total
+                  }} tập</span>
                 </div>
 
                 <!-- Description -->
@@ -784,8 +785,6 @@ useHead(() => ({
         </div>
       </section>
     </template>
-
-    <AppFooter />
   </main>
 </template>
 

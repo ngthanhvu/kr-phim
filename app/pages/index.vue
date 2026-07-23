@@ -352,7 +352,7 @@ useHead({
                 <span class="bg-[rgba(1,180,228,0.1)] text-white px-1.5 py-0.5">{{ hero.rating.toFixed(1) }}</span>
               </div>
               <span v-if="hero.quality"
-                class="inline-flex items-center justify-center rounded-sm text-[#141414] font-black leading-none tracking-normal h-[22px] px-2 text-[11px]"
+                class="inline-flex items-center justify-center rounded-sm text-[#141414] font-black leading-none tracking-normal h-5.5 px-2 text-[11px]"
                 style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%)">
                 {{ hero.quality }}
               </span>
@@ -378,7 +378,8 @@ useHead({
             </div>
 
             <!-- Action buttons (desktop only) -->
-            <div class="hidden md:flex justify-center md:justify-start items-center gap-4 pointer-events-auto relative z-40">
+            <div
+              class="hidden md:flex justify-center md:justify-start items-center gap-4 pointer-events-auto relative z-40">
               <!-- Watch Now button -->
               <NuxtLink :to="movieLink(hero)"
                 class="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 text-[#0f1115] rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-[0_0_15px_rgba(254,207,89,0.5)] shrink-0 pointer-events-auto"
@@ -401,7 +402,8 @@ useHead({
                 <NuxtLink :to="movieLink(hero)"
                   class="group/link w-16 md:w-20 h-full flex items-center justify-center transition-colors text-white hover:text-[#FECF59]"
                   aria-label="Thông tin phim">
-                  <Info class="size-6 md:size-7 text-white fill-none stroke-current group-hover/link:text-[#FECF59] transition-all" />
+                  <Info
+                    class="size-6 md:size-7 text-white fill-none stroke-current group-hover/link:text-[#FECF59] transition-all" />
                 </NuxtLink>
               </div>
             </div>

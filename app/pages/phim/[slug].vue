@@ -162,7 +162,7 @@ onMounted(async () => {
   await $fetch(`/api/movies/${route.params.slug}/view`, {
     method: 'POST',
     query: { source: route.query.source },
-  }).catch(() => {})
+  }).catch(() => { })
 })
 
 watch(requestedSource, () => { selectedServer.value = 0 })
@@ -181,13 +181,13 @@ useHead(() => ({
 </script>
 
 <template>
-  <main class="min-h-screen bg-[#0f111a] text-white">
+  <div class="min-h-screen bg-[#0f111a] text-white">
     <AppHeader />
 
     <!-- Loading -->
-    <div v-if="pending" class="mx-auto max-w-[1400px] px-4 pt-36 sm:px-6 lg:px-8 xl:px-10">
+    <div v-if="pending" class="mx-auto max-w-350 px-4 pt-36 sm:px-6 lg:px-8 xl:px-10">
       <div class="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
-        <div class="h-[28rem] animate-pulse rounded-xl bg-white/10" />
+        <div class="h-112 animate-pulse rounded-xl bg-white/10" />
         <div class="space-y-4">
           <div class="h-10 w-3/4 animate-pulse rounded bg-white/10" />
           <div class="h-6 w-1/2 animate-pulse rounded bg-white/10" />
@@ -207,7 +207,7 @@ useHead(() => ({
     <!-- Movie Detail -->
     <template v-else>
       <!-- Hero Backdrop -->
-      <section class="relative h-[210px] md:h-[600px] lg:h-[70vh] xl:max-h-[800px] overflow-hidden bg-[#0f111a]">
+      <section class="relative h-52.5 md:h-150 lg:h-[70vh] xl:max-h-200 overflow-hidden bg-[#0f111a]">
         <img :src="movie.poster || movie.thumb" :alt="movie.name"
           class="absolute inset-0 h-full w-full object-cover object-center scale-105 opacity-70 md:opacity-80">
         <div class="absolute inset-0 hidden md:block"
@@ -223,11 +223,12 @@ useHead(() => ({
       </section>
 
       <!-- Content overlaps hero -->
-      <div class="max-w-[1400px] mx-auto px-4 -mt-24 md:-mt-48 lg:-mt-64 relative z-10 mb-20">
+      <div class="max-w-350 mx-auto px-4 -mt-24 md:-mt-48 lg:-mt-64 relative z-10 mb-20">
         <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
           <!-- Poster Column -->
-          <div class="shrink-0 w-40 md:w-56 lg:w-64 max-w-[280px] mx-auto md:mx-0 flex flex-col gap-8">
-            <div class="relative rounded-xl overflow-hidden shadow-2xl shadow-[#0f111a]/50 ring-1 ring-white/10 bg-[#16161e] w-full aspect-[2/3]">
+          <div class="shrink-0 w-40 md:w-56 lg:w-64 max-w-70 mx-auto md:mx-0 flex flex-col gap-8">
+            <div
+              class="relative rounded-xl overflow-hidden shadow-2xl shadow-[#0f111a]/50 ring-1 ring-white/10 bg-[#16161e] w-full aspect-2/3">
               <img :src="movie.poster || movie.thumb" :alt="movie.name"
                 class="w-full h-full object-cover relative z-10">
             </div>
@@ -259,14 +260,16 @@ useHead(() => ({
             <!-- Badges -->
             <div class="hidden md:flex flex-wrap items-center gap-2 text-white/90 mb-4 text-[10px] md:text-xs">
               <span v-if="movie.quality"
-                class="inline-flex items-center justify-center rounded-[4px] font-black leading-none tracking-normal h-[22px] px-2 text-[11px]"
+                class="inline-flex items-center justify-center rounded-sm font-black leading-none tracking-normal h-5.5 px-2 text-[11px]"
                 style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%);color:#141414">
                 {{ movie.quality }}
               </span>
-              <span v-if="movie.lang" class="px-2 py-[3px] rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
+              <span v-if="movie.lang"
+                class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
                 {{ movie.lang }}
               </span>
-              <span v-if="getEpisodeDisplay()" class="px-2 py-[3px] rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
+              <span v-if="getEpisodeDisplay()"
+                class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
                 {{ getEpisodeDisplay() }}
               </span>
               <span v-if="movie.rating"
@@ -289,8 +292,8 @@ useHead(() => ({
                 <div class="w-px h-8 bg-white/10 mx-1" />
                 <button type="button"
                   class="flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 active:scale-95 px-3"
-                  :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white/90'"
-                  :disabled="actionBusy" @click="toggleFavorite">
+                  :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white/90'" :disabled="actionBusy"
+                  @click="toggleFavorite">
                   <Heart class="size-5" :class="isFavoriteMovie ? 'fill-current' : ''" />
                   <span class="text-[11px]">{{ isFavoriteMovie ? 'Đã thích' : 'Yêu thích' }}</span>
                 </button>
@@ -315,8 +318,8 @@ useHead(() => ({
             <div class="flex md:hidden gap-5 justify-center pt-2 mb-4">
               <button type="button"
                 class="flex flex-col items-center justify-center gap-1 transition-all active:scale-95"
-                :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white/90'"
-                :disabled="actionBusy" @click="toggleFavorite">
+                :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white/90'" :disabled="actionBusy"
+                @click="toggleFavorite">
                 <Heart class="size-6" :class="isFavoriteMovie ? 'fill-current' : ''" />
                 <span class="text-[11px]">Yêu thích</span>
               </button>
@@ -346,7 +349,8 @@ useHead(() => ({
               </div>
               <div class="flex items-start gap-2">
                 <span class="text-slate-500 shrink-0 w-20">Loại:</span>
-                <span class="text-slate-200">{{ movie.type === 'single' ? 'Phim lẻ' : movie.type === 'series' ? 'Phim bộ' : movie.type || 'Đang cập nhật' }}</span>
+                <span class="text-slate-200">{{ movie.type === 'single' ? 'Phim lẻ' : movie.type === 'series' ?
+                  'Phim bộ' : movie.type || 'Đang cập nhật' }}</span>
               </div>
               <div class="flex items-start gap-2">
                 <span class="text-slate-500 shrink-0 w-20">Năm:</span>
@@ -377,14 +381,16 @@ useHead(() => ({
               <div v-if="movieInfoOpen" class="space-y-2 text-sm text-slate-300">
                 <div class="flex flex-wrap gap-2 text-[10px] mb-3">
                   <span v-if="movie.quality"
-                    class="inline-flex items-center justify-center rounded-[4px] font-black h-[22px] px-2 text-[11px]"
+                    class="inline-flex items-center justify-center rounded-sm font-black h-5.5 px-2 text-[11px]"
                     style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%);color:#141414">
                     {{ movie.quality }}
                   </span>
-                  <span v-if="movie.lang" class="px-2 py-[3px] rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
+                  <span v-if="movie.lang"
+                    class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
                     {{ movie.lang }}
                   </span>
-                  <span v-if="getEpisodeDisplay()" class="px-2 py-[3px] rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
+                  <span v-if="getEpisodeDisplay()"
+                    class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
                     {{ getEpisodeDisplay() }}
                   </span>
                   <span v-if="movie.rating"
@@ -394,11 +400,17 @@ useHead(() => ({
                   </span>
                 </div>
 
-                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Trạng thái:</span><span>{{ getEpisodeDisplay() || movie.episode || 'Đang cập nhật' }}</span></div>
-                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Loại:</span><span>{{ movie.type === 'single' ? 'Phim lẻ' : movie.type === 'series' ? 'Phim bộ' : movie.type || 'Đang cập nhật' }}</span></div>
-                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Năm:</span><span>{{ movie.year || 'Đang cập nhật' }}</span></div>
-                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Thể loại:</span><span>{{ movie.categories?.join(', ') || 'Đang cập nhật' }}</span></div>
-                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Quốc gia:</span><span>{{ movie.countries?.join(', ') || 'Đang cập nhật' }}</span></div>
+                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Trạng thái:</span><span>{{
+                  getEpisodeDisplay() || movie.episode || 'Đang cập nhật' }}</span></div>
+                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Loại:</span><span>{{ movie.type ===
+                  'single' ? 'Phim lẻ' : movie.type === 'series' ? 'Phim bộ' : movie.type || 'Đang cập nhật' }}</span>
+                </div>
+                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Năm:</span><span>{{ movie.year ||
+                  'Đang cập nhật' }}</span></div>
+                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Thể loại:</span><span>{{
+                  movie.categories?.join(', ') || 'Đang cập nhật' }}</span></div>
+                <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Quốc gia:</span><span>{{
+                  movie.countries?.join(', ') || 'Đang cập nhật' }}</span></div>
 
                 <div v-if="movie.content" class="pt-3 border-t border-white/10">
                   <h3 class="text-[14px] font-semibold text-white mb-2">Nội dung phim</h3>
@@ -421,14 +433,16 @@ useHead(() => ({
                   :class="activeTab === 'episodes' ? 'text-[#F5C518]' : 'text-slate-400 hover:text-white'"
                   @click="activeTab = 'episodes'">
                   Tập phim
-                  <span v-if="activeTab === 'episodes'" class="absolute bottom-0 left-0 w-full h-[2px] bg-[#F5C518] rounded-t-md" />
+                  <span v-if="activeTab === 'episodes'"
+                    class="absolute bottom-0 left-0 w-full h-0.5 bg-[#F5C518] rounded-t-md" />
                 </button>
                 <button type="button"
                   class="pb-3 text-[13px] md:text-[15px] font-semibold transition-colors relative whitespace-nowrap"
                   :class="activeTab === 'actors' ? 'text-[#F5C518]' : 'text-slate-400 hover:text-white'"
                   @click="activeTab = 'actors'">
                   Diễn viên
-                  <span v-if="activeTab === 'actors'" class="absolute bottom-0 left-0 w-full h-[2px] bg-[#F5C518] rounded-t-md" />
+                  <span v-if="activeTab === 'actors'"
+                    class="absolute bottom-0 left-0 w-full h-0.5 bg-[#F5C518] rounded-t-md" />
                 </button>
               </div>
 
@@ -444,10 +458,9 @@ useHead(() => ({
                     class="group flex items-center gap-1.5 text-[13px] transition-colors rounded-md px-3.5 py-2 border font-medium"
                     :class="selectedServer === index
                       ? 'border-white/30 text-white bg-white/5'
-                      : 'border-transparent text-white/60 hover:text-white'"
-                    @click="selectedServer = index">
+                      : 'border-transparent text-white/60 hover:text-white'" @click="selectedServer = index">
                     <span>{{ serverLabel(server, index) }}</span>
-                    <span class="w-[20px] h-[20px] rounded-full font-bold text-[10px]"
+                    <span class="w-5 h-5 rounded-full font-bold text-[10px]"
                       :class="selectedServer === index ? 'bg-white text-black' : 'bg-white/20 text-white'">
                       {{ server.episodes?.length || 0 }}
                     </span>
@@ -460,12 +473,13 @@ useHead(() => ({
                   <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
                     :to="episodeLink(index)"
                     class="group flex items-center justify-center gap-1.5 rounded-lg transition-all py-2.5 px-2 text-[13px] bg-[#191b24] text-white/90 hover:text-[#FFD166] hover:bg-[#1f2130] shadow-sm">
-                    <Play class="size-3 fill-current opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Play class="size-3 fill-current" />
                     {{ formatEpisodeName(episode.name, index) }}
                   </NuxtLink>
                 </div>
 
-                <p v-else class="mt-2 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
+                <p v-else
+                  class="mt-2 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
                   Chưa có tập xem từ server này.
                 </p>
               </div>
@@ -483,12 +497,14 @@ useHead(() => ({
                     </div>
                     <div class="min-w-0">
                       <p class="truncate text-sm font-semibold text-white">{{ actor.name }}</p>
-                      <p v-if="actor.originalName" class="mt-0.5 truncate text-xs text-yellow-200/70">{{ actor.originalName }}</p>
+                      <p v-if="actor.originalName" class="mt-0.5 truncate text-xs text-yellow-200/70">{{
+                        actor.originalName }}</p>
                       <p v-if="actor.role" class="mt-0.5 truncate text-xs text-slate-400">{{ actor.role }}</p>
                     </div>
                   </div>
                 </div>
-                <p v-else class="mt-4 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
+                <p v-else
+                  class="mt-4 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
                   Chưa có thông tin diễn viên.
                 </p>
               </div>
@@ -502,14 +518,13 @@ useHead(() => ({
             <MessageCircle class="size-5 text-yellow-300" />
             <h2 class="text-xl font-bold text-white">Bình luận</h2>
           </div>
-          <div class="flex flex-col items-center justify-center py-10 text-center border border-white/10 rounded-xl bg-[#191b24]">
+          <div
+            class="flex flex-col items-center justify-center py-10 text-center border border-white/10 rounded-xl bg-[#191b24]">
             <MessageCircle class="size-10 text-slate-500 mb-3" />
             <p class="text-sm text-slate-400">Tính năng bình luận đang được phát triển.</p>
           </div>
         </div>
       </div>
     </template>
-
-    <AppFooter />
-  </main>
+  </div>
 </template>

@@ -17,9 +17,7 @@ html {
 
 body {
   min-width: 320px;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(234, 179, 8, 0.22), transparent 34rem),
-    linear-gradient(135deg, #201a05 0%, #17130a 46%, #020617 100%);
+  background-color: #0f111a;
   color: #f8fbff;
 }
 
