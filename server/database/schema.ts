@@ -7,6 +7,8 @@ export const users = mysqlTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   role: varchar('role', { length: 50 }).notNull().default('user'),
   avatar: text('avatar'),
+  resetToken: varchar('reset_token', { length: 255 }),
+  resetTokenExpires: timestamp('reset_token_expires'),
   active: boolean('active').notNull().default(true),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow().onUpdateNow(),

@@ -27,6 +27,11 @@ const displayName = computed(() => {
 
 const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 
+const avatarUrl = computed(() => {
+  if (user.value?.avatar) return user.value.avatar
+  return null
+})
+
 const navItems = [
   { label: 'Trang chủ', to: '/' },
   { label: 'Duyệt phim', to: '/phim' },
@@ -111,38 +116,49 @@ watch(() => route.path, () => {
 
       <div class="group/member relative hidden shrink-0 items-center gap-2.5 md:flex">
         <button type="button"
-          class="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-white px-2.5 pl-1 text-xs font-black text-slate-950 shadow-xl shadow-black/20 transition hover:bg-yellow-100"
+          class="inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-full bg-[#F2F4F7] px-4 text-sm font-semibold text-[#1c1c1c] shadow-sm transition hover:bg-white hover:shadow-md"
           aria-label="Tài khoản thành viên" @click="handleMemberClick">
           <template v-if="user">
-            <span
-              class="grid size-7 place-items-center rounded-full bg-yellow-400/20 text-xs font-black text-yellow-400">
+            <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" class="size-7 rounded-full object-cover ring-2 ring-[#FFD166]/20">
+            <span v-else
+              class="grid size-7 place-items-center rounded-full bg-[#FFD166]/20 text-xs font-bold text-[#FFD166]">
               {{ displayInitial }}
             </span>
             <span class="max-w-24 truncate">{{ displayName }}</span>
           </template>
           <template v-else>
-            <User class="ml-1 size-4 fill-current" />
-            <span>Đăng nhập</span>
+            <svg class="size-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span>Thành viên</span>
           </template>
         </button>
 
         <Transition name="member-menu">
           <div v-if="user && memberMenuOpen"
-            class="absolute right-0 top-[calc(100%+0.5rem)] w-52 overflow-hidden rounded-xl border border-white/8 bg-[#101116]/95 py-1.5 text-sm text-slate-300 shadow-xl shadow-black/50 backdrop-blur-xl">
-            <div class="border-b border-white/6 px-4 py-2.5">
-              <p class="truncate text-xs font-semibold text-white">{{ displayName }}</p>
-              <p class="truncate text-[11px] text-slate-500">{{ user.email }}</p>
+            class="absolute right-0 top-[calc(100%+0.5rem)] w-56 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#12121a]/95 py-2 text-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            <div class="border-b border-white/[0.06] px-4 py-3">
+              <div class="flex items-center gap-2.5">
+                <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" class="size-8 rounded-full object-cover ring-2 ring-[#FFD166]/20">
+                <div v-else class="grid size-8 shrink-0 place-items-center rounded-full bg-[#FFD166]/10">
+                  <span class="text-xs font-bold text-[#FFD166]">{{ displayInitial }}</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-semibold text-white">{{ displayName }}</p>
+                  <p class="truncate text-xs text-white/40">{{ user.email }}</p>
+                </div>
+              </div>
             </div>
             <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
-              class="flex h-9 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/6 hover:text-white">
-              <component :is="item.icon" class="size-3.5 shrink-0" />
-              <span class="text-[13px] font-medium">{{ item.label }}</span>
+              class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/[0.04] hover:text-white">
+              <component :is="item.icon" class="size-4 shrink-0 text-white/50" />
+              <span class="text-[13px] font-medium text-white/70">{{ item.label }}</span>
             </NuxtLink>
-            <div class="my-1 border-t border-white/6" />
+            <div class="my-1.5 border-t border-white/[0.06]" />
             <button type="button"
-              class="flex h-9 w-full cursor-pointer items-center gap-2.5 px-4 text-[13px] font-medium text-red-400/80 transition hover:bg-red-400/8 hover:text-red-400"
+              class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 text-[13px] font-medium text-red-400/70 transition hover:bg-red-400/8 hover:text-red-400"
               @click="handleLogout">
-              <LogOut class="size-3.5 shrink-0" />
+              <LogOut class="size-4 shrink-0" />
               Đăng xuất
             </button>
           </div>
@@ -171,7 +187,8 @@ watch(() => route.path, () => {
             </div>
 
             <div v-if="user" class="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-              <span
+              <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" class="size-9 rounded-full object-cover ring-2 ring-[#FFD166]/20">
+              <span v-else
                 class="grid size-9 place-items-center rounded-full bg-yellow-400/10 text-sm font-black text-yellow-400">
                 {{ displayInitial }}
               </span>

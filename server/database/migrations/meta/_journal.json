@@ -50,6 +50,13 @@
       "when": 1784780104334,
       "tag": "0006_sour_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1784816479838,
+      "tag": "0007_shiny_jane_foster",
+      "breakpoints": true
     }
   ]
 }
