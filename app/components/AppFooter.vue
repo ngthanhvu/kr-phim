@@ -13,9 +13,11 @@ const socialLinks = [
 ]
 
 const linkGroups = [
-  ['Domain dự phòng', 'Điều khoản sử dụng'],
-  ['Hỏi-Đáp', 'Giới thiệu'],
-  ['Chính sách bảo mật', 'Liên hệ'],
+  ['Điều khoản sử dụng', '/dieu-khoan-su-dung'],
+  ['Chính sách bảo mật', '/chinh-sach-bao-mat'],
+  ['Hỏi-Đáp', '/hoi-dap'],
+  ['Giới thiệu', '/gioi-thieu'],
+  ['Liên hệ', '/lien-he'],
 ]
 </script>
 
@@ -41,17 +43,15 @@ const linkGroups = [
         </div>
       </div>
 
-      <div class="mt-10 grid gap-8 text-sm font-bold sm:grid-cols-3 lg:max-w-3xl">
-        <div v-for="(group, index) in linkGroups" :key="index" class="space-y-5">
-          <NuxtLink
-            v-for="link in group"
-            :key="link"
-            to="/phim"
-            class="block text-slate-100 transition hover:text-yellow-200"
-          >
-            {{ link }}
-          </NuxtLink>
-        </div>
+      <div class="mt-10 flex flex-wrap gap-x-8 gap-y-5 text-sm font-bold">
+        <NuxtLink
+          v-for="[label, path] in linkGroups"
+          :key="label"
+          :to="path"
+          class="text-slate-100 transition hover:text-yellow-200"
+        >
+          {{ label }}
+        </NuxtLink>
       </div>
 
       <p class="mt-10 max-w-4xl text-sm leading-7 text-slate-300">

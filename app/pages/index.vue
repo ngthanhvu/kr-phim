@@ -301,10 +301,10 @@ useHead({
   <main class="min-h-screen overflow-hidden bg-black">
     <AppHeader />
 
-    <section v-if="hero" class="relative w-full h-[70vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh] overflow-hidden">
+    <section v-if="hero" class="relative w-full h-screen overflow-hidden">
       <TransitionGroup name="hero-fade">
         <img v-for="(slide, index) in heroSlides" v-show="index === heroIndex" :key="`${slide.source}-${slide.slug}`"
-          :src="slide.poster || slide.thumb" :alt="slide.name"
+          :src="slide.thumb || slide.poster" :alt="slide.name"
           class="absolute inset-0 h-full w-full object-cover object-top lg:object-[72%_center]">
       </TransitionGroup>
 
