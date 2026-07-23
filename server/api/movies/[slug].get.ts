@@ -19,7 +19,9 @@ export default defineEventHandler(async (event) => {
     .where(and(eq(movies.slug, slug), eq(movies.source, source), eq(movies.active, true)))
     .limit(1)
 
-  if (!existing.length) {
+  let recordToUpdate = existing.length ? existing[0] : null
+
+  if (!recordToUpdate) {
     const fallback = await db
       .select()
       .from(movies)
@@ -29,9 +31,22 @@ export default defineEventHandler(async (event) => {
     if (!fallback.length) {
       throw createError({ statusCode: 404, statusMessage: 'Phim không tồn tại hoặc đã bị ẩn' })
     }
+    recordToUpdate = fallback[0]
   }
 
   const refs = parseSourceRefs(query.sources || query.srcs, query.source, slug)
 
-  return await getMovieDetailGroup(refs)
+  const detail = await getMovieDetailGroup(refs)
+
+  if (detail.episodeTotal && recordToUpdate) {
+    try {
+      await db
+        .update(movies)
+        .set({ episodeTotal: detail.episodeTotal })
+        .where(eq(movies.id, recordToUpdate.id))
+    } catch {
+    }
+  }
+
+  return detail
 })

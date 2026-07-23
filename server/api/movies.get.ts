@@ -72,6 +72,7 @@ function mapMovieToResponse(movie: any) {
     year: movie.year || undefined,
     time: movie.time || undefined,
     episode: movie.episode || undefined,
+    episodeTotal: movie.episodeTotal || undefined,
     quality: movie.quality || undefined,
     lang: movie.lang || undefined,
     type: movie.type || undefined,

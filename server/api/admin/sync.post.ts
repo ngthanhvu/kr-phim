@@ -1,9 +1,50 @@
 import { movies } from '../../database/schema'
 import { eq, and } from 'drizzle-orm'
-import { getOphimKoreanMovies, getNguoncKoreanMovies, getKkphimKoreanMovies } from '../../utils/movies'
+import {
+  getOphimKoreanMovies,
+  getNguoncKoreanMovies,
+  getKkphimKoreanMovies,
+  getOphimDetail,
+  getNguoncDetail,
+  getKkphimDetail,
+} from '../../utils/movies'
 
 const SYNC_PAGES = 10
 const ALL_SOURCES = ['ophim', 'nguonc', 'kkphim'] as const
+const DETAIL_CONCURRENCY = 5
+
+const detailFetchers = {
+  ophim: getOphimDetail,
+  nguonc: getNguoncDetail,
+  kkphim: getKkphimDetail,
+}
+
+async function fetchEpisodeTotal(source: string, slug: string): Promise<string | undefined> {
+  const fetcher = detailFetchers[source as keyof typeof detailFetchers]
+  if (!fetcher) return undefined
+  try {
+    const detail = await fetcher(slug)
+    return detail.episodeTotal || undefined
+  } catch {
+    return undefined
+  }
+}
+
+async function enrichWithEpisodeTotal(moviesList: any[]): Promise<void> {
+  const moviesNeedTotal = moviesList.filter((m) => m.type !== 'single' && !m.episodeTotal && m.slug)
+
+  for (let i = 0; i < moviesNeedTotal.length; i += DETAIL_CONCURRENCY) {
+    const batch = moviesNeedTotal.slice(i, i + DETAIL_CONCURRENCY)
+    const results = await Promise.allSettled(
+      batch.map((movie) => fetchEpisodeTotal(movie.source, movie.slug)),
+    )
+    results.forEach((result, idx) => {
+      if (result.status === 'fulfilled' && result.value) {
+        batch[idx].episodeTotal = result.value
+      }
+    })
+  }
+}
 
 export default defineEventHandler(async (event) => {
   const db = useDb()
@@ -38,6 +79,8 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  await enrichWithEpisodeTotal(allMovies)
+
   let created = 0
   let updated = 0
 
@@ -59,6 +102,7 @@ export default defineEventHandler(async (event) => {
           year: movie.year || null,
           time: movie.time || null,
           episode: movie.episode || null,
+          episodeTotal: movie.episodeTotal || null,
           quality: movie.quality || null,
           lang: movie.lang || null,
           type: movie.type || null,
@@ -82,6 +126,7 @@ export default defineEventHandler(async (event) => {
         year: movie.year || null,
         time: movie.time || null,
         episode: movie.episode || null,
+        episodeTotal: movie.episodeTotal || null,
         quality: movie.quality || null,
         lang: movie.lang || null,
         type: movie.type || null,

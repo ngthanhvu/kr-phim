@@ -236,7 +236,7 @@ useHead(() => ({
         <div class="relative mx-auto max-w-390 px-3 pb-8 pt-40 sm:px-6 sm:pb-12 sm:pt-52 lg:px-8 lg:pt-56 xl:px-10">
           <div class="lg:grid lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-6">
             <aside class="mb-3 flex flex-col items-center text-center lg:mb-6 lg:items-start lg:text-left">
-              <img :src="movie.thumb || movie.poster" :alt="movie.name"
+              <img :src="movie.poster || movie.thumb" :alt="movie.name"
                 class="mx-auto aspect-2/3 w-29 rounded-md object-cover shadow-xl shadow-black/40 sm:w-52 lg:w-full">
 
               <h1 class="mt-4 text-[1.35rem] font-black leading-tight sm:text-2xl lg:mt-5">{{ movie.name }}</h1>

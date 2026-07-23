@@ -62,6 +62,21 @@ function formatWeekday(dateKey: string) {
   return weekdays[date.getDay()] || ''
 }
 
+function getEpisodeDisplay(movie: any) {
+  const ep = movie?.episode
+  const total = movie?.episodeTotal
+  if (!ep) return 'Mới cập nhật'
+
+  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
+  const epNum = ep.replace(/[^0-9]/g, '')
+
+  if (epNum && totalNum && epNum !== totalNum) {
+    return `Tập ${epNum}/${totalNum}`
+  }
+
+  return ep
+}
+
 // Build map ngày -> phim
 const moviesByDate = computed(() => {
   const map = new Map<string, any[]>()
@@ -190,14 +205,14 @@ useHead({
             <NuxtLink v-for="movie in selectedDay.items" :key="`${movie.source}-${movie.slug}`"
               :to="{ path: `/phim/${movie.slug}`, query: { source: movie.source } }"
               class="schedule-card">
-              <img :src="movie.thumb || movie.poster" :alt="movie.name"
+              <img :src="movie.poster || movie.thumb" :alt="movie.name"
                 class="schedule-card-image">
               <div class="schedule-card-body">
                 <h2 class="schedule-card-title">
                   {{ movie.name }}
                 </h2>
                 <p class="schedule-card-episode">
-                  {{ movie.episode || 'Mới cập nhật' }}
+                  {{ getEpisodeDisplay(movie) }}
                 </p>
               </div>
             </NuxtLink>

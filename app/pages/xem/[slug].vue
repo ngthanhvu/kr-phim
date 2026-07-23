@@ -1289,7 +1289,7 @@ useHead(() => ({
         <div class="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
           <section>
             <div class="flex gap-4">
-              <img :src="movie.thumb || movie.poster" :alt="movie.name"
+              <img :src="movie.poster || movie.thumb" :alt="movie.name"
                 class="hidden h-28 w-20 rounded-md object-cover sm:block">
               <div>
                 <h1 class="text-[1.35rem] font-black leading-tight sm:text-2xl">{{ movie.name }}</h1>

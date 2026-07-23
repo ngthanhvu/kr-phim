@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Heart, Info, Play, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Heart, Info, Play, Plus, Trash2 } from 'lucide-vue-next'
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
 const { data, pending, error } = useFetch('/api/movies', {
@@ -150,6 +150,21 @@ function movieLink(movie: any) {
   }
 }
 
+function getEpisodeDisplay(movie: any) {
+  const ep = movie?.episode
+  const total = movie?.episodeTotal
+  if (!ep) return undefined
+
+  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
+  const epNum = ep.replace(/[^0-9]/g, '')
+
+  if (epNum && totalNum && epNum !== totalNum) {
+    return `Tập ${epNum}/${totalNum}`
+  }
+
+  return ep
+}
+
 function selectHero(index: number) {
   heroIndex.value = index
 }
@@ -286,99 +301,126 @@ useHead({
   <main class="min-h-screen overflow-hidden bg-black">
     <AppHeader />
 
-    <section v-if="hero"
-      class="relative h-155 min-h-155 overflow-hidden pt-20 sm:h-170 sm:min-h-170 sm:pt-24 lg:h-180 lg:min-h-190 lg:pt-0">
+    <section v-if="hero" class="relative w-full h-[70vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh] overflow-hidden">
       <TransitionGroup name="hero-fade">
         <img v-for="(slide, index) in heroSlides" v-show="index === heroIndex" :key="`${slide.source}-${slide.slug}`"
           :src="slide.poster || slide.thumb" :alt="slide.name"
-          class="absolute inset-0 h-full w-full object-cover object-center opacity-72 lg:object-[72%_center]">
+          class="absolute inset-0 h-full w-full object-cover object-top lg:object-[72%_center]">
       </TransitionGroup>
 
-      <div class="absolute inset-0 bg-linear-to-r from-black via-black/76 to-black/14" />
-      <div class="absolute inset-0 bg-linear-to-t from-black via-black/16 to-black/34" />
+      <!-- Dot pattern overlay (desktop) -->
+      <div class="absolute inset-0 pointer-events-none opacity-30 hidden md:block"
+        style="background-image:radial-gradient(rgba(0,0,0,0.4) 0.4px, transparent 1px);background-size:3px 3px">
+      </div>
 
+      <!-- Mobile gradient overlay -->
+      <div class="absolute inset-0 pointer-events-none md:hidden" style="background:linear-gradient(to top, #0f111a 5%, rgba(15,17,21,0.6) 30%, transparent 60%),
+                  radial-gradient(ellipse at center, transparent 60%, rgba(15,17,26,0.7) 100%)">
+      </div>
+
+      <!-- Desktop gradient overlay -->
+      <div class="absolute inset-0 pointer-events-none hidden md:block" style="background:linear-gradient(to right, rgba(15,17,26,0.6) 0%, rgba(15,17,26,0.1) 30%, transparent 60%),
+                  linear-gradient(to top, #0f111a 0%, transparent 40%),
+                  radial-gradient(ellipse at center, transparent 65%, rgba(15,17,26,0.8) 100%)">
+      </div>
+
+      <!-- Content overlay -->
+      <div class="absolute inset-0 z-20 flex items-end pb-0 md:pb-[6vw] lg:pb-[5vw] xl:pb-32 pointer-events-none">
+        <div class="max-w-350 w-full mx-auto px-4 md:px-8 pointer-events-none">
+          <div
+            class="max-w-xl mx-auto md:mx-0 md:max-w-[50vw] lg:max-w-2xl flex flex-col items-center md:items-start text-center md:text-left">
+            <!-- Title -->
+            <div class="mb-1 md:mb-4 lg:mb-6">
+              <NuxtLink :to="movieLink(hero)" class="md:pointer-events-none" aria-label="Xem chi tiết phim">
+                <h1 class="text-lg md:text-3xl lg:text-5xl font-black leading-tight text-white drop-shadow-2xl">
+                  {{ hero.name }}
+                </h1>
+              </NuxtLink>
+            </div>
+
+            <!-- Original name -->
+            <p class="text-xs md:text-sm lg:text-base font-medium text-[#FECF59] mb-2 md:mb-3 lg:mb-4 drop-shadow">
+              {{ hero.originName || 'Kho phim Hàn Vietsub mới cập nhật' }}
+            </p>
+
+            <!-- Badges (mobile) -->
+            <div
+              class="flex justify-center md:justify-start items-center flex-wrap gap-2 mb-3 md:mb-4 text-[10px] md:text-xs text-white/90">
+              <div v-if="hero.rating"
+                class="flex items-center text-[11px] font-bold rounded overflow-hidden border border-solid border-[rgba(1,180,228,0.5)]">
+                <span class="bg-[#01B4E4] text-white px-1.5 py-0.5">TMDb</span>
+                <span class="bg-[rgba(1,180,228,0.1)] text-white px-1.5 py-0.5">{{ hero.rating.toFixed(1) }}</span>
+              </div>
+              <span v-if="hero.quality"
+                class="inline-flex items-center justify-center rounded-sm text-[#141414] font-black leading-none tracking-normal h-[22px] px-2 text-[11px]"
+                style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%)">
+                {{ hero.quality }}
+              </span>
+              <span v-if="getEpisodeDisplay(hero)" class="px-2 py-0.75 rounded border border-white bg-black/40">
+                {{ getEpisodeDisplay(hero) }}
+              </span>
+            </div>
+
+            <!-- Genre tags (desktop only) -->
+            <div v-if="hero.categories?.length"
+              class="hidden md:flex justify-center md:justify-start items-center flex-wrap gap-2 mb-4">
+              <span v-for="category in hero.categories.slice(0, 4)" :key="category"
+                class="text-[10px] md:text-xs text-white/80 bg-white/10 px-2 py-0.75 rounded-md">
+                {{ category }}
+              </span>
+            </div>
+
+            <!-- Description (desktop only) -->
+            <div class="hidden md:block mb-4 lg:mb-8 max-w-sm lg:max-w-lg">
+              <p class="text-xs lg:text-sm text-white font-light leading-relaxed line-clamp-2 lg:line-clamp-3">
+                {{ heroDescription }}
+              </p>
+            </div>
+
+            <!-- Action buttons (desktop only) -->
+            <div class="hidden md:flex justify-center md:justify-start items-center gap-4 pointer-events-auto relative z-40">
+              <!-- Watch Now button -->
+              <NuxtLink :to="movieLink(hero)"
+                class="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 text-[#0f1115] rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-[0_0_15px_rgba(254,207,89,0.5)] shrink-0 pointer-events-auto"
+                style="background:linear-gradient(39deg, rgb(254, 207, 89), rgb(255, 241, 204))" aria-label="Xem ngay">
+                <Play class="size-6 md:size-7 lg:size-8 fill-current" />
+              </NuxtLink>
+
+              <!-- Info + Add to List combo button -->
+              <div
+                class="flex bg-white/5 border border-white/20 rounded-full backdrop-blur-md h-10 md:h-12 lg:h-14 items-center overflow-hidden pointer-events-auto">
+                <!-- Add to list button -->
+                <button type="button"
+                  class="group/btn w-16 md:w-20 h-full flex items-center justify-center transition-all hover:bg-white/10"
+                  aria-label="Thêm vào danh sách">
+                  <Plus class="size-5 md:size-6 text-white" />
+                </button>
+                <!-- Divider -->
+                <div class="w-px h-6 bg-white/30"></div>
+                <!-- Info/details button -->
+                <NuxtLink :to="movieLink(hero)"
+                  class="group/link w-16 md:w-20 h-full flex items-center justify-center transition-colors text-white hover:text-[#FECF59]"
+                  aria-label="Thông tin phim">
+                  <Info class="size-6 md:size-7 text-white fill-none stroke-current group-hover/link:text-[#FECF59] transition-all" />
+                </NuxtLink>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thumbnail navigation -->
       <div
-        class="relative mx-auto h-full max-w-390 px-4 pb-22 pt-20 sm:px-6 sm:pb-26 sm:pt-14 lg:px-8 lg:pb-0 lg:pt-38 xl:px-10">
-        <div class="max-w-140">
-          <h1 class="text-4xl font-black leading-tight text-white drop-shadow-2xl sm:text-5xl lg:text-[50px]">
-            {{ hero.name }}
-          </h1>
-          <p class="mt-3 max-w-2xl text-sm font-black text-yellow-300 sm:text-base">
-            {{ hero.originName || 'Kho phim Hàn Vietsub mới cập nhật' }}
-          </p>
-
-          <div class="mt-4 flex flex-wrap gap-1.5 text-[13px] font-black text-white sm:gap-2">
-            <span v-if="hero.rating"
-              class="rounded-md bg-yellow-400 px-2.5 py-1.5 text-slate-950 shadow-lg shadow-yellow-950/30">
-              TMDb {{ hero.rating.toFixed(1) }}
-            </span>
-            <span v-if="hero.quality" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
-              {{ hero.quality }}
-            </span>
-            <span v-if="hero.lang" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
-              {{ hero.lang }}
-            </span>
-            <span v-if="hero.year" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
-              {{ hero.year }}
-            </span>
-            <span v-if="hero.episode" class="rounded-md border border-white/20 bg-white/15 px-2.5 py-1.5">
-              {{ hero.episode }}
-            </span>
-          </div>
-
-          <div v-if="hero.categories?.length" class="mt-2 flex flex-wrap gap-1.5 text-[11px] font-black text-white">
-            <span v-for="category in hero.categories.slice(0, 4)" :key="category"
-              class="rounded-md bg-white/12 px-2.5 py-1.5 backdrop-blur">
-              {{ category }}
-            </span>
-          </div>
-
-          <p class="mt-6 line-clamp-3 max-w-130 text-base font-bold leading-7 text-white drop-shadow">
-            {{ heroDescription }}
-          </p>
-
-          <div class="mt-9 flex items-center gap-3">
-            <NuxtLink :to="movieLink(hero)"
-              class="grid size-14 shrink-0 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-2xl shadow-yellow-950/50 transition hover:scale-105 hover:bg-yellow-300 sm:size-16"
-              aria-label="Xem ngay">
-              <Play class="ml-1 size-7 fill-current" />
-            </NuxtLink>
-            <button type="button"
-              class="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 sm:size-11"
-              aria-label="Yêu thích">
-              <Heart class="size-4 sm:size-5" />
-            </button>
-            <NuxtLink :to="movieLink(hero)"
-              class="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 sm:size-11"
-              aria-label="Thông tin phim">
-              <Info class="size-4 sm:size-5" />
-            </NuxtLink>
-          </div>
-        </div>
-
-        <div
-          class="absolute bottom-14 right-4 hidden max-w-[calc(100%-2rem)] items-center gap-3 sm:flex sm:right-6 lg:bottom-18 lg:right-8 xl:right-10">
-          <button type="button"
-            class="hidden size-9 shrink-0 place-items-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur transition hover:bg-white/15"
-            aria-label="Phim trước" @click="previousHero">
-            <ChevronLeft class="size-4 sm:size-5" />
-          </button>
-
-          <div class="no-scrollbar flex gap-3 overflow-x-auto pb-2">
-            <button v-for="(slide, index) in heroSlides" :key="`${slide.source}-${slide.slug}-thumb`" type="button"
-              class="relative h-14.5 w-26 shrink-0 overflow-hidden rounded-md border bg-slate-900 shadow-lg shadow-black/30 transition"
-              :class="index === heroIndex ? 'border-white ring-2 ring-white/40' : 'border-white/15 opacity-70 hover:opacity-100'"
-              @click="selectHero(index)">
-              <img :src="slide.thumb || slide.poster" :alt="slide.name" class="h-full w-full object-cover">
-            </button>
-          </div>
-
-          <button type="button"
-            class="hidden size-9 shrink-0 place-items-center rounded-full border border-white/15 bg-black/35 text-white backdrop-blur transition hover:bg-white/15"
-            aria-label="Phim tiếp theo" @click="nextHero">
-            <ChevronRight class="size-4 sm:size-5" />
-          </button>
-        </div>
+        class="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 z-30 flex gap-2 overflow-x-auto max-w-[calc(100%-2rem)] md:max-w-md lg:max-w-lg pb-2 md:pb-0 snap-x px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
+        style="scrollbar-width:none;-ms-overflow-style:none">
+        <button v-for="(slide, index) in heroSlides" :key="`${slide.source}-${slide.slug}-thumb`" type="button"
+          class="relative shrink-0 w-[14vw] sm:w-[10vw] md:w-[7vw] lg:w-[6vw] xl:w-[5vw] max-w-10 md:max-w-18.75 lg:max-w-21.25 aspect-square md:aspect-video transition-all duration-300 rounded-full md:rounded-lg overflow-hidden snap-center transform-gpu border-2"
+          :class="index === heroIndex ? 'border-white/90 opacity-100 scale-100 shadow-md' : 'border-transparent opacity-80 scale-95 hover:scale-100 hover:opacity-100'"
+          style="-webkit-mask-image:-webkit-radial-gradient(white, black)" :aria-label="`Chuyển đến phim ${index + 1}`"
+          @click="selectHero(index)">
+          <img :src="slide.thumb || slide.poster" :alt="slide.name"
+            class="absolute inset-0 h-full w-full object-cover rounded-full md:rounded-lg">
+        </button>
       </div>
     </section>
 

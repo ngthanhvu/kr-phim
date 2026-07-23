@@ -43,6 +43,13 @@
       "when": 1784709136940,
       "tag": "0005_illegal_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1784780104334,
+      "tag": "0006_sour_retro_girl",
+      "breakpoints": true
     }
   ]
 }

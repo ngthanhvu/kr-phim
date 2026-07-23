@@ -12,6 +12,7 @@ export interface NormalizedMovie {
   year?: number
   time?: string
   episode?: string
+  episodeTotal?: string
   quality?: string
   lang?: string
   type?: string
@@ -294,6 +295,7 @@ export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): Normal
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
+    episodeTotal: movie?.episode_total ? String(movie.episode_total).trim() || undefined : undefined,
     quality: text(movie?.quality),
     lang: text(movie?.lang),
     type: text(movie?.type),
@@ -316,6 +318,7 @@ export function normalizeKkphimMovie(movie: any, pathImage = KKPHIM_IMAGE): Norm
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
+    episodeTotal: movie?.episode_total != null ? String(movie.episode_total).trim() || undefined : undefined,
     quality: text(movie?.quality),
     lang: text(movie?.lang),
     type: text(movie?.type),
@@ -340,6 +343,9 @@ function normalizeNguoncMovie(movie: any): NormalizedMovie {
     year: Number(movie?.year || movie?.release_year) || undefined,
     time: text(movie?.time || movie?.duration),
     episode: text(movie?.episode_current || movie?.current_episode),
+    episodeTotal: (movie?.episode_total || movie?.total_episodes) != null
+      ? String(movie.episode_total || movie.total_episodes).trim() || undefined
+      : undefined,
     quality: text(movie?.quality),
     lang: text(movie?.language || movie?.lang),
     type: text(movie?.type),

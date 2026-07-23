@@ -1,0 +1,1 @@
+ALTER TABLE `movies` ADD `episode_total` varchar(100);

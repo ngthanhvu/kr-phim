@@ -23,6 +23,7 @@ export const movies = mysqlTable('movies', {
   year: int('year'),
   time: varchar('time', { length: 100 }),
   episode: varchar('episode', { length: 100 }),
+  episodeTotal: varchar('episode_total', { length: 100 }),
   quality: varchar('quality', { length: 50 }),
   lang: varchar('lang', { length: 50 }),
   type: varchar('type', { length: 50 }),

@@ -12,6 +12,8 @@ useHead({
 const searchInput = ref('')
 const debouncedKeyword = ref('')
 const statusFilter = ref('')
+const sourceFilter = ref('')
+const typeFilter = ref('')
 const currentPage = ref(1)
 const syncing = ref(false)
 const syncOpen = ref(false)
@@ -34,11 +36,13 @@ const { data, refresh } = await useFetch('/api/admin/movies', {
     page: currentPage.value,
     keyword: debouncedKeyword.value,
     status: statusFilter.value,
+    source: sourceFilter.value,
+    type: typeFilter.value,
     limit: 20,
   })),
 })
 
-watch(statusFilter, () => {
+watch([statusFilter, sourceFilter, typeFilter], () => {
   currentPage.value = 1
 })
 
@@ -121,9 +125,22 @@ const totalPages = computed(() => data.value?.totalPages || 1)
         </div>
         <select v-model="statusFilter"
           class="h-10 rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white outline-none focus:border-yellow-400/50">
-          <option value="" class="bg-slate-900">Tất cả</option>
+          <option value="" class="bg-slate-900">Tất cả trạng thái</option>
           <option value="active" class="bg-slate-900">Đang hiển thị</option>
           <option value="inactive" class="bg-slate-900">Chưa hiển thị</option>
+        </select>
+        <select v-model="sourceFilter"
+          class="h-10 rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white outline-none focus:border-yellow-400/50">
+          <option value="" class="bg-slate-900">Tất cả nguồn</option>
+          <option value="ophim" class="bg-slate-900">OPhim</option>
+          <option value="nguonc" class="bg-slate-900">NguonC</option>
+          <option value="kkphim" class="bg-slate-900">KKPhim</option>
+        </select>
+        <select v-model="typeFilter"
+          class="h-10 rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white outline-none focus:border-yellow-400/50">
+          <option value="" class="bg-slate-900">Tất cả loại</option>
+          <option value="series" class="bg-slate-900">Phim bộ</option>
+          <option value="single" class="bg-slate-900">Phim lẻ</option>
         </select>
       </div>
 
@@ -134,6 +151,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               <th class="w-12 px-4 py-3 text-center">STT</th>
               <th class="px-4 py-3 text-center">Phim</th>
               <th class="px-4 py-3 text-center">Nguồn</th>
+              <th class="px-4 py-3 text-center">Tập</th>
               <th class="px-4 py-3 text-center">Lượt xem</th>
               <th class="px-4 py-3 text-center">Trạng thái</th>
               <th class="px-4 py-3 text-center">Chỉnh sửa</th>
@@ -155,6 +173,12 @@ const totalPages = computed(() => data.value?.totalPages || 1)
                 <span class="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white">
                   {{ movie.source?.toUpperCase() }}
                 </span>
+              </td>
+              <td class="px-4 py-3 text-center text-sm text-slate-300">
+                <template v-if="movie.episode && movie.episodeTotal && !movie.episode.includes('/')">
+                  <span class="font-semibold text-yellow-300">Tập {{ movie.episode.replace(/[^0-9]/g, '') }}/{{ movie.episodeTotal.replace(/[^0-9]/g, '') }}</span>
+                </template>
+                <span v-else>{{ movie.episode || '-' }}</span>
               </td>
               <td class="px-4 py-3 text-center text-sm text-slate-300">
                 {{ (movie.views || 0).toLocaleString() }}
@@ -192,7 +216,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               </td>
             </tr>
             <tr v-if="!movies.length">
-              <td colspan="7" class="px-4 py-12 text-center text-sm text-slate-400">
+              <td colspan="8" class="px-4 py-12 text-center text-sm text-slate-400">
                 {{ debouncedKeyword ? 'Không tìm thấy phim nào.' : 'Chưa có phim nào. Bấm "Đồng bộ từ API" để lấy phim.' }}
               </td>
             </tr>

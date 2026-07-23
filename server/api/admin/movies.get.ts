@@ -1,5 +1,5 @@
 import { movies } from '../../database/schema'
-import { desc, eq, like, sql } from 'drizzle-orm'
+import { desc, eq, like, and, sql } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const db = useDb()
@@ -9,17 +9,18 @@ export default defineEventHandler(async (event) => {
   const offset = (page - 1) * limit
   const keyword = typeof query.keyword === 'string' ? query.keyword.trim() : ''
   const status = typeof query.status === 'string' ? query.status : ''
+  const source = typeof query.source === 'string' ? query.source : ''
+  const type = typeof query.type === 'string' ? query.type : ''
 
-  let whereClause = undefined
-  if (keyword && status === 'active') {
-    whereClause = sql`${like(movies.name, `%${keyword}%`)} AND ${movies.active} = true`
-  } else if (keyword) {
-    whereClause = like(movies.name, `%${keyword}%`)
-  } else if (status === 'active') {
-    whereClause = eq(movies.active, true)
-  } else if (status === 'inactive') {
-    whereClause = eq(movies.active, false)
-  }
+  const conditions: any[] = []
+
+  if (keyword) conditions.push(like(movies.name, `%${keyword}%`))
+  if (status === 'active') conditions.push(eq(movies.active, true))
+  else if (status === 'inactive') conditions.push(eq(movies.active, false))
+  if (source) conditions.push(eq(movies.source, source))
+  if (type) conditions.push(eq(movies.type, type))
+
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
   const [items, countResult] = await Promise.all([
     db

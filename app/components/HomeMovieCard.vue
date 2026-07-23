@@ -12,6 +12,7 @@ const props = defineProps<{
     year?: number
     time?: string
     episode?: string
+    episodeTotal?: string
     quality?: string
     lang?: string
     categories?: string[]
@@ -19,6 +20,21 @@ const props = defineProps<{
     sources?: { source: string, slug: string }[]
   }
 }>()
+
+const episodeDisplay = computed(() => {
+  const ep = props.movie.episode
+  const total = props.movie.episodeTotal
+  if (!ep) return undefined
+
+  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
+  const epNum = ep.replace(/[^0-9]/g, '')
+
+  if (epNum && totalNum && epNum !== totalNum) {
+    return `Tập ${epNum}/${totalNum}`
+  }
+
+  return ep
+})
 
 const isPreviewVisible = ref(false)
 const isDescriptionExpanded = ref(false)
@@ -82,15 +98,19 @@ onBeforeUnmount(() => {
     @mouseenter="showPreview" @mouseleave="scheduleHide" @focus="showPreview" @blur="scheduleHide">
     <div
       class="absolute inset-0 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:ring-yellow-300/60">
-      <img :src="movie.thumb || movie.poster" :alt="movie.name"
+      <img :src="movie.poster || movie.thumb" :alt="movie.name"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
       <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950 via-slate-950/70 to-transparent p-3">
         <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>
-        <p class="mt-1 truncate text-xs text-yellow-100">{{ movie.episode || movie.year || movie.quality }}</p>
+        <p class="mt-1 truncate text-xs text-yellow-100">{{ episodeDisplay || movie.year || movie.quality }}</p>
       </div>
       <span v-if="movie.sources?.length && movie.sources.length > 1"
         class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs font-black text-slate-950">
         {{ movie.sources.length }} server
+      </span>
+      <span v-if="episodeDisplay"
+        class="absolute right-2 top-2 rounded bg-red-600/90 px-2 py-1 text-xs font-black text-white backdrop-blur-sm">
+        {{ episodeDisplay }}
       </span>
     </div>
   </NuxtLink>
@@ -103,7 +123,7 @@ onBeforeUnmount(() => {
         class="fixed z-90 hidden origin-top-left overflow-hidden rounded-xl bg-[#07111d] text-white shadow-2xl shadow-black/60 ring-1 ring-yellow-300/45 sm:block"
         :style="previewStyle" @mouseenter="keepPreview" @mouseleave="scheduleHide">
         <div class="relative h-44 overflow-hidden">
-          <img :src="movie.poster || movie.thumb" :alt="movie.name" class="h-full w-full object-cover">
+          <img :src="movie.thumb || movie.poster" :alt="movie.name" class="h-full w-full object-cover object-top">
           <div class="absolute inset-0 bg-linear-to-t from-[#07111d] via-[#07111d]/30 to-transparent" />
           <div class="absolute inset-x-0 bottom-0 p-4">
             <h3 class="line-clamp-2 text-xl font-black leading-tight text-white">
@@ -135,8 +155,8 @@ onBeforeUnmount(() => {
               movie.quality }}</span>
             <span v-if="movie.lang" class="rounded bg-yellow-300 px-2.5 py-1.5 text-slate-950">{{ movie.lang }}</span>
             <span v-if="movie.time" class="rounded bg-white px-2.5 py-1.5 text-slate-950">{{ movie.time }}</span>
-            <span v-if="movie.episode" class="rounded bg-black/28 px-2.5 py-1.5 text-white ring-1 ring-white/10">{{
-              movie.episode }}</span>
+            <span v-if="episodeDisplay" class="rounded bg-black/28 px-2.5 py-1.5 text-white ring-1 ring-white/10">{{
+              episodeDisplay }}</span>
           </div>
 
           <div class="mt-3">
