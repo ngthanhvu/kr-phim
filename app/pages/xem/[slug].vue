@@ -23,12 +23,10 @@ const route = useRoute()
 const selectedServer = ref(Math.max(Number(route.query.server || 0), 0))
 const selectedEpisode = ref(Math.max(Number(route.query.ep || 1) - 1, 0))
 const hasStarted = ref(false)
-const hasManualPlayerMode = ref(false)
 const isFavoriteMovie = ref(false)
 const actionMessage = ref('')
 const actionBusy = ref(false)
 const progressSeconds = ref(0)
-const playerMode = ref<'embed' | 'hls'>('embed')
 const playerViewportRef = ref<HTMLElement | null>(null)
 const playerShellRef = ref<HTMLElement | null>(null)
 const videoRef = ref<HTMLVideoElement | null>(null)
@@ -49,6 +47,7 @@ const edgeProgressVisible = ref(false)
 const gestureHint = ref('')
 const isHoldSpeedActive = ref(false)
 const pendingResumeSeconds = ref(0)
+const descriptionExpanded = ref(false)
 let controlsHideTimer: ReturnType<typeof setTimeout> | undefined
 let edgeProgressTimer: ReturnType<typeof setTimeout> | undefined
 let singleTapTimer: ReturnType<typeof setTimeout> | undefined
@@ -89,11 +88,7 @@ const { data: movie, pending, error } = useFetch(() => `/api/movies/${route.para
 const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value] ?? servers.value[0])
 const activeEpisode = computed(() => activeServer.value?.episodes?.[selectedEpisode.value] ?? activeServer.value?.episodes?.[0])
-const embedPlayerUrl = computed(() => activeEpisode.value?.linkEmbed || '')
 const hlsPlayerUrl = computed(() => activeEpisode.value?.linkM3u8 || '')
-const playerUrl = computed(() => playerMode.value === 'hls' ? hlsPlayerUrl.value : (embedPlayerUrl.value || hlsPlayerUrl.value))
-const canUseEmbed = computed(() => Boolean(embedPlayerUrl.value))
-const canUseHls = computed(() => Boolean(hlsPlayerUrl.value))
 const actorSummary = computed(() => (movie.value?.actors ?? []).map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
 const durationSeconds = computed(() => Math.floor(videoDuration.value || parseDurationSeconds(movie.value?.time || '')))
 const hasNextEpisode = computed(() => Boolean(activeServer.value?.episodes?.[selectedEpisode.value + 1]))
@@ -166,11 +161,8 @@ async function selectServer(index: number) {
   const nextEpisodeIndex = episodeIndexForServer(index)
   selectedServer.value = index
   selectedEpisode.value = nextEpisodeIndex
-  hasStarted.value = false
-  hasManualPlayerMode.value = false
   resetProgressTimer()
   destroyHlsPlayer()
-  choosePreferredPlayerMode(true)
   await navigateTo({
     path: `/xem/${route.params.slug}`,
     query: {
@@ -190,28 +182,8 @@ async function startPlayer() {
   await loadResumeProgress()
   startProgressTimer()
   saveWatchHistory()
-
-  if (playerMode.value === 'hls') {
-    nextTick(() => setupHlsPlayer(true))
-  }
-
+  nextTick(() => setupHlsPlayer(true))
   nextTick(() => handleOrientationFullscreen())
-}
-
-function selectPlayerMode(mode: 'embed' | 'hls') {
-  if (mode === playerMode.value) return
-
-  hasManualPlayerMode.value = true
-  playerMode.value = mode
-  isSettingsOpen.value = false
-  hasStarted.value = false
-  resetProgressTimer()
-  destroyHlsPlayer()
-}
-
-function choosePreferredPlayerMode(force = false) {
-  if (!force && hasManualPlayerMode.value) return
-  playerMode.value = canUseHls.value ? 'hls' : 'embed'
 }
 
 function parseDurationSeconds(value: string) {
@@ -247,7 +219,7 @@ function stopProgressTimer() {
 function tickProgress() {
   if (!hasStarted.value || (import.meta.client && document.visibilityState === 'hidden')) return
 
-  if (playerMode.value === 'hls' && videoRef.value) {
+  if (videoRef.value) {
     progressSeconds.value = Math.floor(videoRef.value.currentTime || 0)
     videoCurrentTime.value = progressSeconds.value
   } else {
@@ -275,7 +247,7 @@ function handleVisibilityChange() {
 }
 
 function handleKeyboardShortcut(event: KeyboardEvent) {
-  if (playerMode.value !== 'hls' || !hasStarted.value || !videoRef.value) return
+  if (!hasStarted.value || !videoRef.value) return
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes((event.target as HTMLElement)?.tagName)) return
 
   const key = event.key.toLowerCase()
@@ -326,29 +298,13 @@ function clearHlsFallbackTimer() {
   hlsFallbackTimer = undefined
 }
 
-function scheduleHlsFallback(message = 'HLS phản hồi chậm, đang chuyển sang chế độ Nhúng...') {
-  if (!canUseEmbed.value) return
+function scheduleHlsFallback(message = 'HLS phản hồi chậm, vui lòng thử lại...') {
   clearHlsFallbackTimer()
   hlsFallbackTimer = setTimeout(() => {
-    fallbackToEmbed(message)
-  }, 12000)
-}
-
-function fallbackToEmbed(message = 'HLS đang lỗi, đã chuyển sang chế độ Nhúng.') {
-  clearHlsFallbackTimer()
-  if (!canUseEmbed.value) {
-    hlsErrorMessage.value = 'HLS đang lỗi và phim này chưa có link Nhúng ở server này.'
+    hlsErrorMessage.value = message
     isVideoBuffering.value = false
-    return
-  }
-
-  hlsErrorMessage.value = ''
-  isVideoBuffering.value = false
-  isVideoPlaying.value = false
-  isSettingsOpen.value = false
-  playerMode.value = 'embed'
-  destroyHlsPlayer()
-  flashActionMessage(message)
+    isVideoPlaying.value = false
+  }, 12000)
 }
 
 function flashGestureHint(message: string) {
@@ -373,7 +329,7 @@ function formatPlayerTime(seconds = 0) {
 
 async function setupHlsPlayer(autoplay = false, tryProxy = true) {
   console.log('[HLS] Setup called', { tryProxy, hasVideoRef: !!videoRef.value, hlsUrl: hlsPlayerUrl.value })
-  
+
   if (!import.meta.client || !videoRef.value || !hlsPlayerUrl.value) {
     console.log('[HLS] Early return - missing requirements')
     return
@@ -416,7 +372,8 @@ async function setupHlsPlayer(autoplay = false, tryProxy = true) {
 
       if (!HlsPlayer.isSupported()) {
         console.log('[HLS] hls.js not supported')
-        fallbackToEmbed('Trình duyệt chưa hỗ trợ HLS, đã chuyển sang chế độ Nhúng.')
+        hlsErrorMessage.value = 'Trình duyệt chưa hỗ trợ HLS.'
+        isVideoBuffering.value = false
         return
       }
 
@@ -427,7 +384,7 @@ async function setupHlsPlayer(autoplay = false, tryProxy = true) {
           xhr.withCredentials = false
         },
       })
-      
+
       hlsPlayer.on(HlsPlayer.Events.MANIFEST_PARSED, () => {
         console.log('[HLS] Manifest parsed successfully')
         clearHlsFallbackTimer()
@@ -440,7 +397,7 @@ async function setupHlsPlayer(autoplay = false, tryProxy = true) {
         selectedQuality.value = -1
         applyResumeProgress()
       })
-      
+
       hlsPlayer.on(HlsPlayer.Events.ERROR, (_event, data) => {
         console.log('[HLS] Error:', data.type, data.details, data.fatal)
         if (!data.fatal) return
@@ -460,8 +417,10 @@ async function setupHlsPlayer(autoplay = false, tryProxy = true) {
 
         hlsFatalRetryCount += 1
         if (hlsFatalRetryCount >= 2) {
-          console.log('[HLS] Too many errors, falling back to embed')
-          fallbackToEmbed('HLS tải không ổn định, đã chuyển sang chế độ Nhúng.')
+          console.log('[HLS] Too many errors, showing error message')
+          hlsErrorMessage.value = 'HLS tải không ổn định.'
+          isVideoBuffering.value = false
+          isVideoPlaying.value = false
           return
         }
 
@@ -482,7 +441,9 @@ async function setupHlsPlayer(autoplay = false, tryProxy = true) {
       scheduleHlsFallback()
     } catch (error) {
       console.error('[HLS] Setup error:', error)
-      fallbackToEmbed('Lỗi khởi tạo HLS player, đã chuyển sang chế độ Nhúng.')
+      hlsErrorMessage.value = 'Lỗi khởi tạo HLS player.'
+      isVideoBuffering.value = false
+      isVideoPlaying.value = false
       return
     }
   }
@@ -492,7 +453,7 @@ async function setupHlsPlayer(autoplay = false, tryProxy = true) {
       await video.play()
     } catch {
       isVideoPlaying.value = false
-      fallbackToEmbed('HLS chưa phát được, đã chuyển sang chế độ Nhúng.')
+      hlsErrorMessage.value = 'HLS chưa phát được.'
     }
   }
 }
@@ -547,7 +508,9 @@ function handleVideoPlaying() {
 }
 
 function handleVideoError() {
-  fallbackToEmbed('HLS phát lỗi, đã chuyển sang chế độ Nhúng.')
+  hlsErrorMessage.value = 'HLS phát lỗi.'
+  isVideoBuffering.value = false
+  isVideoPlaying.value = false
 }
 
 async function loadResumeProgress() {
@@ -1006,22 +969,12 @@ watch(() => route.query, () => {
   selectedServer.value = Math.max(Number(route.query.server || 0), 0)
   selectedEpisode.value = Math.max(Number(route.query.ep || 1) - 1, 0)
   hasStarted.value = false
-  hasManualPlayerMode.value = false
   resetProgressTimer()
   destroyHlsPlayer()
-  choosePreferredPlayerMode(true)
 })
 
 watch([movie, activeEpisode], () => {
   if (hasStarted.value) saveWatchHistory()
-  hasManualPlayerMode.value = false
-  choosePreferredPlayerMode(true)
-})
-
-watch([canUseEmbed, canUseHls], () => {
-  choosePreferredPlayerMode()
-}, {
-  immediate: true,
 })
 
 watch(libraryItem, () => {
@@ -1063,12 +1016,6 @@ useHead(() => ({
         <div class="h-5 w-28 animate-pulse rounded bg-white/10" />
 
         <div class="mt-4 overflow-hidden rounded-md border border-white/10 bg-black shadow-2xl shadow-black/40">
-          <div class="border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
-            <div class="grid grid-cols-2 gap-2">
-              <div class="h-10 animate-pulse rounded-md bg-white/10" />
-              <div class="h-10 animate-pulse rounded-md bg-white/10" />
-            </div>
-          </div>
           <div class="relative aspect-video overflow-hidden bg-slate-950">
             <div class="absolute left-3 top-3 hidden h-8 w-36 animate-pulse rounded-md bg-white/10 sm:block" />
             <div class="absolute right-3 top-3 hidden h-8 w-44 animate-pulse rounded-md bg-white/10 sm:block" />
@@ -1144,61 +1091,7 @@ useHead(() => ({
         </NuxtLink>
 
         <div class="mt-4 overflow-hidden rounded-md border border-white/10 bg-black shadow-2xl shadow-black/40">
-          <div class="border-b border-white/10 bg-slate-950/92 p-2 sm:hidden">
-            <div class="grid grid-cols-2 gap-2">
-              <button type="button"
-                class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'embed' ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-slate-100'"
-                :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
-                Nhúng
-              </button>
-              <button type="button"
-                class="rounded-md px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'hls' ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-slate-100'"
-                :disabled="!canUseHls" @click="selectPlayerMode('hls')">
-                HLS
-              </button>
-            </div>
-
-            <!-- <div v-if="servers.length > 1" class="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
-              <button v-for="(server, index) in servers" :key="`${server.name}-${index}-mobile-player`" type="button"
-                class="shrink-0 rounded-md px-3 py-2 text-xs font-black transition"
-                :class="selectedServer === index ? 'bg-yellow-400 text-slate-950' : 'bg-white/10 text-slate-100'"
-                @click="selectServer(index)">
-                {{ serverLabel(server, index) }}
-              </button>
-            </div> -->
-          </div>
-
           <div ref="playerViewportRef" class="relative aspect-video bg-slate-950">
-            <div
-              class="absolute left-3 top-3 z-20 hidden rounded-md border border-white/10 bg-black/65 p-1 text-xs font-black text-white backdrop-blur sm:inline-flex">
-              <button type="button"
-                class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'embed' ? 'bg-yellow-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
-                :disabled="!canUseEmbed" @click="selectPlayerMode('embed')">
-                Nhúng
-              </button>
-              <button type="button"
-                class="rounded px-3 py-1.5 transition disabled:cursor-not-allowed disabled:opacity-40"
-                :class="playerMode === 'hls' ? 'bg-yellow-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
-                :disabled="!canUseHls" @click="selectPlayerMode('hls')">
-                HLS
-              </button>
-            </div>
-
-            <div v-if="servers.length > 1"
-              class="absolute right-3 top-3 z-20 hidden max-w-[48%] rounded-md border border-white/10 bg-black/65 p-1 text-xs font-black text-white backdrop-blur sm:flex">
-              <div class="no-scrollbar flex max-w-full gap-1 overflow-x-auto">
-                <button v-for="(server, index) in servers" :key="`${server.name}-${index}-player`" type="button"
-                  class="shrink-0 rounded px-3 py-1.5 transition"
-                  :class="selectedServer === index ? 'bg-yellow-400 text-slate-950' : 'text-slate-200 hover:bg-white/10'"
-                  @click="selectServer(index)">
-                  {{ serverLabel(server, index) }}
-                </button>
-              </div>
-            </div>
-
             <div v-if="pending"
               class="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-black/45 text-yellow-200 backdrop-blur-[1px]">
               <div
@@ -1208,14 +1101,9 @@ useHead(() => ({
               </div>
             </div>
 
-            <iframe v-if="playerMode === 'embed' && playerUrl && hasStarted" :src="playerUrl"
-              :title="`${movie.name} - ${activeEpisode?.name || 'Tập phim'}`" class="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen />
-            <div v-else-if="playerMode === 'hls' && playerUrl && hasStarted" ref="playerShellRef"
-              class="group relative h-full w-full bg-black" @mousemove="showControlsTemporarily"
-              @mouseleave="controlsVisible = false" @touchstart.passive="handleTouchStart"
-              @touchend.passive="handleTouchEnd">
+            <div v-if="hlsPlayerUrl && hasStarted" ref="playerShellRef" class="group relative h-full w-full bg-black"
+              @mousemove="showControlsTemporarily" @mouseleave="controlsVisible = false"
+              @touchstart.passive="handleTouchStart" @touchend.passive="handleTouchEnd">
               <video ref="videoRef" class="h-full w-full bg-black object-contain" playsinline
                 @loadedmetadata="updateVideoMetadata" @timeupdate="updateVideoTime" @canplay="handleVideoCanPlay"
                 @waiting="handleVideoWaiting" @playing="handleVideoPlaying"
@@ -1363,7 +1251,7 @@ useHead(() => ({
                   class="grid size-16 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-xl shadow-yellow-950/30">
                   <Play class="size-7 fill-current" />
                 </span>
-                <span v-if="playerMode === 'hls' && !canUseHls"
+                <span v-if="!hlsPlayerUrl"
                   class="mt-4 rounded-md bg-black/70 px-4 py-2 text-xs font-black text-slate-100">
                   Tập này chưa có link HLS
                 </span>
@@ -1419,7 +1307,17 @@ useHead(() => ({
               </div>
             </div>
 
-            <p v-if="movie.content" class="mt-4 text-sm leading-7 text-slate-200">{{ movie.content }}</p>
+            <div v-if="movie.content" class="mt-4">
+              <p class="text-sm leading-7 text-slate-200" :class="descriptionExpanded ? '' : 'line-clamp-3'">{{ movie.content }}</p>
+              <button type="button"
+                class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-yellow-300 transition hover:text-yellow-200 sm:hidden"
+                @click="descriptionExpanded = !descriptionExpanded">
+                {{ descriptionExpanded ? 'Thu gọn' : 'Xem thêm' }}
+                <svg class="size-3 transition" :class="descriptionExpanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
 
             <div class="mt-5 rounded-md bg-yellow-400 px-4 py-3 text-sm font-black text-slate-950">
               Đang xem {{ formatEpisodeName(activeEpisode?.name, selectedEpisode) }}
