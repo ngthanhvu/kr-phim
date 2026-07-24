@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CornerDownLeft, Crown, Loader2, ThumbsDown, ThumbsUp, Trash2, User } from 'lucide-vue-next'
+import { CornerDownLeft, Crown, Loader2, ThumbsDown, ThumbsUp, Trash2, User, Venus, Mars, Minus } from 'lucide-vue-next'
 
 const props = defineProps<{
   replies: any[]
@@ -48,6 +48,9 @@ function handleVote(replyId: number, vote: number) {
         <span v-if="reply.userRole === 'admin' && !reply.anonymous"
           class="px-1.5 py-0.5 rounded text-[9px] font-black bg-yellow-400 text-slate-900">ADMIN</span>
         <span class="text-xs font-semibold text-white">{{ reply.userName }}</span>
+        <Venus v-if="reply.userGender === 'female' && !reply.anonymous" class="size-3 text-pink-400" />
+        <Mars v-if="reply.userGender === 'male' && !reply.anonymous" class="size-3 text-blue-400" />
+        <Minus v-if="reply.userGender === 'other' && !reply.anonymous" class="size-3 text-purple-400" />
         <span v-if="reply.anonymous"
           class="px-1 py-0.5 rounded text-[9px] font-medium bg-white/10 text-slate-400">Ẩn
           danh</span>

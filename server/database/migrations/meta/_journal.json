@@ -85,6 +85,13 @@
       "when": 1784853783915,
       "tag": "0011_magenta_jack_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1784882595519,
+      "tag": "0012_bumpy_the_watchers",
+      "breakpoints": true
     }
   ]
 }

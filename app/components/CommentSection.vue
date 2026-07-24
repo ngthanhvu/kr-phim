@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronUp, CornerDownLeft, Crown, Loader2, MessageSquare, Pin, Send, ThumbsDown, ThumbsUp, Trash2, User } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, CornerDownLeft, Crown, Loader2, MessageSquare, Pin, Send, ThumbsDown, ThumbsUp, Trash2, User, Venus, Mars, Minus } from 'lucide-vue-next'
 
 const props = defineProps<{
   source: string
@@ -110,6 +110,7 @@ async function handleSubmitComment() {
       userName: user.value.name || 'Ẩn danh',
       userAvatar: user.value.avatar,
       userRole: user.value.role,
+      userGender: user.value.gender,
       replies: [],
       timeAgo: 'Vừa xong'
     })
@@ -229,6 +230,7 @@ async function submitReply(parentId: number) {
         userName: user.value.name || 'Ẩn danh',
         userAvatar: user.value.avatar,
         userRole: user.value.role,
+        userGender: user.value.gender,
         timeAgo: 'Vừa xong',
         anonymous: isAnon,
         replies: []
@@ -423,6 +425,9 @@ watch(() => props.slug, () => {
                 <span v-if="comment.userRole === 'admin' && !comment.anonymous"
                   class="px-2 py-0.5 rounded text-[10px] font-black bg-yellow-400 text-slate-900 shadow-sm">ADMIN</span>
                 <span class="text-sm font-semibold text-white">{{ comment.userName }}</span>
+                <Venus v-if="comment.userGender === 'female' && !comment.anonymous" class="size-3.5 text-pink-400" />
+                <Mars v-if="comment.userGender === 'male' && !comment.anonymous" class="size-3.5 text-blue-400" />
+                <Minus v-if="comment.userGender === 'other' && !comment.anonymous" class="size-3.5 text-purple-400" />
                 <span v-if="comment.anonymous"
                   class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/10 text-slate-400">Ẩn danh</span>
                 <span class="text-xs text-slate-600">{{ timeAgo(comment.createdAt) }}</span>

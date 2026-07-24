@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ArrowLeft, Camera, Check, Clock3, Eye, EyeOff, Heart, KeyRound, LogOut, LockKeyhole, Mail, Pencil, Settings, UserRound, X } from 'lucide-vue-next'
+import { ArrowLeft, Camera, Check, Clock3, Crown, Eye, EyeOff, Heart, KeyRound, LogOut, LockKeyhole, Mail, Pencil, Settings, UserRound, X, Venus, Mars, Minus } from 'lucide-vue-next'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -25,6 +25,15 @@ const displayNameInput = ref('')
 const nameLoading = ref(false)
 const nameError = ref('')
 const nameSuccess = ref('')
+const genderLoading = ref(false)
+const genderError = ref('')
+const genderSuccess = ref('')
+
+const genderOptions = [
+  { value: 'male', label: 'Nam', icon: Mars },
+  { value: 'female', label: 'Nữ', icon: Venus },
+  { value: 'other', label: 'Khác', icon: Minus },
+]
 
 const avatarCategories = [
   { id: 'meme', label: 'Meme' },
@@ -42,6 +51,8 @@ const avatarUrl = computed(() => {
   if (user.value?.avatar) return user.value.avatar
   return null
 })
+
+const isAdmin = computed(() => user.value?.role === 'admin')
 
 const avatarGrid = computed(() => {
   const categoryMap: Record<string, string[]> = {
@@ -194,6 +205,28 @@ async function saveName() {
   }
 }
 
+async function saveGender(gender: string) {
+  genderLoading.value = true
+  genderError.value = ''
+  genderSuccess.value = ''
+
+  try {
+    await $fetch('/api/auth/profile', {
+      method: 'PUT',
+      body: { gender },
+    })
+    genderSuccess.value = 'Cập nhật giới tính thành công!'
+    await fetchUser()
+    setTimeout(() => {
+      genderSuccess.value = ''
+    }, 1500)
+  } catch (err: any) {
+    genderError.value = err?.data?.message || 'Cập nhật thất bại'
+  } finally {
+    genderLoading.value = false
+  }
+}
+
 watch(user, (u) => {
   if (u) {
     displayNameInput.value = u.name || ''
@@ -225,11 +258,17 @@ useHead({
         <aside class="w-full lg:w-64 shrink-0">
           <div class="lg:sticky lg:top-28">
             <div class="mb-4 flex items-center gap-3 rounded-xl border border-white/[0.08] bg-[#12121a] p-4 lg:hidden">
-              <div v-if="avatarUrl" class="size-10 shrink-0 overflow-hidden rounded-full ring-2 ring-[#FFD166]/20">
-                <img :src="avatarUrl" :alt="memberName" class="size-full object-cover">
-              </div>
-              <div v-else class="grid size-10 shrink-0 place-items-center rounded-full bg-[#FFD166]/10">
-                <span class="text-sm font-bold text-[#FFD166]">{{ memberName.charAt(0).toUpperCase() }}</span>
+              <div class="relative shrink-0">
+                <div v-if="avatarUrl" class="size-10 shrink-0 overflow-hidden rounded-full"
+                  :class="isAdmin ? 'ring-2 ring-[#FFD166]' : 'ring-2 ring-[#FFD166]/20'">
+                  <img :src="avatarUrl" :alt="memberName" class="size-full object-cover">
+                </div>
+                <div v-else class="grid size-10 shrink-0 place-items-center rounded-full"
+                  :class="isAdmin ? 'bg-[#FFD166]/20 ring-2 ring-[#FFD166]' : 'bg-[#FFD166]/10 ring-2 ring-[#FFD166]/20'">
+                  <span class="text-sm font-bold text-[#FFD166]">{{ memberName.charAt(0).toUpperCase() }}</span>
+                </div>
+                <Crown v-if="isAdmin"
+                  class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-[#0a0a0f] p-0.5 text-[#FFD166] ring-1 ring-[#FFD166]/40" />
               </div>
               <div class="min-w-0">
                 <p class="truncate text-sm font-semibold">{{ memberName }}</p>
@@ -309,6 +348,21 @@ useHead({
                       class="h-12 w-full cursor-not-allowed rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 text-sm text-white/50 outline-none">
                   </div>
 
+                  <div>
+                    <label class="mb-2 block text-xs font-medium text-white/40">Giới tính</label>
+                    <div class="flex gap-2">
+                      <button v-for="opt in genderOptions" :key="opt.value" type="button"
+                        class="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border text-sm font-semibold transition-all"
+                        :class="user.gender === opt.value
+                          ? 'border-[#FFD166]/40 bg-[#FFD166]/10 text-[#FFD166]'
+                          : 'border-white/[0.08] bg-white/[0.04] text-white/50 hover:border-white/[0.15] hover:text-white/70'"
+                        :disabled="genderLoading" @click="saveGender(opt.value)">
+                        <component :is="opt.icon" class="size-4" />
+                        <span>{{ opt.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <p v-if="nameError" class="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-sm text-red-400">
                     <X class="size-4 shrink-0" />
                     {{ nameError }}
@@ -317,6 +371,16 @@ useHead({
                     class="flex items-center gap-2 rounded-xl bg-green-500/10 p-3 text-sm font-medium text-green-400">
                     <Check class="size-4 shrink-0" />
                     {{ nameSuccess }}
+                  </p>
+                  <p v-if="genderError"
+                    class="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-sm text-red-400">
+                    <X class="size-4 shrink-0" />
+                    {{ genderError }}
+                  </p>
+                  <p v-if="genderSuccess"
+                    class="flex items-center gap-2 rounded-xl bg-green-500/10 p-3 text-sm font-medium text-green-400">
+                    <Check class="size-4 shrink-0" />
+                    {{ genderSuccess }}
                   </p>
 
                   <div class="flex flex-wrap gap-2 pt-2">
@@ -343,13 +407,16 @@ useHead({
 
                 <div class="flex flex-col items-center gap-3 lg:w-48 lg:shrink-0">
                   <div class="group/avatar relative">
-                    <div v-if="avatarUrl" class="size-32 overflow-hidden rounded-full ring-4 ring-[#FFD166]/20">
+                    <div v-if="avatarUrl" class="size-32 overflow-hidden rounded-full"
+                      :class="isAdmin ? 'ring-4 ring-[#FFD166]' : 'ring-4 ring-[#FFD166]/20'">
                       <img :src="avatarUrl" :alt="memberName" class="size-full object-cover">
                     </div>
-                    <div v-else
-                      class="grid size-32 place-items-center rounded-full bg-[#FFD166]/10 ring-4 ring-[#FFD166]/20">
+                    <div v-else class="grid size-32 place-items-center rounded-full"
+                      :class="isAdmin ? 'bg-[#FFD166]/20 ring-4 ring-[#FFD166]' : 'bg-[#FFD166]/10 ring-4 ring-[#FFD166]/20'">
                       <span class="text-4xl font-black text-[#FFD166]">{{ memberName.charAt(0).toUpperCase() }}</span>
                     </div>
+                    <Crown v-if="isAdmin"
+                      class="absolute -right-2 -top-2 grid size-9 place-items-center rounded-full bg-[#FFD166] p-1.5 text-[#0f111a] ring-2 ring-[#FFD166]/40" />
                     <button type="button"
                       class="absolute -right-1 -bottom-1 grid size-9 place-items-center rounded-full bg-[#FFD166] text-[#0f111a] shadow-lg transition hover:bg-[#FFC845]"
                       @click="avatarModalOpen = true">

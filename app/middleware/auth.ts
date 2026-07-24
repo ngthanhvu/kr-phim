@@ -1,11 +1,14 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path !== '/thanh-vien') return
 
-  const { data: user, error } = await useFetch('/api/auth/me', {
-    headers: useRequestHeaders(['cookie']),
-  })
+  let user = null
+  try {
+    user = await $fetch('/api/auth/me')
+  } catch {
+    return navigateTo('/')
+  }
 
-  if (error.value?.statusCode === 401 || !user.value) {
+  if (!user) {
     return navigateTo('/')
   }
 })
