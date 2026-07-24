@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import mysql from 'mysql2/promise'
 import { comments } from '../../database/schema'
 import { getTokenFromEvent, verifyToken } from '../../utils/auth'
 
@@ -28,30 +29,35 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const db = useDb()
+  const dbUrl = process.env.DATABASE_URL || 'mysql://cinek:cinekpassword@localhost:3306/cinek'
+  const conn = await mysql.createConnection(dbUrl)
 
-  const result = await db.insert(comments).values({
-    userId: payload.id,
-    source: source || '',
-    slug,
-    movieName: movieName || null,
-    content: content.trim(),
-    parentId: parentId ? Number(parentId) : null,
-    spoiler: spoiler ? true : false,
-    anonymous: anonymous ? true : false,
-  })
+  try {
+    const [result] = await conn.execute(
+      'INSERT INTO comments (user_id, source, slug, movie_name, content, parent_id, spoiler, anonymous) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [payload.id, source || '', slug, movieName || null, content.trim(), parentId ? Number(parentId) : null, spoiler ? 1 : 0, anonymous ? 1 : 0]
+    )
 
-  return {
-    id: result.insertId,
-    userId: payload.id,
-    source: source || '',
-    slug,
-    movieName: movieName || null,
-    content: content.trim(),
-    spoiler: spoiler ? true : false,
-    anonymous: anonymous ? true : false,
-    parentId: parentId ? Number(parentId) : null,
-    likeCount: 0,
-    dislikeCount: 0,
+    const insertId = (result as any).insertId
+    if (!insertId) {
+      throw createError({ statusCode: 500, message: 'Không thể tạo bình luận' })
+    }
+
+    return {
+      id: Number(insertId),
+      userId: payload.id,
+      source: source || '',
+      slug,
+      movieName: movieName || null,
+      content: content.trim(),
+      spoiler: false,
+      anonymous: anonymous ? true : false,
+      parentId: parentId ? Number(parentId) : null,
+      likeCount: 0,
+      dislikeCount: 0,
+      createdAt: new Date().toISOString(),
+    }
+  } finally {
+    await conn.end()
   }
 })

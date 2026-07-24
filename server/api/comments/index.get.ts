@@ -59,9 +59,29 @@ export default defineEventHandler(async (event) => {
     userVotes = Object.fromEntries(votes.map(v => [v.commentId, v.vote]))
   }
 
-  let replies: any[] = []
-  if (commentIds.length > 0) {
-    replies = await db
+  function mapReply(rep: any) {
+    return {
+      id: rep.id,
+      userId: rep.userId,
+      userName: rep.anonymous ? 'Ẩn danh' : (rep.userName || 'Ẩn danh'),
+      userAvatar: rep.anonymous ? null : rep.userAvatar,
+      userRole: rep.userRole,
+      parentId: rep.parentId,
+      content: rep.content,
+      pinned: rep.pinned || false,
+      spoiler: rep.spoiler || false,
+      anonymous: rep.anonymous || false,
+      likeCount: rep.likeCount,
+      dislikeCount: rep.dislikeCount,
+      createdAt: rep.createdAt,
+      userVote: userVotes[rep.id] || 0,
+      replies: [],
+    }
+  }
+
+  async function fetchRepliesByParentIds(parentIds: number[]): Promise<any[]> {
+    if (parentIds.length === 0) return []
+    const fetched = await db
       .select({
         id: comments.id,
         userId: comments.userId,
@@ -81,55 +101,54 @@ export default defineEventHandler(async (event) => {
       .leftJoin(users, eq(comments.userId, users.id))
       .where(
         and(
-          or(...commentIds.map(id => eq(comments.parentId, id)))
+          or(...parentIds.map(id => eq(comments.parentId, id)))
         )
       )
       .orderBy(comments.createdAt)
+    return fetched
   }
 
-  const repliesByParent: Record<number, typeof replies> = {}
-  for (const reply of replies) {
+  let allReplies: any[] = []
+  if (commentIds.length > 0) {
+    let currentParentIds = [...commentIds]
+    const maxDepth = 10
+    let depth = 0
+    while (currentParentIds.length > 0 && depth < maxDepth) {
+      const replies = await fetchRepliesByParentIds(currentParentIds)
+      if (replies.length === 0) break
+      allReplies = allReplies.concat(replies)
+      currentParentIds = replies.map(r => r.id)
+      depth++
+    }
+  }
+
+  const repliesByParent: Record<number, any[]> = {}
+  for (const reply of allReplies) {
     const parentId = reply.parentId!
     if (!repliesByParent[parentId]) {
       repliesByParent[parentId] = []
     }
-    repliesByParent[parentId].push(reply)
+    repliesByParent[parentId].push(mapReply(reply))
+  }
+
+  function attachChildren(mappedReply: any): any {
+    const children = repliesByParent[mappedReply.id] || []
+    return {
+      ...mappedReply,
+      replies: children.map(attachChildren),
+    }
   }
 
   return {
     items: results.map(r => ({
-      id: r.id,
-      userId: r.userId,
+      ...r,
       userName: r.anonymous ? 'Ẩn danh' : (r.userName || 'Ẩn danh'),
       userAvatar: r.anonymous ? null : r.userAvatar,
-      userRole: r.userRole,
-      source: r.source,
-      slug: r.slug,
-      movieName: r.movieName,
-      content: r.content,
       pinned: r.pinned || false,
       spoiler: r.spoiler || false,
       anonymous: r.anonymous || false,
-      likeCount: r.likeCount,
-      dislikeCount: r.dislikeCount,
-      createdAt: r.createdAt,
       userVote: userVotes[r.id] || 0,
-      replies: (repliesByParent[r.id] || []).map(rep => ({
-        id: rep.id,
-        userId: rep.userId,
-        userName: rep.anonymous ? 'Ẩn danh' : (rep.userName || 'Ẩn danh'),
-        userAvatar: rep.anonymous ? null : rep.userAvatar,
-        userRole: rep.userRole,
-        parentId: rep.parentId,
-        content: rep.content,
-        pinned: rep.pinned || false,
-        spoiler: rep.spoiler || false,
-        anonymous: rep.anonymous || false,
-        likeCount: rep.likeCount,
-        dislikeCount: rep.dislikeCount,
-        createdAt: rep.createdAt,
-        userVote: userVotes[rep.id] || 0,
-      })),
+      replies: (repliesByParent[r.id] || []).map(attachChildren),
     })),
   }
 })
