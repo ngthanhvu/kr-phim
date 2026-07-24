@@ -1,9 +1,9 @@
 ﻿<script setup lang="ts">
 import type Hls from 'hls.js'
 import {
-  Bug, CircleHelp, FastForward, Heart, Layers, Loader2, Maximize, Pause,
-  PictureInPicture2, Play, Plus, Rewind, Settings, Share2, SkipForward,
-  Star, Volume2, VolumeX, Captions, Languages, ChevronDown, ChevronRight,
+  AlertTriangle, BadgeCheck, Bug, ChevronRight, CircleHelp, CornerDownLeft, Crown, Eye, EyeOff, FastForward, Heart, Image, Layers,
+  Loader2, LogIn, Maximize, MessageCircle, MessageSquare, Pause, PictureInPicture2, Pin, Play, Plus, Rewind,
+  Send, Settings, Share2, SkipForward, Star, ThumbsDown, ThumbsUp, Trash2, User, Volume2, VolumeX, Captions, Languages,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -55,29 +55,17 @@ const { data: movie, pending, error } = useFetch(() => `/api/movies/${route.para
   watch: [() => route.query.source, () => route.query.srcs],
 })
 
+const currentMovieSource = computed(() => String(route.query.source || movie.value?.source || ''))
+const libraryItem = computed(() => movie.value ? {
+  source: currentMovieSource.value, slug: String(route.params.slug),
+  name: movie.value.name, originName: movie.value.originName, thumb: movie.value.thumb, poster: movie.value.poster, updatedAt: Date.now(),
+} : null)
+
 const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value] ?? servers.value[0])
 const activeSubtitle = computed(() => activeServer.value?.channels?.[selectedSubtitle.value] ?? activeServer.value)
 const activeEpisode = computed(() => activeSubtitle.value?.episodes?.[selectedEpisode.value] ?? activeSubtitle.value?.episodes?.[0])
-const hlsPlayerUrl = computed(() => activeEpisode.value?.linkM3u8 || '')
-const actorSummary = computed(() => (movie.value?.actors ?? []).map((a: any) => a.name).filter(Boolean).slice(0, 6).join(', '))
-const durationSeconds = computed(() => Math.floor(videoDuration.value || parseDurationSeconds(movie.value?.time || '')))
-const hasNextEpisode = computed(() => Boolean(activeSubtitle.value?.episodes?.[selectedEpisode.value + 1]))
-const episodeProgress = computed(() => {
-  const total = movie.value?.episodeTotal ? Number(String(movie.value.episodeTotal).replace(/[^0-9]/g, '')) : 0
-  const available = activeSubtitle.value?.episodes?.length || 0
-  return { available, total }
-})
 
-function getProxyUrl(url: string) { const encoded = btoa(url); return `/api/proxy-m3u8/${encoded}` }
-const progressPercent = computed(() => durationSeconds.value && progressSeconds.value ? Math.min(Math.max((progressSeconds.value / durationSeconds.value) * 100, 0), 100) : 0)
-const shouldShowHlsControls = computed(() => (controlsVisible.value || !isVideoPlaying.value) && !(isHlsFullscreen.value && edgeProgressVisible.value && isVideoPlaying.value))
-const skipIntroSeconds = 85
-const skipOutroSeconds = computed(() => Math.max((durationSeconds.value || 0) - 85, 0))
-const libraryItem = computed(() => movie.value ? {
-  source: String(route.query.source || movie.value.source || ''), slug: String(route.params.slug),
-  name: movie.value.name, originName: movie.value.originName, thumb: movie.value.thumb, poster: movie.value.poster, updatedAt: Date.now(),
-} : null)
 
 // Related movies
 const { data: relatedData } = await useFetch('/api/movies', {
@@ -414,6 +402,7 @@ onBeforeUnmount(() => {
   if (hasStarted.value) saveWatchHistory(); stopProgressTimer()
   if (controlsHideTimer) clearTimeout(controlsHideTimer); if (edgeProgressTimer) clearTimeout(edgeProgressTimer)
   if (singleTapTimer) clearTimeout(singleTapTimer); if (holdSpeedTimer) clearTimeout(holdSpeedTimer)
+  if (draftAutoSaveTimer) clearTimeout(draftAutoSaveTimer)
   clearHlsFallbackTimer(); destroyHlsPlayer()
   if (import.meta.client) { document.removeEventListener('visibilitychange', handleVisibilityChange); document.removeEventListener('keydown', handleKeyboardShortcut); document.removeEventListener('fullscreenchange', updateFullscreenState); document.removeEventListener('webkitfullscreenchange', updateFullscreenState); window.removeEventListener('orientationchange', handleOrientationFullscreen); window.removeEventListener('resize', handleOrientationFullscreen); screen.orientation?.removeEventListener?.('change', handleOrientationFullscreen) }
 })
@@ -665,7 +654,7 @@ useHead(() => ({
                 </div>
 
                 <!-- Episode Progress -->
-                <div v-if="episodeProgress.total"
+                <div v-if="episodeProgress?.total"
                   class="inline-flex self-center sm:self-start items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 border bg-cinek-500/10 border-cinek-500/20 text-cinek-500">
                   <Loader2 class="size-3.5 animate-spin" />
                   <span class="text-xs font-medium">Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total
@@ -769,20 +758,9 @@ useHead(() => ({
           </aside>
         </div>
 
-        <!-- Comment Section -->
-        <div class="mb-12">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="flex items-center gap-2.5">
-              <h2 class="text-xl font-bold text-white">Bình luận</h2>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 mb-8 p-4 bg-[#1a1a24] border border-white/10 rounded-xl">
-            <p class="text-sm text-slate-400">Đăng nhập để bình luận về phim này.</p>
-          </div>
-          <div class="flex flex-col items-center justify-center py-12 text-center">
-            <p class="text-slate-400 text-sm">Chưa có bình luận nào.</p>
-          </div>
-        </div>
+        <ClientOnly>
+          <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
+        </ClientOnly>
       </section>
     </template>
   </main>
@@ -916,4 +894,5 @@ useHead(() => ({
   inset: 0;
   background: linear-gradient(90deg, rgb(250 204 21) v-bind('`${progressPercent}%`'), transparent 0);
 }
+
 </style>

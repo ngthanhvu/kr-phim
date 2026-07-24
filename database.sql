@@ -102,3 +102,33 @@ with check (auth.uid() = user_id);
 create policy "Users can delete own watch later movies"
 on public.watch_later_movies for delete
 using (auth.uid() = user_id);
+
+create table public.comments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  source text not null default '',
+  slug text not null,
+  movie_name text,
+  content text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.comments enable row level security;
+
+create policy "Anyone can read comments"
+on public.comments for select
+using (true);
+
+create policy "Authenticated users can insert comments"
+on public.comments for insert
+with check (auth.uid() = user_id);
+
+create policy "Users can update own comments"
+on public.comments for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Users can delete own comments"
+on public.comments for delete
+using (auth.uid() = user_id);

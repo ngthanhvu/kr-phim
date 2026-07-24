@@ -57,6 +57,34 @@
       "when": 1784816479838,
       "tag": "0007_shiny_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1784820307015,
+      "tag": "0008_elite_butterfly",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1784821022237,
+      "tag": "0009_clever_gamora",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1753315200000,
+      "tag": "0010_add_comment_pinned_spoiler",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1784853783915,
+      "tag": "0011_magenta_jack_flag",
+      "breakpoints": true
     }
   ]
 }

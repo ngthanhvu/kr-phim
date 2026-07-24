@@ -1,0 +1,1 @@
+ALTER TABLE `comments` ADD `anonymous` boolean DEFAULT false NOT NULL;

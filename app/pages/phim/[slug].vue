@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ChevronDown, Heart, MessageCircle, Play, Plus, Server, Share2, Star, Video } from 'lucide-vue-next'
+import { ChevronDown, ChevronRight, Heart, MessageSquare, Play, Plus, Server, Share2, Star, Video } from 'lucide-vue-next'
 
 const route = useRoute()
 const requestedSource = computed(() => String(route.query.source || 'nguonc'))
@@ -31,26 +31,8 @@ const activeServer = computed(() => servers.value[selectedServer.value])
 const activeSource = computed(() => String(activeServer.value?.source || movie.value?.source || route.query.source || 'nguonc'))
 const activeSourceSlug = computed(() => String(activeServer.value?.sourceSlug || movie.value?.slug || route.params.slug))
 const activeSourceServerIndex = computed(() => Number(activeServer.value?.sourceServerIndex ?? 0))
-const sourceOptions = computed(() =>
-  (movie.value?.sources || [{ source: activeSource.value, slug: activeSourceSlug.value }])
-    .map((source: any) => ({
-      label: String(source.source || '').toUpperCase(),
-      value: source.source,
-      slug: source.slug,
-    }))
-    .filter((source: any) => source.value && source.slug),
-)
 const actors = computed(() => movie.value?.actors ?? [])
 const actorSummary = computed(() => actors.value.map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
-const firstWatchLink = computed(() => ({
-  path: `/xem/${activeSourceSlug.value}`,
-  query: {
-    source: activeSource.value,
-    srcs: requestedSources.value || undefined,
-    server: activeSourceServerIndex.value,
-    ep: 1,
-  },
-}))
 const episodeCount = computed(() => {
   const total = servers.value.reduce((t: number, s: any) => t + (s.episodes?.length || 0), 0)
   return total || undefined
@@ -67,6 +49,14 @@ const libraryItem = computed(() => {
     updatedAt: Date.now(),
   }
 })
+const firstWatchLink = computed(() => ({
+  path: `/xem/${activeSourceSlug.value}`,
+  query: { source: activeSource.value, srcs: requestedSources.value || undefined, server: activeSourceServerIndex.value, ep: 1 },
+}))
+
+function actorInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase()
+}
 
 function episodeLink(index: number) {
   return {
@@ -100,10 +90,6 @@ function serverLabel(server: any, index: number) {
 function formatEpisodeName(name: string, index: number) {
   const label = String(name || index + 1).trim()
   return /^\d+$/.test(label) ? `Tập ${label}` : label
-}
-
-function actorInitial(name: string) {
-  return name.trim().charAt(0).toUpperCase()
 }
 
 function flashActionMessage(message: string) {
@@ -159,6 +145,8 @@ async function shareMovie() {
 
 onMounted(async () => {
   await refreshFavoriteState()
+  // loadCommentDraft()
+  // await loadComments()
   await $fetch(`/api/movies/${route.params.slug}/view`, {
     method: 'POST',
     query: { source: route.query.source },
@@ -426,7 +414,7 @@ useHead(() => ({
             </div>
 
             <!-- Tabs: Episodes / Actors (inside info column) -->
-            <div class="mt-6 border-t border-white/10 pt-6">
+            <div class="mt-6 border-white/10 pt-6">
               <div class="flex items-center gap-6 border-b border-white/10 mb-6 overflow-x-auto">
                 <button type="button"
                   class="pb-3 text-[13px] md:text-[15px] font-semibold transition-colors relative whitespace-nowrap"
@@ -511,19 +499,9 @@ useHead(() => ({
             </div>
           </div>
         </div>
-
-        <!-- Comment Section -->
-        <div class="mt-10 border-t border-white/10 pt-8">
-          <div class="flex items-center gap-3 mb-6">
-            <MessageCircle class="size-5 text-yellow-300" />
-            <h2 class="text-xl font-bold text-white">Bình luận</h2>
-          </div>
-          <div
-            class="flex flex-col items-center justify-center py-10 text-center border border-white/10 rounded-xl bg-[#191b24]">
-            <MessageCircle class="size-10 text-slate-500 mb-3" />
-            <p class="text-sm text-slate-400">Tính năng bình luận đang được phát triển.</p>
-          </div>
-        </div>
+        <ClientOnly>
+          <CommentSection :source="activeSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
+        </ClientOnly>
       </div>
     </template>
   </div>
