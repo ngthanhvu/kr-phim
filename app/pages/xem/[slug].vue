@@ -590,7 +590,7 @@ useHead(() => ({
               </div>
               <div class="text-sm">
                 <span class="font-semibold text-white">{{ formatEpisodeName(activeEpisode?.name, selectedEpisode)
-                  }}</span>
+                }}</span>
                 <span class="mx-2 text-white/30">•</span>
                 <span class="text-white/60">{{ serverLabel(activeServer, selectedServer) }}</span>
               </div>
@@ -658,7 +658,7 @@ useHead(() => ({
                   class="inline-flex self-center sm:self-start items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 border bg-cinek-500/10 border-cinek-500/20 text-cinek-500">
                   <Loader2 class="size-3.5 animate-spin" />
                   <span class="text-xs font-medium">Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total
-                  }} tập</span>
+                    }} tập</span>
                 </div>
 
                 <!-- Description -->
@@ -758,9 +758,11 @@ useHead(() => ({
           </aside>
         </div>
 
-        <ClientOnly>
-          <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
-        </ClientOnly>
+        <div class="mb-3">
+          <ClientOnly>
+            <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
+          </ClientOnly>
+        </div>
       </section>
     </template>
   </main>
@@ -894,5 +896,4 @@ useHead(() => ({
   inset: 0;
   background: linear-gradient(90deg, rgb(250 204 21) v-bind('`${progressPercent}%`'), transparent 0);
 }
-
 </style>

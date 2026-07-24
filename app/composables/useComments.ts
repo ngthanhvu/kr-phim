@@ -34,14 +34,14 @@ export type Comment = {
 }
 
 export function useComments() {
-  async function fetchComments(source: string, slug: string, userId?: number) {
+  async function fetchComments(source: string, slug: string, userId?: number, limit?: number, offset?: number) {
     try {
       const data = await $fetch('/api/comments', {
-        query: { source, slug, userId },
+        query: { source, slug, userId, limit, offset },
       })
-      return data.items as Comment[]
+      return data as { items: Comment[], total: number }
     } catch {
-      return [] as Comment[]
+      return { items: [] as Comment[], total: 0 }
     }
   }
 

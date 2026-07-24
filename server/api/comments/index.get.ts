@@ -3,7 +3,9 @@ import { comments, users, commentVotes } from '../../database/schema'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const { source = '', slug, userId } = query
+  const { source = '', slug, userId, limit = '20', offset = '0' } = query
+  const pageLimit = Math.min(Math.max(Number(limit), 1), 100)
+  const pageOffset = Math.max(Number(offset), 0)
 
   if (!slug) {
     throw createError({ statusCode: 400, message: 'Thiếu slug phim' })
@@ -19,6 +21,12 @@ export default defineEventHandler(async (event) => {
   if (source) {
     whereConditions.push(eq(comments.source, String(source)))
   }
+
+  // Count total comments
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(comments)
+    .where(and(...whereConditions))
 
   // Fetch pinned comments first, then regular ones
   const results = await db
@@ -43,7 +51,8 @@ export default defineEventHandler(async (event) => {
     .leftJoin(users, eq(comments.userId, users.id))
     .where(and(...whereConditions))
     .orderBy(sql`${comments.pinned} DESC, ${comments.createdAt} DESC`)
-    .limit(100)
+    .limit(pageLimit)
+    .offset(pageOffset)
 
   const commentIds = results.map(r => r.id)
 
@@ -150,5 +159,6 @@ export default defineEventHandler(async (event) => {
       userVote: userVotes[r.id] || 0,
       replies: (repliesByParent[r.id] || []).map(attachChildren),
     })),
+    total: Number(count),
   }
 })

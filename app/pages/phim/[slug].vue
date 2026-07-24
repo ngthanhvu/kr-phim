@@ -212,7 +212,7 @@ useHead(() => ({
 
       <!-- Content overlaps hero -->
       <div class="max-w-350 mx-auto px-4 -mt-24 md:-mt-48 lg:-mt-64 relative z-10 mb-20">
-        <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
           <!-- Poster Column -->
           <div class="shrink-0 w-40 md:w-56 lg:w-64 max-w-70 mx-auto md:mx-0 flex flex-col gap-8">
             <div
@@ -497,11 +497,15 @@ useHead(() => ({
                 </p>
               </div>
             </div>
+
+            <!-- Comment Section -->
+            <div class="mt-10">
+              <ClientOnly>
+                <CommentSection :source="activeSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
+              </ClientOnly>
+            </div>
           </div>
         </div>
-        <ClientOnly>
-          <CommentSection :source="activeSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
-        </ClientOnly>
       </div>
     </template>
   </div>

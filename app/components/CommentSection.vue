@@ -23,6 +23,10 @@ const replyContent = ref<Record<number, string>>({})
 const isReplyingTo = ref<number | null>(null)
 const isReplyAnonymous = ref<Record<number, boolean>>({})
 const expandedComments = ref<Set<number>>(new Set())
+const commentOffset = ref(0)
+const commentTotal = ref(0)
+const commentLimit = 5
+const isCommentsLoadingMore = ref(false)
 
 function addTimeAgoToReplies(replies: any[]): any[] {
   return replies?.map(r => ({
@@ -32,19 +36,40 @@ function addTimeAgoToReplies(replies: any[]): any[] {
   })) || []
 }
 
-async function loadComments() {
+async function loadComments(reset = true) {
   if (!props.slug) return
-  isCommentsLoading.value = true
+  if (reset) {
+    isCommentsLoading.value = true
+    commentOffset.value = 0
+  } else {
+    isCommentsLoadingMore.value = true
+  }
   try {
-    const data = await fetchComments(props.source, props.slug, user.value?.id)
-    comments.value = data.map(c => ({
+    const data = await fetchComments(props.source, props.slug, user.value?.id, commentLimit, commentOffset.value)
+    const newComments = data.items.map(c => ({
       ...c,
       timeAgo: timeAgo(c.createdAt),
       replies: addTimeAgoToReplies(c.replies || [])
     }))
+    if (reset) {
+      comments.value = newComments
+    } else {
+      comments.value = [...comments.value, ...newComments]
+    }
+    commentTotal.value = data.total
+    commentOffset.value += data.items.length
   } finally {
     isCommentsLoading.value = false
+    isCommentsLoadingMore.value = false
   }
+}
+
+async function loadMoreComments() {
+  await loadComments(false)
+}
+
+function hasMoreComments() {
+  return comments.value.length < commentTotal.value
 }
 
 function loadCommentDraft() {
@@ -418,8 +443,7 @@ watch(() => props.slug, () => {
                   class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300">
                   <CornerDownLeft class="size-3.5" /><span>Trả lời</span>
                 </button>
-                <button v-if="user && user.role === 'admin'" type="button"
-                  @click="handleTogglePin(comment.id)"
+                <button v-if="user && user.role === 'admin'" type="button" @click="handleTogglePin(comment.id)"
                   class="flex items-center gap-1.5 text-xs"
                   :class="comment.pinned ? 'text-cinek-400 hover:text-cinek-300' : 'text-slate-600 hover:text-slate-400'">
                   <Pin class="size-3.5" /><span>{{ comment.pinned ? 'Bỏ ghim' : 'Ghim' }}</span>
@@ -464,16 +488,17 @@ watch(() => props.slug, () => {
                   class="flex items-center gap-1.5 text-xs text-cinek-400 hover:text-cinek-300 transition mb-2">
                   <ChevronUp v-if="expandedComments.has(comment.id)" class="size-3" />
                   <ChevronDown v-else class="size-3" />
-                  <span>{{ expandedComments.has(comment.id) ? 'Ẩn phản hồi' : `Hiển thị ${countAllReplies(comment.replies)} phản hồi` }}</span>
+                  <span>{{ expandedComments.has(comment.id) ? 'Ẩn phản hồi' : `Hiển thị
+                    ${countAllReplies(comment.replies)} phản hồi` }}</span>
                 </button>
                 <div class="replies-container pl-3 border-l-2 border-white/10"
                   :class="expandedComments.has(comment.id) ? 'expanded' : 'collapsed'">
                   <div class="space-y-3">
-                  <CommentReplies :replies="comment.replies" :depth="0" :user="user" :parent-id="comment.id"
-                    :is-replying-to="isReplyingTo" :reply-content="replyContent" :is-reply-anonymous="isReplyAnonymous"
-                    :is-submitting-reply="isSubmittingReply"
-                    @start-reply="startReply" @cancel-reply="cancelReply" @submit-reply="submitReply"
-                    @vote="handleVote" @delete="handleDeleteComment" />
+                    <CommentReplies :replies="comment.replies" :depth="0" :user="user" :parent-id="comment.id"
+                      :is-replying-to="isReplyingTo" :reply-content="replyContent"
+                      :is-reply-anonymous="isReplyAnonymous" :is-submitting-reply="isSubmittingReply"
+                      @start-reply="startReply" @cancel-reply="cancelReply" @submit-reply="submitReply"
+                      @vote="handleVote" @delete="handleDeleteComment" />
                   </div>
                 </div>
               </div>
@@ -483,7 +508,23 @@ watch(() => props.slug, () => {
       </div>
     </TransitionGroup>
 
-    <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+    <!-- Load More Button -->
+    <div v-if="hasMoreComments()" class="flex justify-center mt-6">
+      <button type="button" @click="loadMoreComments"
+        class="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="isCommentsLoadingMore">
+        <Loader2 v-if="isCommentsLoadingMore" class="size-4 animate-spin" />
+        <span>{{ isCommentsLoadingMore ? 'Đang tải...' : `Xem thêm bình luận (${comments.length}/${commentTotal})`
+          }}</span>
+      </button>
+    </div>
+
+    <div v-if="!hasMoreComments() && comments.length && commentTotal > commentLimit" class="text-center mt-4">
+      <span class="text-xs text-slate-600">Đã hiển thị tất cả {{ commentTotal }} bình luận</span>
+    </div>
+
+    <div v-if="!comments.length && !isCommentsLoading"
+      class="flex flex-col items-center justify-center py-12 text-center">
       <MessageSquare class="size-10 text-white/10 mb-3" />
       <p class="text-slate-400 text-sm">Chưa có bình luận nào.</p>
     </div>
@@ -495,10 +536,12 @@ watch(() => props.slug, () => {
   overflow: hidden;
   transition: max-height 0.35s ease, opacity 0.3s ease;
 }
+
 .replies-container.collapsed {
   max-height: 0;
   opacity: 0;
 }
+
 .replies-container.expanded {
   max-height: 5000px;
   opacity: 1;
@@ -509,10 +552,12 @@ watch(() => props.slug, () => {
 .comment-list-leave-active {
   transition: all 0.4s ease;
 }
+
 .comment-list-enter-from {
   opacity: 0;
   transform: translateY(-20px);
 }
+
 .comment-list-leave-to {
   opacity: 0;
   transform: translateX(-50px);
@@ -520,6 +565,7 @@ watch(() => props.slug, () => {
   margin-bottom: 0;
   overflow: hidden;
 }
+
 .comment-list-leave-active {
   position: absolute;
   width: 100%;
