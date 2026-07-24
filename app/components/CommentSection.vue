@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronUp, CornerDownLeft, Crown, Loader2, MessageSquare, Pin, Send, ThumbsDown, ThumbsUp, Trash2, User, Venus, Mars, Minus } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, CornerDownLeft, Crown, Image, Loader2, MessageSquare, Pin, Send, ThumbsDown, ThumbsUp, Trash2, User, Venus, Mars, Minus } from 'lucide-vue-next'
 
 const props = defineProps<{
   source: string
@@ -14,7 +14,7 @@ const { getDraft, saveDraft, deleteDraft } = useCommentDraft()
 const commentContent = ref('')
 const isCommentSubmitting = ref(false)
 const hasDraft = ref(false)
-const isAnonymous = ref(false)
+const isContentHidden = ref(false)
 let draftAutoSaveTimer: ReturnType<typeof setTimeout> | undefined
 
 const comments = ref<any[]>([])
@@ -23,6 +23,7 @@ const replyContent = ref<Record<number, string>>({})
 const isReplyingTo = ref<number | null>(null)
 const isReplyAnonymous = ref<Record<number, boolean>>({})
 const expandedComments = ref<Set<number>>(new Set())
+const revealedComments = ref<Set<number>>(new Set())
 const commentOffset = ref(0)
 const commentTotal = ref(0)
 const commentLimit = 5
@@ -100,12 +101,12 @@ async function handleSubmitComment() {
   if (!commentContent.value.trim() || isCommentSubmitting.value || !user.value) return
   isCommentSubmitting.value = true
   try {
-    const newComment = await postComment(props.source, props.slug, commentContent.value.trim(), props.movieName, undefined, false, false)
+    const newComment = await postComment(props.source, props.slug, commentContent.value.trim(), props.movieName, undefined, false, isContentHidden.value)
     deleteDraft(props.slug, props.source)
     commentContent.value = ''
     hasDraft.value = false
-    isAnonymous.value = false
-    comments.value.unshift({
+    isContentHidden.value = false
+    const newCommentData = {
       ...newComment,
       userName: user.value.name || 'Ẩn danh',
       userAvatar: user.value.avatar,
@@ -113,7 +114,9 @@ async function handleSubmitComment() {
       userGender: user.value.gender,
       replies: [],
       timeAgo: 'Vừa xong'
-    })
+    }
+    const pinnedCount = comments.value.filter(c => c.pinned).length
+    comments.value.splice(pinnedCount, 0, newCommentData)
   } catch (e: any) {
     console.error('Lỗi:', e)
   } finally {
@@ -166,7 +169,8 @@ async function handleTogglePin(id: number) {
 function startReply(commentId: number) {
   if (!user.value) return
   isReplyingTo.value = commentId
-  replyContent.value[commentId] = ''
+  const targetItem = findItemById(commentId)
+  replyContent.value[commentId] = targetItem ? '@' + targetItem.userName + ' ' : ''
   isReplyAnonymous.value[commentId] = false
 }
 
@@ -216,13 +220,18 @@ function findItemById(id: number): any | null {
 const isSubmittingReply = ref<Record<number, boolean>>({})
 
 async function submitReply(parentId: number) {
-  const content = replyContent.value[parentId]?.trim()
+  let content = replyContent.value[parentId]?.trim()
   if (!content || !user.value || isSubmittingReply.value[parentId]) return
+
+  const targetItem = findItemById(parentId)
+  if (targetItem && !content.startsWith('@' + targetItem.userName)) {
+    content = '@' + targetItem.userName + ' ' + content
+  }
+
   const isAnon = isReplyAnonymous.value[parentId] ?? false
   isSubmittingReply.value[parentId] = true
   try {
     const savedReply = await postComment(props.source, props.slug, content, props.movieName, parentId, false, isAnon)
-    const targetItem = findItemById(parentId)
     if (targetItem) {
       if (!targetItem.replies) targetItem.replies = []
       targetItem.replies.push({
@@ -321,6 +330,10 @@ function timeAgo(dateStr: string): string {
   return date.toLocaleDateString('vi-VN')
 }
 
+function formatMentions(content: string) {
+  return content.replace(/@(\S+)/g, '<span class="text-cinek-400 font-medium">@$1</span>')
+}
+
 onMounted(() => {
   loadCommentDraft()
   loadComments()
@@ -356,14 +369,14 @@ watch(() => props.slug, () => {
             class="w-full rounded-lg bg-[#0d0f17] border border-white/10 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-cinek-500/50 focus:outline-none resize-none transition" />
           <div class="flex items-center justify-between mt-2">
             <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500">Công khai</span>
-              <button type="button" @click="isAnonymous = !isAnonymous"
+              <span class="text-xs text-slate-500">Tiết lộ</span>
+              <button type="button" @click="isContentHidden = !isContentHidden"
                 class="relative w-9 h-5 rounded-full transition-colors"
-                :class="isAnonymous ? 'bg-cinek-500' : 'bg-white/20'">
+                :class="isContentHidden ? 'bg-cinek-500' : 'bg-white/20'">
                 <span class="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform"
-                  :class="isAnonymous ? 'translate-x-4' : 'translate-x-0'" />
+                  :class="isContentHidden ? 'translate-x-4' : 'translate-x-0'" />
               </button>
-              <span class="text-xs" :class="isAnonymous ? 'text-cinek-400' : 'text-slate-500'">Ẩn danh</span>
+              <span class="text-xs" :class="isContentHidden ? 'text-cinek-400' : 'text-slate-500'">Không tiết lộ</span>
             </div>
             <div class="flex items-center gap-3">
               <span class="text-xs text-slate-600">{{ commentContent.length }} / 1000</span>
@@ -401,17 +414,20 @@ watch(() => props.slug, () => {
 
     <TransitionGroup v-else-if="comments.length" name="comment-list" tag="div" class="space-y-1">
       <div v-for="comment in comments" :key="comment.id" class="mb-2">
-        <div class="rounded-xl p-4 border border-white/5 transition"
-          :class="comment.pinned ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-[#13151f]'">
+        <div class="transition"
+          :class="comment.pinned ? 'rounded-xl p-4 bg-yellow-500/5 border border-yellow-500/20' : 'py-4 border-b border-white/5'">
+          <div v-if="comment.pinned" class="flex items-center gap-1.5 mb-3 text-xs text-yellow-400/80 font-medium">
+            <Pin class="size-3" /> Ghim bởi Admin
+          </div>
           <div class="flex gap-3">
             <div class="shrink-0 relative">
               <div class="size-10 rounded-full bg-white/10 flex items-center justify-center"
-                :class="comment.userRole === 'admin' && !comment.anonymous ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-[#0d0f17]' : ''">
-                <img v-if="comment.userAvatar && !comment.anonymous" :src="comment.userAvatar"
+                :class="comment.userRole === 'admin' ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-[#0d0f17]' : ''">
+                <img v-if="comment.userAvatar" :src="comment.userAvatar"
                   class="size-10 rounded-full object-cover" alt="" />
                 <User v-else class="size-5 text-slate-500" />
               </div>
-              <div v-if="comment.userRole === 'admin' && !comment.anonymous"
+              <div v-if="comment.userRole === 'admin'"
                 class="absolute -top-1 -left-1 size-4 bg-cinek-500 rounded-full flex items-center justify-center">
                 <Crown class="size-2.5 text-slate-950" />
               </div>
@@ -422,27 +438,31 @@ watch(() => props.slug, () => {
                   class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-cinek-500/20 text-cinek-400">
                   <Pin class="size-3" />Đã ghim
                 </span>
-                <span v-if="comment.userRole === 'admin' && !comment.anonymous"
+                <span v-if="comment.userRole === 'admin'"
                   class="px-2 py-0.5 rounded text-[10px] font-black bg-yellow-400 text-slate-900 shadow-sm">ADMIN</span>
                 <span class="text-sm font-semibold text-white">{{ comment.userName }}</span>
-                <Venus v-if="comment.userGender === 'female' && !comment.anonymous" class="size-3.5 text-pink-400" />
-                <Mars v-if="comment.userGender === 'male' && !comment.anonymous" class="size-3.5 text-blue-400" />
-                <Minus v-if="comment.userGender === 'other' && !comment.anonymous" class="size-3.5 text-purple-400" />
-                <span v-if="comment.anonymous"
-                  class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/10 text-slate-400">Ẩn danh</span>
+                <Venus v-if="comment.userGender === 'female'" class="size-3.5 text-pink-400" />
+                <Mars v-if="comment.userGender === 'male'" class="size-3.5 text-blue-400" />
+                <Minus v-if="comment.userGender === 'other'" class="size-3.5 text-purple-400" />
                 <span class="text-xs text-slate-600">{{ timeAgo(comment.createdAt) }}</span>
               </div>
-              <p class="text-sm text-slate-300 whitespace-pre-wrap wrap-break-word">{{ comment.content }}</p>
+              <div class="relative">
+                <p class="text-sm text-slate-300 whitespace-pre-wrap wrap-break-word cursor-pointer select-none py-1.5 transition-all duration-200"
+                  :class="comment.anonymous && !revealedComments.has(comment.id) ? 'blur-sm opacity-60' : ''"
+                  v-html="formatMentions(comment.content)"
+                  @click="comment.anonymous && (revealedComments.has(comment.id) ? revealedComments.delete(comment.id) : revealedComments.add(comment.id))">
+                </p>
+              </div>
               <div class="flex items-center gap-3 mt-2.5">
                 <button type="button" @click="handleVote(comment.id, comment.userVote === 1 ? 0 : 1)"
                   class="flex items-center gap-1 text-xs"
                   :class="comment.userVote === 1 ? 'text-cinek-400' : 'text-slate-500 hover:text-slate-300'">
-                  <ThumbsUp class="size-3.5" /><span>{{ comment.likeCount || 0 }}</span>
+                  <ThumbsUp class="size-3.5" /><span v-if="comment.likeCount">{{ comment.likeCount }}</span>
                 </button>
                 <button type="button" @click="handleVote(comment.id, comment.userVote === -1 ? 0 : -1)"
                   class="flex items-center gap-1 text-xs"
                   :class="comment.userVote === -1 ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'">
-                  <ThumbsDown class="size-3.5" /><span>{{ comment.dislikeCount || 0 }}</span>
+                  <ThumbsDown class="size-3.5" /><span v-if="comment.dislikeCount">{{ comment.dislikeCount }}</span>
                 </button>
                 <button type="button" @click="startReply(comment.id)"
                   class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300">
@@ -459,32 +479,33 @@ watch(() => props.slug, () => {
                   <Trash2 class="size-3.5" />
                 </button>
               </div>
-              <div v-if="isReplyingTo === comment.id" class="mt-3 flex items-start gap-2">
-                <div class="size-7 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                  <User class="size-3.5 text-slate-500" />
-                </div>
-                <div class="flex-1">
+              <div v-if="isReplyingTo === comment.id" class="mt-4">
+                <div class="rounded-xl border border-white/10 bg-[#13151f] p-4">
                   <textarea v-model="replyContent[comment.id]" rows="2" maxlength="1000"
                     class="w-full rounded-lg bg-[#0d0f17] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-cinek-500/50 focus:outline-none resize-none transition"
                     placeholder="Viết trả lời..." />
-                  <div class="flex items-center gap-2 mt-2">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-slate-500">Công khai</span>
-                      <button type="button" @click="isReplyAnonymous[comment.id] = !isReplyAnonymous[comment.id]"
-                        class="relative w-8 h-4 rounded-full transition-colors"
-                        :class="(isReplyAnonymous[comment.id] ?? false) ? 'bg-cinek-500' : 'bg-white/20'">
-                        <span class="absolute top-0.5 left-0.5 size-3 rounded-full bg-white shadow transition-transform"
-                          :class="(isReplyAnonymous[comment.id] ?? false) ? 'translate-x-4' : 'translate-x-0'" />
+                  <div class="flex items-center justify-between mt-3">
+                    <div class="flex items-center gap-4">
+                      <div class="flex items-center gap-2">
+                        <button type="button" @click="isReplyAnonymous[comment.id] = !isReplyAnonymous[comment.id]"
+                          class="relative w-9 h-5 rounded-full transition-colors"
+                          :class="(isReplyAnonymous[comment.id] ?? false) ? 'bg-cinek-500' : 'bg-white/20'">
+                          <span class="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform"
+                            :class="(isReplyAnonymous[comment.id] ?? false) ? 'translate-x-4' : 'translate-x-0'" />
+                        </button>
+                        <span class="text-xs text-slate-500">Tiết lộ</span>
+                      </div>
+                      <button type="button" class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition">
+                        <Image class="size-4" /><span>GIF</span>
                       </button>
-                      <span class="text-xs"
-                        :class="(isReplyAnonymous[comment.id] ?? false) ? 'text-cinek-400' : 'text-slate-500'">Ẩn
-                        danh</span>
                     </div>
-                    <button type="button" @click="submitReply(comment.id)"
-                      class="px-3 py-1 rounded-lg bg-cinek-500 text-xs font-bold text-slate-950 hover:bg-cinek-400 transition">Trả
-                      lời</button>
-                    <button type="button" @click="cancelReply(comment.id)"
-                      class="px-3 py-1 rounded-lg text-xs text-slate-500 hover:text-white transition">Hủy</button>
+                    <div class="flex items-center gap-3">
+                      <span class="text-xs text-slate-600">{{ (replyContent[comment.id] || '').length }} / 1000</span>
+                      <button type="button" @click="cancelReply(comment.id)"
+                        class="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:text-white transition">Hủy</button>
+                      <button type="button" @click="submitReply(comment.id)"
+                        class="px-4 py-1.5 rounded-lg bg-cinek-500 text-xs font-bold text-slate-950 hover:bg-cinek-400 transition">Gửi</button>
+                    </div>
                   </div>
                 </div>
               </div>

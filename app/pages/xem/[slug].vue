@@ -759,9 +759,7 @@ useHead(() => ({
         </div>
 
         <div class="mb-3">
-          <ClientOnly>
-            <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
-          </ClientOnly>
+          <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
         </div>
       </section>
     </template>

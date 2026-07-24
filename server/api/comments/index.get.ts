@@ -73,8 +73,8 @@ export default defineEventHandler(async (event) => {
     return {
       id: rep.id,
       userId: rep.userId,
-      userName: rep.anonymous ? 'Ẩn danh' : (rep.userName || 'Ẩn danh'),
-      userAvatar: rep.anonymous ? null : rep.userAvatar,
+      userName: rep.userName || 'Ẩn danh',
+      userAvatar: rep.userAvatar,
       userRole: rep.userRole,
       userGender: rep.userGender,
       parentId: rep.parentId,
@@ -154,8 +154,8 @@ export default defineEventHandler(async (event) => {
   return {
     items: results.map(r => ({
       ...r,
-      userName: r.anonymous ? 'Ẩn danh' : (r.userName || 'Ẩn danh'),
-      userAvatar: r.anonymous ? null : r.userAvatar,
+      userName: r.userName || 'Ẩn danh',
+      userAvatar: r.userAvatar,
       pinned: r.pinned || false,
       spoiler: r.spoiler || false,
       anonymous: r.anonymous || false,
