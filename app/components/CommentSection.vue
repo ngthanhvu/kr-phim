@@ -14,7 +14,29 @@ const commentContent = ref('')
 const isCommentSubmitting = ref(false)
 const hasDraft = ref(false)
 const isContentHidden = ref(false)
+const isGifPickerOpen = ref(false)
+const gifPickerTarget = ref<'main' | number>('main')
+const gifPickerRef = ref<any>(null)
 let draftAutoSaveTimer: ReturnType<typeof setTimeout> | undefined
+
+function insertGif(url: string) {
+  const gifTag = `![GIF](${url})`
+  if (gifPickerTarget.value === 'main') {
+    if (commentContent.value) {
+      commentContent.value += '\n' + gifTag
+    } else {
+      commentContent.value = gifTag
+    }
+  } else {
+    const currentContent = replyContent.value[gifPickerTarget.value] || ''
+    if (currentContent) {
+      replyContent.value[gifPickerTarget.value] = currentContent + '\n' + gifTag
+    } else {
+      replyContent.value[gifPickerTarget.value] = gifTag
+    }
+  }
+  isGifPickerOpen.value = false
+}
 
 const comments = ref<any[]>([])
 const isCommentsLoading = ref(false)
@@ -330,7 +352,24 @@ function timeAgo(dateStr: string): string {
 }
 
 function formatMentions(content: string) {
-  return content.replace(/@(\S+)/g, '<span class="text-cinek-400 font-medium">@$1</span>')
+  let html = content.replace(/@(\S+)/g, '<span class="text-cinek-400 font-medium">@$1</span>')
+  html = html.replace(/!\[GIF\]\((https?:\/\/[^\s)]+)\)/g, '<img src="$1" alt="GIF" class="max-w-[200px] rounded-lg mt-1" loading="lazy" />')
+  return html
+}
+
+function openGifPicker(target: 'main' | number = 'main') {
+  gifPickerTarget.value = target
+  isGifPickerOpen.value = !isGifPickerOpen.value
+  if (isGifPickerOpen.value) {
+    nextTick(() => {
+      const selector = target === 'main' ? '.comment-gif-btn' : `.reply-gif-btn-${target}`
+      document.querySelectorAll('.gif-trigger-active').forEach(el => el.classList.remove('gif-trigger-active'))
+      document.querySelector(selector)?.classList.add('gif-trigger-active')
+      gifPickerRef.value?.updatePosition(selector)
+    })
+  } else {
+    document.querySelectorAll('.gif-trigger-active').forEach(el => el.classList.remove('gif-trigger-active'))
+  }
 }
 
 onMounted(() => {
@@ -356,7 +395,7 @@ watch(() => props.slug, () => {
       <p class="text-sm text-slate-400">Đăng nhập để bình luận về phim này.</p>
     </div>
 
-    <div v-else class="mb-8 rounded-2xl bg-[#181a24] border border-white/5 overflow-hidden">
+    <div v-else class="mb-8 rounded-2xl bg-[#181a24] border border-white/5 overflow-visible">
       <div class="flex items-center gap-3 px-5 pt-4 pb-2">
         <div class="size-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
           <img v-if="user?.avatar" :src="user.avatar" class="size-10 rounded-full object-cover" alt="" />
@@ -381,9 +420,11 @@ watch(() => props.slug, () => {
             <span class="text-xs font-medium" :class="isContentHidden ? 'text-[#FFD166]' : 'text-white/60'">Không tiết
               lộ</span>
           </div>
-          <button type="button" class="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition">
-            <AppIcon name="image" class="size-4" /><span class="text-white/50">GIF</span>
-          </button>
+          <div class="relative">
+            <button type="button" @click="openGifPicker('main')" class="comment-gif-btn flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition">
+              <AppIcon name="image" class="size-4" /><span class="text-white/50">GIF</span>
+            </button>
+          </div>
         </div>
         <div class="flex items-center gap-4">
           <span class="text-xs text-white/30">{{ commentContent.length }} / 1000</span>
@@ -500,10 +541,13 @@ watch(() => props.slug, () => {
                       </button>
                       <span class="text-xs text-slate-500">Tiết lộ</span>
                     </div>
-                    <button type="button"
-                      class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition">
-                      <AppIcon name="image" class="size-4" /><span>GIF</span>
-                    </button>
+                    <div class="relative">
+                      <button type="button" @click="openGifPicker(comment.id)"
+                        class="reply-gif-btn flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition"
+                        :class="'reply-gif-btn-' + comment.id">
+                        <AppIcon name="image" class="size-4" /><span>GIF</span>
+                      </button>
+                    </div>
                   </div>
                     <div class="flex items-center gap-3">
                       <span class="text-xs text-white/30">{{ (replyContent[comment.id] || '').length }} / 1000</span>
@@ -532,7 +576,8 @@ watch(() => props.slug, () => {
                 <div class="space-y-3">
                   <CommentReplies :replies="comment.replies" :depth="0" :user="user" :parent-id="comment.id"
                     :is-replying-to="isReplyingTo" :reply-content="replyContent" :is-reply-anonymous="isReplyAnonymous"
-                    :is-submitting-reply="isSubmittingReply" @start-reply="startReply" @cancel-reply="cancelReply"
+                    :is-submitting-reply="isSubmittingReply" :open-gif-picker="openGifPicker"
+                    @start-reply="startReply" @cancel-reply="cancelReply"
                     @submit-reply="submitReply" @vote="handleVote" @delete="handleDeleteComment" />
                 </div>
               </div>
@@ -563,6 +608,10 @@ watch(() => props.slug, () => {
     <AppIcon name="message-square" class="size-10 text-white/10 mb-3" />
     <p class="text-slate-400 text-sm">Chưa có bình luận nào.</p>
   </div>
+
+  <ClientOnly>
+    <GifPicker ref="gifPickerRef" v-model="isGifPickerOpen" @select="insertGif" />
+  </ClientOnly>
   </div>
 </template>
 

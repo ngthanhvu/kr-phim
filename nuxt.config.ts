@@ -4,6 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      giphyApiKey: process.env.GIPHY_API_KEY,
+    },
+  },
   app: {
     head: {
       titleTemplate: (titleChunk) => titleChunk ? `${titleChunk}` : 'CineK - Xem phim Hàn Quốc online',
