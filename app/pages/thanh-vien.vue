@@ -1,6 +1,4 @@
 ﻿<script setup lang="ts">
-import { ArrowLeft, Camera, Check, Clock3, Crown, Eye, EyeOff, Heart, KeyRound, LogOut, LockKeyhole, Mail, Pencil, Settings, UserRound, X, Venus, Mars, Minus } from 'lucide-vue-next'
-
 definePageMeta({ middleware: 'auth' })
 
 const { user, logout: doLogout, fetchUser } = useAuth()
@@ -30,9 +28,9 @@ const genderError = ref('')
 const genderSuccess = ref('')
 
 const genderOptions = [
-  { value: 'male', label: 'Nam', icon: Mars },
-  { value: 'female', label: 'Nữ', icon: Venus },
-  { value: 'other', label: 'Khác', icon: Minus },
+  { value: 'male', label: 'Nam', icon: 'mars' as const },
+  { value: 'female', label: 'Nữ', icon: 'venus' as const },
+  { value: 'other', label: 'Khác', icon: 'minus' as const },
 ]
 
 const avatarCategories = [
@@ -65,10 +63,10 @@ const avatarGrid = computed(() => {
 })
 
 const sidebarItems = [
-  { id: 'account', label: 'Quản lý tài khoản', icon: Settings },
-  { id: 'password', label: 'Đổi mật khẩu', icon: KeyRound },
-  { id: 'history', label: 'Lịch sử xem', icon: Clock3 },
-  { id: 'favorites', label: 'Phim yêu thích', icon: Heart },
+  { id: 'account', label: 'Quản lý tài khoản', icon: 'settings' as const },
+  { id: 'password', label: 'Đổi mật khẩu', icon: 'key' as const },
+  { id: 'history', label: 'Lịch sử xem', icon: 'clock' as const },
+  { id: 'favorites', label: 'Phim yêu thích', icon: 'heart' as const },
 ]
 
 async function handleLogout() {
@@ -267,7 +265,7 @@ useHead({
                   :class="isAdmin ? 'bg-[#FFD166]/20 ring-2 ring-[#FFD166]' : 'bg-[#FFD166]/10 ring-2 ring-[#FFD166]/20'">
                   <span class="text-sm font-bold text-[#FFD166]">{{ memberName.charAt(0).toUpperCase() }}</span>
                 </div>
-                <Crown v-if="isAdmin"
+                <AppIcon name="crown" v-if="isAdmin"
                   class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-[#0a0a0f] p-0.5 text-[#FFD166] ring-1 ring-[#FFD166]/40" />
               </div>
               <div class="min-w-0">
@@ -283,7 +281,7 @@ useHead({
                 :class="activeTab === item.id
                   ? 'bg-[#FFD166]/10 text-[#FFD166]'
                   : 'text-white/50 hover:bg-white/[0.04] hover:text-white'" @click="activeTab = item.id">
-                <component :is="item.icon" class="size-4" />
+                <AppIcon :name="item.icon" class="size-4" />
                 <span>{{ item.label }}</span>
               </button>
 
@@ -291,14 +289,14 @@ useHead({
 
               <NuxtLink to="/"
                 class="hidden shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white/40 transition hover:text-white lg:flex">
-                <ArrowLeft class="size-4" />
+                <AppIcon name="arrow-left" class="size-4" />
                 <span>Về trang chủ</span>
               </NuxtLink>
 
               <button type="button"
                 class="hidden shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400/60 transition hover:bg-red-400/8 hover:text-red-400 lg:flex"
                 @click="handleLogout">
-                <LogOut class="size-4" />
+                <AppIcon name="log-out" class="size-4" />
                 <span>Đăng xuất</span>
               </button>
             </nav>
@@ -310,7 +308,7 @@ useHead({
             <div v-if="activeTab === 'account'" :key="'account'"
               class="rounded-xl border border-white/[0.08] bg-[#12121a] p-5 sm:p-6">
               <div class="mb-5 flex items-center gap-2.5">
-                <Settings class="size-5 text-[#FFD166]" />
+                <AppIcon name="settings" class="size-5 text-[#FFD166]" />
                 <h2 class="text-lg font-bold">Quản lý tài khoản</h2>
               </div>
 
@@ -319,7 +317,7 @@ useHead({
                   <div>
                     <label class="mb-1.5 block text-xs font-medium text-white/40">Tên hiển thị</label>
                     <div class="relative">
-                      <UserRound class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                      <AppIcon name="user-round" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                       <input v-model="displayNameInput" type="text" placeholder="Nhập tên hiển thị"
                         class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-24 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10"
                         @keyup.enter="saveName">
@@ -334,7 +332,7 @@ useHead({
                   <div>
                     <label class="mb-1.5 block text-xs font-medium text-white/40">Email</label>
                     <div class="relative">
-                      <Mail class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                      <AppIcon name="mail" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                       <input type="text" :value="user.email" readonly
                         class="h-12 w-full cursor-not-allowed rounded-xl border border-white/[0.06] bg-white/[0.02] pl-11 pr-16 text-sm text-white/50 outline-none">
                       <span
@@ -357,29 +355,29 @@ useHead({
                           ? 'border-[#FFD166]/40 bg-[#FFD166]/10 text-[#FFD166]'
                           : 'border-white/[0.08] bg-white/[0.04] text-white/50 hover:border-white/[0.15] hover:text-white/70'"
                         :disabled="genderLoading" @click="saveGender(opt.value)">
-                        <component :is="opt.icon" class="size-4" />
+                        <AppIcon :name="opt.icon" class="size-4" />
                         <span>{{ opt.label }}</span>
                       </button>
                     </div>
                   </div>
 
                   <p v-if="nameError" class="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-sm text-red-400">
-                    <X class="size-4 shrink-0" />
+                    <AppIcon name="x" class="size-4 shrink-0" />
                     {{ nameError }}
                   </p>
                   <p v-if="nameSuccess"
                     class="flex items-center gap-2 rounded-xl bg-green-500/10 p-3 text-sm font-medium text-green-400">
-                    <Check class="size-4 shrink-0" />
+                    <AppIcon name="check" class="size-4 shrink-0" />
                     {{ nameSuccess }}
                   </p>
                   <p v-if="genderError"
                     class="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-sm text-red-400">
-                    <X class="size-4 shrink-0" />
+                    <AppIcon name="x" class="size-4 shrink-0" />
                     {{ genderError }}
                   </p>
                   <p v-if="genderSuccess"
                     class="flex items-center gap-2 rounded-xl bg-green-500/10 p-3 text-sm font-medium text-green-400">
-                    <Check class="size-4 shrink-0" />
+                    <AppIcon name="check" class="size-4 shrink-0" />
                     {{ genderSuccess }}
                   </p>
 
@@ -387,19 +385,19 @@ useHead({
                     <button type="button"
                       class="inline-flex h-9 items-center gap-2 rounded-lg bg-[#FFD166] px-4 text-sm font-bold text-[#0f111a] transition hover:bg-[#FFC845]"
                       @click="avatarModalOpen = true">
-                      <Camera class="size-4" />
+                      <AppIcon name="camera" class="size-4" />
                       Đổi avatar
                     </button>
                     <button type="button"
                       class="inline-flex h-9 items-center gap-2 rounded-lg bg-[#FFD166] px-4 text-sm font-bold text-[#0f111a] transition hover:bg-[#FFC845]"
                       @click="activeTab = 'password'">
-                      <KeyRound class="size-4" />
+                      <AppIcon name="key" class="size-4" />
                       Đổi mật khẩu
                     </button>
                     <button type="button"
                       class="inline-flex h-9 items-center gap-2 rounded-lg border border-red-400/20 bg-red-400/10 px-4 text-sm font-semibold text-red-400 transition hover:bg-red-400/20 lg:hidden"
                       @click="handleLogout">
-                      <LogOut class="size-4" />
+                      <AppIcon name="log-out" class="size-4" />
                       Đăng xuất
                     </button>
                   </div>
@@ -415,12 +413,12 @@ useHead({
                       :class="isAdmin ? 'bg-[#FFD166]/20 ring-4 ring-[#FFD166]' : 'bg-[#FFD166]/10 ring-4 ring-[#FFD166]/20'">
                       <span class="text-4xl font-black text-[#FFD166]">{{ memberName.charAt(0).toUpperCase() }}</span>
                     </div>
-                    <Crown v-if="isAdmin"
+                    <AppIcon name="crown" v-if="isAdmin"
                       class="absolute -right-2 -top-2 grid size-9 place-items-center rounded-full bg-[#FFD166] p-1.5 text-[#0f111a] ring-2 ring-[#FFD166]/40" />
                     <button type="button"
                       class="absolute -right-1 -bottom-1 grid size-9 place-items-center rounded-full bg-[#FFD166] text-[#0f111a] shadow-lg transition hover:bg-[#FFC845]"
                       @click="avatarModalOpen = true">
-                      <Camera class="size-4" />
+                      <AppIcon name="camera" class="size-4" />
                     </button>
                   </div>
                   <p class="text-center text-sm font-semibold">{{ memberName }}</p>
@@ -432,7 +430,7 @@ useHead({
             <div v-else-if="activeTab === 'password'" :key="'password'"
               class="rounded-xl border border-white/[0.08] bg-[#12121a] p-5 sm:p-6">
               <div class="mb-5 flex items-center gap-2.5">
-                <KeyRound class="size-5 text-[#FFD166]" />
+                <AppIcon name="key" class="size-5 text-[#FFD166]" />
                 <h2 class="text-lg font-bold">Đổi mật khẩu</h2>
               </div>
 
@@ -440,15 +438,15 @@ useHead({
                 <div class="relative">
                   <label class="mb-1.5 block text-xs font-medium text-white/40">Mật khẩu hiện tại</label>
                   <div class="relative">
-                    <LockKeyhole class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                    <AppIcon name="lock" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                     <input v-model="currentPassword" :type="showPassword ? 'text' : 'password'" required
                       placeholder="Nhập mật khẩu hiện tại"
                       class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                     <button type="button"
                       class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition hover:text-white/60"
                       @click="showPassword = !showPassword">
-                      <EyeOff v-if="showPassword" class="size-4" />
-                      <Eye v-else class="size-4" />
+                      <AppIcon name="eye-off" v-if="showPassword" class="size-4" />
+                      <AppIcon name="eye" v-else class="size-4" />
                     </button>
                   </div>
                 </div>
@@ -456,15 +454,15 @@ useHead({
                 <div class="relative">
                   <label class="mb-1.5 block text-xs font-medium text-white/40">Mật khẩu mới</label>
                   <div class="relative">
-                    <LockKeyhole class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                    <AppIcon name="lock" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                     <input v-model="newPassword" :type="showNewPassword ? 'text' : 'password'" required minlength="6"
                       placeholder="Ít nhất 6 ký tự"
                       class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                     <button type="button"
                       class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition hover:text-white/60"
                       @click="showNewPassword = !showNewPassword">
-                      <EyeOff v-if="showNewPassword" class="size-4" />
-                      <Eye v-else class="size-4" />
+                      <AppIcon name="eye-off" v-if="showNewPassword" class="size-4" />
+                      <AppIcon name="eye" v-else class="size-4" />
                     </button>
                   </div>
                 </div>
@@ -472,15 +470,15 @@ useHead({
                 <div class="relative">
                   <label class="mb-1.5 block text-xs font-medium text-white/40">Xác nhận mật khẩu mới</label>
                   <div class="relative">
-                    <LockKeyhole class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                    <AppIcon name="lock" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                     <input v-model="confirmPassword" :type="showConfirmPassword ? 'text' : 'password'" required
                       minlength="6" placeholder="Nhập lại mật khẩu mới"
                       class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                     <button type="button"
                       class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition hover:text-white/60"
                       @click="showConfirmPassword = !showConfirmPassword">
-                      <EyeOff v-if="showConfirmPassword" class="size-4" />
-                      <Eye v-else class="size-4" />
+                      <AppIcon name="eye-off" v-if="showConfirmPassword" class="size-4" />
+                      <AppIcon name="eye" v-else class="size-4" />
                     </button>
                   </div>
                 </div>
@@ -493,13 +491,13 @@ useHead({
 
                 <p v-if="passwordError"
                   class="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-sm text-red-400">
-                  <X class="size-4 shrink-0" />
+                  <AppIcon name="x" class="size-4 shrink-0" />
                   {{ passwordError }}
                 </p>
 
                 <p v-if="passwordSuccess"
                   class="flex items-center gap-2 rounded-xl bg-green-500/10 p-3 text-sm font-medium text-green-400">
-                  <Check class="size-4 shrink-0" />
+                  <AppIcon name="check" class="size-4 shrink-0" />
                   {{ passwordSuccess }}
                 </p>
               </form>
@@ -508,13 +506,13 @@ useHead({
             <div v-else-if="activeTab === 'history'" :key="'history'"
               class="rounded-xl border border-white/[0.08] bg-[#12121a] p-5 sm:p-6">
               <div class="mb-5 flex items-center gap-2.5">
-                <Clock3 class="size-5 text-[#FFD166]" />
+                <AppIcon name="clock" class="size-5 text-[#FFD166]" />
                 <h2 class="text-lg font-bold">Lịch sử xem</h2>
               </div>
               <NuxtLink to="/lich-su"
                 class="flex items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-8 text-center transition hover:border-[#FFD166]/30 hover:bg-white/[0.04]">
                 <div>
-                  <Clock3 class="mx-auto size-8 text-white/20" />
+                  <AppIcon name="clock" class="mx-auto size-8 text-white/20" />
                   <p class="mt-2 text-sm text-white/40">Xem lịch sử xem chi tiết</p>
                   <p class="mt-1 text-xs text-[#FFD166]">Nhấn để xem →</p>
                 </div>
@@ -524,13 +522,13 @@ useHead({
             <div v-else-if="activeTab === 'favorites'" :key="'favorites'"
               class="rounded-xl border border-white/[0.08] bg-[#12121a] p-5 sm:p-6">
               <div class="mb-5 flex items-center gap-2.5">
-                <Heart class="size-5 text-[#FFD166]" />
+                <AppIcon name="heart" class="size-5 text-[#FFD166]" />
                 <h2 class="text-lg font-bold">Phim yêu thích</h2>
               </div>
               <NuxtLink to="/yeu-thich"
                 class="flex items-center justify-center rounded-xl border border-dashed border-white/[0.08] bg-white/[0.02] p-8 text-center transition hover:border-[#FFD166]/30 hover:bg-white/[0.04]">
                 <div>
-                  <Heart class="mx-auto size-8 text-white/20" />
+                  <AppIcon name="heart" class="mx-auto size-8 text-white/20" />
                   <p class="mt-2 text-sm text-white/40">Xem danh sách phim yêu thích</p>
                   <p class="mt-1 text-xs text-[#FFD166]">Nhấn để xem →</p>
                 </div>
@@ -553,13 +551,13 @@ useHead({
             <button type="button"
               class="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white"
               @click="avatarModalOpen = false">
-              <X class="size-4" />
+              <AppIcon name="x" class="size-4" />
             </button>
 
             <div class="p-5 pb-3">
               <div class="mb-4 flex items-center gap-2.5">
                 <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFD166]/10">
-                  <Camera class="size-4 text-[#FFD166]" />
+                  <AppIcon name="camera" class="size-4 text-[#FFD166]" />
                 </div>
                 <div>
                   <h2 class="text-lg font-bold text-white">Chọn avatar</h2>
@@ -588,7 +586,7 @@ useHead({
                   <div v-if="avatarUrl === img"
                     class="absolute inset-0 flex items-center justify-center bg-[#FFD166]/20">
                     <div class="grid size-6 place-items-center rounded-full bg-[#FFD166]">
-                      <Check class="size-3.5 text-[#0f111a]" />
+                      <AppIcon name="check" class="size-3.5 text-[#0f111a]" />
                     </div>
                   </div>
                 </button>

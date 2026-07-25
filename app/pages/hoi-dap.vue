@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ChevronDown } from 'lucide-vue-next'
-
 const faqs = [
   {
     category: 'Tổng quan',
@@ -67,7 +65,7 @@ function toggle(category: string, index: number) {
               class="w-full flex items-center justify-between px-5 py-4 text-left text-sm font-semibold text-white hover:bg-white/5 transition"
               @click="toggle(section.category, index)">
               <span>{{ item.q }}</span>
-              <ChevronDown class="size-4 shrink-0 text-slate-400 transition-transform"
+              <AppIcon name="chevron-down" class="size-4 shrink-0 text-slate-400 transition-transform"
                 :class="openItems[`${section.category}-${index}`] ? 'rotate-180' : ''" />
             </button>
             <Transition name="faq">

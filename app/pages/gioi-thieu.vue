@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { Film, Globe2, Heart, Play, Shield, Zap } from 'lucide-vue-next'
-
 const features = [
-  { icon: Play, title: 'Kho phim khổng lồ', desc: 'Tổng hợp phim Hàn Quốc từ nhiều nguồn, cập nhật liên tục mỗi ngày.' },
-  { icon: Shield, title: 'Miễn phí 100%', desc: 'Xem phim hoàn toàn miễn phí, không cần trả bất kỳ khoản phí nào.' },
-  { icon: Zap, title: 'Tốc độ nhanh', desc: 'Trình phát video mượt mà, hỗ trợ đa server, không quảng cáo xâm phạm.' },
-  { icon: Heart, title: 'Lưu tiến trình', desc: 'Tự động lưu tiến trình xem, danh sách yêu thích đồng bộ giữa các thiết bị.' },
-  { icon: Globe2, title: 'Đa ngôn ngữ', desc: 'Hỗ trợ Vietsub, thuyết minh, lồng tiếng cho đa số phim.' },
-  { icon: Film, title: 'Chất lượng cao', desc: 'Phim HD, Full HD, chất lượng hình ảnh và âm thanh tốt nhất.' },
+  { icon: 'play' as const, title: 'Kho phim khổng lồ', desc: 'Tổng hợp phim Hàn Quốc từ nhiều nguồn, cập nhật liên tục mỗi ngày.' },
+  { icon: 'shield' as const, title: 'Miễn phí 100%', desc: 'Xem phim hoàn toàn miễn phí, không cần trả bất kỳ khoản phí nào.' },
+  { icon: 'zap' as const, title: 'Tốc độ nhanh', desc: 'Trình phát video mượt mà, hỗ trợ đa server, không quảng cáo xâm phạm.' },
+  { icon: 'heart' as const, title: 'Lưu tiến trình', desc: 'Tự động lưu tiến trình xem, danh sách yêu thích đồng bộ giữa các thiết bị.' },
+  { icon: 'globe' as const, title: 'Đa ngôn ngữ', desc: 'Hỗ trợ Vietsub, thuyết minh, lồng tiếng cho đa số phim.' },
+  { icon: 'film' as const, title: 'Chất lượng cao', desc: 'Phim HD, Full HD, chất lượng hình ảnh và âm thanh tốt nhất.' },
 ]
 </script>
 
@@ -29,7 +27,7 @@ const features = [
         <div v-for="f in features" :key="f.title"
           class="rounded-xl border border-white/10 bg-[#191b24] p-6 transition hover:border-white/20">
           <div class="grid size-12 place-items-center rounded-xl bg-yellow-400/10 text-yellow-400 mb-4">
-            <component :is="f.icon" class="size-6" />
+            <AppIcon :name="f.icon" class="size-6" />
           </div>
           <h3 class="text-lg font-bold text-white mb-2">{{ f.title }}</h3>
           <p class="text-sm text-slate-400 leading-relaxed">{{ f.desc }}</p>

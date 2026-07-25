@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Eye, EyeOff, LockKeyhole, LogIn, Mail } from 'lucide-vue-next'
-
 definePageMeta({
   layout: false,
   middleware: [],
@@ -65,7 +63,7 @@ async function handleLogin() {
             <div>
               <label class="mb-2 block text-sm font-semibold text-white">Email</label>
               <div class="relative">
-                <Mail class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <AppIcon name="mail" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                 <input v-model="email" type="email" required placeholder="admin@cinek.vn"
                   class="h-11 w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-yellow-400/50">
               </div>
@@ -74,15 +72,15 @@ async function handleLogin() {
             <div>
               <label class="mb-2 block text-sm font-semibold text-white">Mật khẩu</label>
               <div class="relative">
-                <LockKeyhole class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <AppIcon name="lock" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                 <input v-model="password" :type="showPassword ? 'text' : 'password'" required minlength="6"
                   placeholder="Nhập mật khẩu"
                   class="h-11 w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 outline-none focus:border-yellow-400/50">
                 <button type="button"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
                   @click="showPassword = !showPassword">
-                  <EyeOff v-if="showPassword" class="size-4" />
-                  <Eye v-else class="size-4" />
+                  <AppIcon name="eye-off" v-if="showPassword" class="size-4" />
+                  <AppIcon name="eye" v-else class="size-4" />
                 </button>
               </div>
             </div>
@@ -91,7 +89,7 @@ async function handleLogin() {
           <button type="submit"
             class="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-yellow-400 text-sm font-black text-slate-950 transition hover:bg-yellow-300 disabled:opacity-50"
             :disabled="loading">
-            <LogIn class="size-4" />
+            <AppIcon name="log-in" class="size-4" />
             {{ loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
           </button>
 

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-vue-next'
-
 const { data, pending, error } = await useFetch('/api/movies', {
   query: { page: 1 },
 })
@@ -158,7 +156,7 @@ useHead({
 
     <section class="schedule-shell">
       <div class="schedule-heading">
-        <CalendarDays class="schedule-heading-icon" />
+        <AppIcon name="calendar-days" class="schedule-heading-icon" />
         <h1 class="text-2xl font-black sm:text-3xl">Lịch chiếu</h1>
       </div>
 
@@ -180,7 +178,7 @@ useHead({
           <button v-if="selectedDayIndex > 0" type="button"
             class="schedule-arrow schedule-arrow-left"
             aria-label="Ngày trước" @click="selectPreviousDay">
-            <ChevronLeft />
+            <AppIcon name="chevron-left" />
           </button>
 
           <div class="schedule-tabs">
@@ -196,7 +194,7 @@ useHead({
           <button v-if="selectedDayIndex < scheduleDays.length - 1" type="button"
             class="schedule-arrow schedule-arrow-right"
             aria-label="Ngày sau" @click="selectNextDay">
-            <ChevronRight />
+            <AppIcon name="chevron-right" />
           </button>
         </div>
 
@@ -220,7 +218,7 @@ useHead({
         </div>
 
         <div v-else class="schedule-empty">
-          <CalendarDays />
+          <AppIcon name="calendar-days" />
           <p class="mt-4 text-sm text-slate-400">Chưa có phim nào trong ngày này.</p>
         </div>
       </template>

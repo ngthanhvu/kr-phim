@@ -1,5 +1,4 @@
 ﻿<script setup lang="ts">
-import { Clock3, Trash2 } from 'lucide-vue-next'
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
 const { loadWatchHistory, clearWatchHistory } = useWatchHistory()
@@ -86,7 +85,7 @@ useHead({
         <button v-if="historyItems.length" type="button"
           class="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-white/10 bg-white/8 px-4 text-sm font-black text-white transition hover:bg-white/14"
           @click="removeHistory">
-          <Trash2 class="size-4" />
+          <AppIcon name="trash" class="size-4" />
           Xóa lịch sử
         </button>
       </div>
@@ -103,7 +102,7 @@ useHead({
             <img v-if="item.thumb || item.poster" :src="item.thumb || item.poster" :alt="item.name"
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div v-else class="grid h-full w-full place-items-center bg-white/8">
-              <Clock3 class="size-10 text-yellow-300" />
+              <AppIcon name="clock" class="size-10 text-yellow-300" />
             </div>
             <div class="absolute inset-x-0 bottom-0 h-1 bg-white/18">
               <span class="block h-full bg-yellow-300" :style="{ width: `${watchProgressPercent(item)}%` }" />
@@ -125,7 +124,7 @@ useHead({
 
       <div v-else
         class="flex min-h-80 flex-col items-center justify-center rounded-lg border border-white/10 bg-white/6 p-6 text-center">
-        <Clock3 class="size-12 text-yellow-300" />
+        <AppIcon name="clock" class="size-12 text-yellow-300" />
         <h2 class="mt-4 text-xl font-black">Chưa có lịch sử xem</h2>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-300">
           Phim bạn đã xem sẽ xuất hiện ở đây để bạn có thể xem tiếp nhanh hơn.

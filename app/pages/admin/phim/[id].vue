@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ArrowLeft, Check, Film, Image, Plus, Save, Trash2, Type } from 'lucide-vue-next'
-
 definePageMeta({
   layout: 'admin',
 })
@@ -74,7 +72,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
   <div>
     <NuxtLink to="/admin/phim"
       class="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-400 transition hover:text-white">
-      <ArrowLeft class="size-4" />
+      <AppIcon name="arrow-left" class="size-4" />
       Quay lại danh sách phim
     </NuxtLink>
 
@@ -93,7 +91,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
         <button type="button"
           class="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-yellow-400 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-300 disabled:opacity-50"
           :disabled="saving" @click="handleSave">
-          <Save class="size-4" />
+          <AppIcon name="save" class="size-4" />
           {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
         </button>
       </div>
@@ -101,7 +99,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
       <Transition name="fade">
         <div v-if="saved"
           class="mb-4 flex items-center gap-2 rounded-lg border border-green-400/20 bg-green-400/10 px-4 py-3 text-sm font-semibold text-green-400">
-          <Check class="size-4" />
+          <AppIcon name="check" class="size-4" />
           Đã lưu thành công
         </div>
       </Transition>
@@ -111,7 +109,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
           <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
             <div class="mb-4 flex items-center gap-3">
               <div class="grid size-9 place-items-center rounded-lg bg-blue-400/10">
-                <Type class="size-4 text-blue-400" />
+                <AppIcon name="type" class="size-4 text-blue-400" />
               </div>
               <div>
                 <h2 class="text-base font-black text-white">Mô tả phim</h2>
@@ -130,7 +128,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
           <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
             <div class="mb-4 flex items-center gap-3">
               <div class="grid size-9 place-items-center rounded-lg bg-amber-400/10">
-                <Film class="size-4 text-amber-400" />
+                <AppIcon name="film" class="size-4 text-amber-400" />
               </div>
               <div class="flex-1">
                 <h2 class="text-base font-black text-white">Tập phim tuỳ chỉnh</h2>
@@ -139,7 +137,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
               <button type="button"
                 class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition hover:bg-white/20"
                 @click="addEpisode">
-                <Plus class="size-3.5" />
+                <AppIcon name="plus" class="size-3.5" />
                 Thêm tập
               </button>
             </div>
@@ -152,7 +150,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
                   <button type="button"
                     class="grid size-7 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10"
                     @click="removeEpisode(index)">
-                    <Trash2 class="size-3.5" />
+                    <AppIcon name="trash" class="size-3.5" />
                   </button>
                 </div>
                 <div class="space-y-2">
@@ -173,7 +171,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
           <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
             <div class="mb-4 flex items-center gap-3">
               <div class="grid size-9 place-items-center rounded-lg bg-purple-400/10">
-                <Image class="size-4 text-purple-400" />
+                <AppIcon name="image" class="size-4 text-purple-400" />
               </div>
               <div>
                 <h2 class="text-base font-black text-white">Ảnh poster</h2>
@@ -196,7 +194,7 @@ function clearField(field: 'customPoster' | 'customThumb' | 'customContent') {
           <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
             <div class="mb-4 flex items-center gap-3">
               <div class="grid size-9 place-items-center rounded-lg bg-pink-400/10">
-                <Image class="size-4 text-pink-400" />
+                <AppIcon name="image" class="size-4 text-pink-400" />
               </div>
               <div>
                 <h2 class="text-base font-black text-white">Ảnh thumbnail</h2>

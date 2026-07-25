@@ -1,6 +1,4 @@
 ﻿<script setup lang="ts">
-import { ArrowUp } from 'lucide-vue-next'
-
 const isVisible = ref(false)
 
 function updateVisibility() {
@@ -37,7 +35,7 @@ onBeforeUnmount(() => {
       aria-label="Lên đầu trang"
       @click="scrollToTop"
     >
-      <ArrowUp class="size-6" />
+      <AppIcon name="arrow-up" class="size-6" />
     </button>
   </Transition>
 </template>

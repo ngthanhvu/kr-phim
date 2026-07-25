@@ -1,6 +1,4 @@
 ﻿<script setup lang="ts">
-import { ChevronDown, ChevronRight, Heart, MessageSquare, Play, Plus, Server, Share2, Star, Video } from 'lucide-vue-next'
-
 const route = useRoute()
 const requestedSource = computed(() => String(route.query.source || 'nguonc'))
 const requestedSources = computed(() => typeof route.query.srcs === 'string' ? route.query.srcs : '')
@@ -272,7 +270,7 @@ useHead(() => ({
               <NuxtLink :to="firstWatchLink"
                 class="inline-flex justify-center items-center gap-2 md:gap-2.5 px-6 md:px-8 py-3.5 md:py-3 text-[#0f1115] text-[15px] md:text-base font-bold rounded-full transition-all hover:scale-105 shadow-lg shadow-[#F5C518]/20 hover:shadow-[#F5C518]/40"
                 style="background:linear-gradient(135deg, #F5C518 0%, #FFD700 50%, #FFC107 100%)">
-                <Play class="w-5 h-5 md:w-6 md:h-6 shrink-0 fill-current" />
+                <AppIcon name="play" class="w-5 h-5 md:w-6 md:h-6 shrink-0 fill-current" />
                 Xem ngay
               </NuxtLink>
 
@@ -282,21 +280,21 @@ useHead(() => ({
                   class="flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 active:scale-95 px-3"
                   :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white/90'" :disabled="actionBusy"
                   @click="toggleFavorite">
-                  <Heart class="size-5" :class="isFavoriteMovie ? 'fill-current' : ''" />
+                  <AppIcon name="heart" class="size-5" :class="isFavoriteMovie ? 'fill-current' : ''" />
                   <span class="text-[11px]">{{ isFavoriteMovie ? 'Đã thích' : 'Yêu thích' }}</span>
                 </button>
                 <div class="w-px h-8 bg-white/10 mx-1" />
                 <button type="button"
                   class="flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 active:scale-95 px-3 text-white/90"
                   :disabled="actionBusy" @click="addToWatchLater">
-                  <Plus class="size-5" />
+                  <AppIcon name="plus" class="size-5" />
                   <span class="text-[11px]">Thêm vào</span>
                 </button>
                 <div class="w-px h-8 bg-white/10 mx-1" />
                 <button type="button"
                   class="flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5 active:scale-95 px-3 text-white/90"
                   @click="shareMovie">
-                  <Share2 class="size-5" />
+                  <AppIcon name="share" class="size-5" />
                   <span class="text-[11px]">Chia sẻ</span>
                 </button>
               </div>
@@ -308,19 +306,19 @@ useHead(() => ({
                 class="flex flex-col items-center justify-center gap-1 transition-all active:scale-95"
                 :class="isFavoriteMovie ? 'text-yellow-300' : 'text-white/90'" :disabled="actionBusy"
                 @click="toggleFavorite">
-                <Heart class="size-6" :class="isFavoriteMovie ? 'fill-current' : ''" />
+                <AppIcon name="heart" class="size-6" :class="isFavoriteMovie ? 'fill-current' : ''" />
                 <span class="text-[11px]">Yêu thích</span>
               </button>
               <button type="button"
                 class="flex flex-col items-center justify-center gap-1 transition-all active:scale-95 text-white/90"
                 :disabled="actionBusy" @click="addToWatchLater">
-                <Plus class="size-6" />
+                <AppIcon name="plus" class="size-6" />
                 <span class="text-[11px]">Thêm vào</span>
               </button>
               <button type="button"
                 class="flex flex-col items-center justify-center gap-1 transition-all active:scale-95 text-white/90"
                 @click="shareMovie">
-                <Share2 class="size-6" />
+                <AppIcon name="share" class="size-6" />
                 <span class="text-[11px]">Chia sẻ</span>
               </button>
             </div>
@@ -364,7 +362,7 @@ useHead(() => ({
                 class="w-full flex items-center justify-between text-sm font-semibold text-yellow-200 py-2"
                 @click="movieInfoOpen = !movieInfoOpen">
                 <span>Thông tin phim</span>
-                <ChevronDown class="size-4 transition" :class="movieInfoOpen ? 'rotate-180' : ''" />
+                <AppIcon name="chevron-down" class="size-4 transition" :class="movieInfoOpen ? 'rotate-180' : ''" />
               </button>
               <div v-if="movieInfoOpen" class="space-y-2 text-sm text-slate-300">
                 <div class="flex flex-wrap gap-2 text-[10px] mb-3">
@@ -439,7 +437,7 @@ useHead(() => ({
                 <!-- Server Selector -->
                 <div v-if="servers.length > 1" class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
                   <div class="flex items-center gap-1.5 text-[13px] font-semibold text-white/50 mr-1">
-                    <Server class="size-4" />
+                    <AppIcon name="server" class="size-4" />
                     Máy chủ:
                   </div>
                   <button v-for="(server, index) in servers" :key="server.name" type="button"
@@ -461,7 +459,7 @@ useHead(() => ({
                   <NuxtLink v-for="(episode, index) in activeServer.episodes" :key="`${episode.name}-${index}`"
                     :to="episodeLink(index)"
                     class="group flex items-center justify-center gap-1.5 rounded-lg transition-all py-2.5 px-2 text-[13px] bg-[#191b24] text-white/90 hover:text-[#FFD166] hover:bg-[#1f2130] shadow-sm">
-                    <Play class="size-3 fill-current" />
+                    <AppIcon name="play" class="size-3 fill-current" />
                     {{ formatEpisodeName(episode.name, index) }}
                   </NuxtLink>
                 </div>

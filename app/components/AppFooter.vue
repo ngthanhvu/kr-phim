@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { CirclePlay, Globe2, MessageCircle, Music2, Send } from 'lucide-vue-next'
-
 const currentYear = new Date().getFullYear()
 
 const socialLinks = [
-  { label: 'Telegram', icon: Send },
-  { label: 'Chat', icon: MessageCircle },
-  { label: 'Website', icon: Globe2 },
-  { label: 'Cộng đồng', icon: MessageCircle },
-  { label: 'TikTok', icon: Music2 },
-  { label: 'Video', icon: CirclePlay },
+  { label: 'Telegram', icon: 'send' as const },
+  { label: 'Chat', icon: 'message-circle' as const },
+  { label: 'Website', icon: 'globe' as const },
+  { label: 'Cộng đồng', icon: 'message-circle' as const },
+  { label: 'TikTok', icon: 'music' as const },
+  { label: 'Video', icon: 'circle-play' as const },
 ]
 
 const linkGroups = [
@@ -38,7 +36,7 @@ const linkGroups = [
             class="grid size-12 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-lg shadow-yellow-950/30 transition hover:-translate-y-0.5 hover:bg-white"
             :aria-label="item.label"
           >
-            <component :is="item.icon" class="size-5" />
+            <AppIcon :name="item.icon" class="size-5" />
           </button>
         </div>
       </div>

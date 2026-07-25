@@ -1,23 +1,21 @@
 <script setup lang="ts">
-import { Mail, MessageCircle, Send } from 'lucide-vue-next'
-
 const contactMethods = [
   {
-    icon: Send,
+    icon: 'send' as const,
     label: 'Telegram',
     value: '@cinek_support',
     link: 'https://telegram.dog/cinek',
     desc: 'Nhắn tin trực tiếp, phản hồi nhanh nhất.',
   },
   {
-    icon: MessageCircle,
+    icon: 'message-circle' as const,
     label: 'Cộng đồng',
     value: 'Group Facebook CineK',
     link: '#',
     desc: 'Tham gia nhóm để trao đổi, chia sẻ phim.',
   },
   {
-    icon: Mail,
+    icon: 'mail' as const,
     label: 'Email',
     value: 'support@cinek.app',
     link: 'mailto:support@cinek.app',
@@ -42,7 +40,7 @@ const contactMethods = [
         <NuxtLink v-for="method in contactMethods" :key="method.label" :to="method.link"
           class="flex items-start gap-4 rounded-xl border border-white/10 bg-[#191b24] p-5 transition hover:border-white/20 hover:bg-white/5 group">
           <div class="grid size-12 shrink-0 place-items-center rounded-xl bg-yellow-400/10 text-yellow-400">
-            <component :is="method.icon" class="size-6" />
+            <AppIcon :name="method.icon" class="size-6" />
           </div>
           <div>
             <h3 class="font-bold text-white group-hover:text-yellow-300 transition">{{ method.label }}</h3>

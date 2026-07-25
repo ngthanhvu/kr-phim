@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ArrowLeft, Home, Search } from 'lucide-vue-next'
-
 const props = defineProps<{
   error: {
     statusCode: number

@@ -1,6 +1,4 @@
 ﻿<script setup lang="ts">
-import { ChevronLeft, ChevronRight, Search } from 'lucide-vue-next'
-
 const route = useRoute()
 const router = useRouter()
 
@@ -136,7 +134,7 @@ useHead({
         <div class="flex w-full flex-col gap-3 sm:flex-row lg:max-w-3xl">
           <div
             class="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-white/8 px-4 py-3 shadow-2xl shadow-yellow-950/20">
-            <Search class="mr-3 size-4 shrink-0 text-yellow-200" />
+            <AppIcon name="search" class="mr-3 size-4 shrink-0 text-yellow-200" />
             <input v-model="keyword" type="search" placeholder="Tìm phim Hàn Quốc..."
               class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
           </div>
@@ -206,14 +204,14 @@ useHead({
         <button type="button" :disabled="page === 1"
           class="grid size-11 place-items-center rounded-full border border-white/15 bg-white/8 text-white disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Trang trước" @click="previousPage">
-          <ChevronLeft class="size-5" />
+          <AppIcon name="chevron-left" class="size-5" />
         </button>
         <span class="text-sm text-slate-300">Trang {{ page }}<template v-if="totalPages"> / {{ totalPages
         }}</template></span>
         <button type="button"
           class="grid size-11 place-items-center rounded-full bg-yellow-300 text-slate-950 hover:bg-white"
           aria-label="Trang sau" @click="nextPage">
-          <ChevronRight class="size-5" />
+          <AppIcon name="chevron-right" class="size-5" />
         </button>
       </div>
     </section>

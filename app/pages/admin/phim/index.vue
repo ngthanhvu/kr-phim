@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Pencil, RefreshCw, Search, Trash2, X } from 'lucide-vue-next'
-
 definePageMeta({
   layout: 'admin',
 })
@@ -104,13 +102,13 @@ const totalPages = computed(() => data.value?.totalPages || 1)
         <button type="button"
           class="inline-flex h-10 items-center gap-2 rounded-lg border border-red-400/20 bg-red-400/10 px-4 text-sm font-black text-red-400 transition hover:bg-red-400/20"
           @click="deleteConfirmOpen = true">
-          <Trash2 class="size-4" />
+          <AppIcon name="trash" class="size-4" />
           Xoá tất cả
         </button>
         <button type="button"
           class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-4 text-sm font-black text-slate-950 transition hover:bg-yellow-300 disabled:opacity-50"
           @click="syncOpen = true">
-          <RefreshCw class="size-4" />
+          <AppIcon name="refresh" class="size-4" />
           Đồng bộ từ API
         </button>
       </div>
@@ -119,7 +117,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
     <div class="rounded-xl border border-white/10 bg-slate-900/50">
       <div class="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center">
         <div class="relative flex-1">
-          <Search class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <AppIcon name="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input v-model="searchInput" type="search" placeholder="Tìm kiếm phim..."
             class="h-10 w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 text-sm text-white placeholder:text-slate-400 outline-none focus:border-yellow-400/50">
         </div>
@@ -208,7 +206,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
                   <NuxtLink :to="`/admin/phim/${movie.id}`"
                     class="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white"
                     title="Chỉnh sửa">
-                    <Pencil class="size-4" />
+                    <AppIcon name="pencil" class="size-4" />
                   </NuxtLink>
                   <AdminToggle :model-value="movie.active"
                     @update:model-value="(val: boolean) => { movie.active = val; toggleActive(movie) }" />
@@ -249,7 +247,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
             <button type="button"
               class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-white transition hover:bg-white/10"
               @click="syncOpen = false">
-              <X class="size-5" />
+              <AppIcon name="x" class="size-5" />
             </button>
 
             <h2 class="text-xl font-black text-white">Đồng bộ phim</h2>
@@ -293,7 +291,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               <button type="button"
                 class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-300 disabled:opacity-50"
                 :disabled="syncing || !Object.values(syncSources).some(Boolean)" @click="handleSync">
-                <RefreshCw class="size-4" :class="syncing ? 'animate-spin' : ''" />
+                <AppIcon name="refresh" class="size-4" :class="syncing ? 'animate-spin' : ''" />
                 {{ syncing ? 'Đang đồng bộ...' : 'Đồng bộ' }}
               </button>
             </div>
@@ -318,7 +316,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               <button type="button"
                 class="inline-flex h-10 items-center gap-2 rounded-lg bg-red-500 px-5 text-sm font-black text-white transition hover:bg-red-400 disabled:opacity-50"
                 :disabled="deleting" @click="handleDeleteAll">
-                <Trash2 class="size-4" />
+                <AppIcon name="trash" class="size-4" />
                 {{ deleting ? 'Đang xoá...' : 'Xoá tất cả' }}
               </button>
             </div>

@@ -1,11 +1,5 @@
 ﻿<script setup lang="ts">
 import type Hls from 'hls.js'
-import {
-  AlertTriangle, BadgeCheck, Bug, ChevronRight, CircleHelp, CornerDownLeft, Crown, Eye, EyeOff, FastForward, Heart, Image, Layers,
-  Loader2, LogIn, Maximize, MessageCircle, MessageSquare, Pause, PictureInPicture2, Pin, Play, Plus, Rewind,
-  Send, Settings, Share2, SkipForward, Star, ThumbsDown, ThumbsUp, Trash2, User, Volume2, VolumeX, Captions, Languages,
-} from 'lucide-vue-next'
-
 const route = useRoute()
 const selectedServer = ref(Math.max(Number(route.query.server || 0), 0))
 const selectedEpisode = ref(Math.max(Number(route.query.ep || 1) - 1, 0))
@@ -453,7 +447,7 @@ useHead(() => ({
               class="pointer-events-none absolute inset-0 z-30 grid place-items-center bg-black/45 text-yellow-200 backdrop-blur-[1px]">
               <div
                 class="inline-flex items-center gap-3 rounded-full border border-yellow-300/25 bg-black/70 px-4 py-2 text-xs font-black shadow-xl shadow-black/30">
-                <Loader2 class="size-4 animate-spin" /> Đang tải phim
+                <AppIcon name="loader" class="size-4 animate-spin" /> Đang tải phim
               </div>
             </div>
 
@@ -470,7 +464,7 @@ useHead(() => ({
                 class="pointer-events-none absolute inset-x-0 top-0 h-20 bg-linear-to-b from-black/35 to-transparent" />
               <div v-if="isVideoBuffering"
                 class="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black/20 text-yellow-200">
-                <Loader2 class="size-10 animate-spin" />
+                <AppIcon name="loader" class="size-10 animate-spin" />
               </div>
               <div v-if="hlsErrorMessage"
                 class="absolute left-1/2 top-1/2 z-20 w-[min(90%,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-md border border-red-300/30 bg-red-950/85 p-4 text-center text-sm font-bold text-red-100">
@@ -482,7 +476,7 @@ useHead(() => ({
                 type="button"
                 class="absolute bottom-24 right-4 z-20 inline-flex items-center gap-2 rounded-md border border-yellow-300/80 bg-black/55 px-4 py-2 text-xs font-black text-yellow-200 shadow-lg shadow-black/30 backdrop-blur transition hover:border-yellow-200 hover:bg-yellow-400 hover:text-slate-950"
                 @click="playNextEpisode(true)">
-                <SkipForward class="size-4" /> Tập tiếp
+                <AppIcon name="skip-forward" class="size-4" /> Tập tiếp
               </button>
               <button type="button"
                 class="absolute inset-0 grid cursor-pointer place-items-center text-white transition"
@@ -491,8 +485,8 @@ useHead(() => ({
                 @pointerleave="stopHoldSpeed" @contextmenu.prevent>
                 <span
                   class="grid size-12 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-xl shadow-yellow-950/30 sm:size-16">
-                  <Pause v-if="isVideoPlaying" class="size-5 fill-current sm:size-7" />
-                  <Play v-else class="size-5 fill-current sm:size-7" />
+                  <AppIcon name="pause" v-if="isVideoPlaying" class="size-5 fill-current sm:size-7" />
+                  <AppIcon name="play" v-else class="size-5 fill-current sm:size-7" />
                 </span>
               </button>
               <div v-if="gestureHint || isHoldSpeedActive"
@@ -509,18 +503,18 @@ useHead(() => ({
                 <div class="kr-hls-actions">
                   <div class="kr-hls-actions-left">
                     <button type="button" class="kr-hls-control-button is-primary" @click="toggleHlsPlayback">
-                      <Pause v-if="isVideoPlaying" class="fill-current" />
-                      <Play v-else class="fill-current" />
+                      <AppIcon name="pause" v-if="isVideoPlaying" class="fill-current" />
+                      <AppIcon name="play" v-else class="fill-current" />
                     </button>
                     <button type="button" class="kr-hls-control-button" @click="seekBy(-10)">
-                      <Rewind />
+                      <AppIcon name="rewind" />
                     </button>
                     <button type="button" class="kr-hls-control-button" @click="seekBy(10)">
-                      <FastForward />
+                      <AppIcon name="fast-forward" />
                     </button>
                     <button type="button" class="kr-hls-control-button" @click="toggleMute">
-                      <VolumeX v-if="isVideoMuted" />
-                      <Volume2 v-else />
+                      <AppIcon name="volume-x" v-if="isVideoMuted" />
+                      <AppIcon name="volume" v-else />
                     </button>
                     <input class="kr-volume-range hidden sm:block" type="range" min="0" max="1" step="0.05"
                       :value="videoVolume" @input="changeVolume">
@@ -530,7 +524,7 @@ useHead(() => ({
                       <button type="button" class="kr-hls-control-button"
                         :class="isSettingsOpen ? 'bg-yellow-400 text-slate-950' : ''"
                         @click="isSettingsOpen = !isSettingsOpen; controlsVisible = true">
-                        <Settings />
+                        <AppIcon name="settings" />
                       </button>
                       <div v-if="isSettingsOpen"
                         class="absolute bottom-10 right-0 z-30 w-48 rounded-md border border-white/10 bg-slate-950/95 p-3 text-white shadow-2xl shadow-black/40 backdrop-blur sm:bottom-12 sm:w-56">
@@ -556,14 +550,14 @@ useHead(() => ({
                     </div>
                     <button type="button" class="kr-hls-control-button kr-hls-desktop-button"
                       @click="togglePictureInPicture">
-                      <PictureInPicture2 />
+                      <AppIcon name="picture-in-picture" />
                     </button>
                     <button v-if="hasNextEpisode" type="button" class="kr-hls-control-button kr-hls-desktop-button"
                       @click="playNextEpisode(true)">
-                      <SkipForward />
+                      <AppIcon name="skip-forward" />
                     </button>
                     <button type="button" class="kr-hls-control-button" @click="toggleFullscreen">
-                      <Maximize />
+                      <AppIcon name="maximize" />
                     </button>
                   </div>
                 </div>
@@ -576,7 +570,7 @@ useHead(() => ({
               <div class="absolute inset-0 grid place-items-center">
                 <span
                   class="grid size-16 place-items-center rounded-full bg-yellow-400 text-slate-950 shadow-xl shadow-yellow-950/30">
-                  <Play class="size-7 fill-current" />
+                  <AppIcon name="play" class="size-7 fill-current" />
                 </span>
               </div>
             </button>
@@ -586,7 +580,7 @@ useHead(() => ({
           <div class="flex h-14 items-center justify-between border-t border-white/5 bg-black px-4 sm:px-6">
             <div class="flex items-center gap-3">
               <div class="grid size-8 place-items-center rounded-full bg-yellow-400/20 text-yellow-300">
-                <Play class="size-4 fill-current" />
+                <AppIcon name="play" class="size-4 fill-current" />
               </div>
               <div class="text-sm">
                 <span class="font-semibold text-white">{{ formatEpisodeName(activeEpisode?.name, selectedEpisode)
@@ -599,12 +593,12 @@ useHead(() => ({
               <button type="button"
                 class="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
                 title="Báo lỗi">
-                <Bug class="size-4" /><span class="hidden sm:inline">Báo lỗi</span>
+                <AppIcon name="bug" class="size-4" /><span class="hidden sm:inline">Báo lỗi</span>
               </button>
               <button type="button"
                 class="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white transition"
                 title="Hướng dẫn">
-                <CircleHelp class="size-4" /><span class="hidden sm:inline">Hướng dẫn</span>
+                <AppIcon name="circle-help" class="size-4" /><span class="hidden sm:inline">Hướng dẫn</span>
               </button>
             </div>
           </div>
@@ -656,7 +650,7 @@ useHead(() => ({
                 <!-- Episode Progress -->
                 <div v-if="episodeProgress?.total"
                   class="inline-flex self-center sm:self-start items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 border bg-cinek-500/10 border-cinek-500/20 text-cinek-500">
-                  <Loader2 class="size-3.5 animate-spin" />
+                  <AppIcon name="loader" class="size-3.5 animate-spin" />
                   <span class="text-xs font-medium">Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total
                     }} tập</span>
                 </div>
@@ -670,7 +664,7 @@ useHead(() => ({
                     :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs } }"
                     class="inline-flex items-center gap-1 text-[13px] text-cinek-500 hover:underline mt-1">
                     Thông tin phim
-                    <ChevronRight class="size-4" />
+                    <AppIcon name="chevron-right" class="size-4" />
                   </NuxtLink>
                 </div>
               </div>
@@ -682,7 +676,7 @@ useHead(() => ({
               <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div class="relative flex min-w-0 items-center gap-1.5 sm:gap-2">
                   <div class="flex shrink-0 items-center gap-1 text-[12px] font-semibold text-white/50">
-                    <Layers class="size-4" /> Phần:
+                    <AppIcon name="layers" class="size-4" /> Phần:
                   </div>
                   <button
                     class="flex items-center gap-1.5 border border-white/30 text-white bg-white/5 rounded-md px-3 py-1.5 text-sm font-medium">
@@ -711,8 +705,8 @@ useHead(() => ({
                   class="group flex items-center gap-1.5 text-xs transition-colors rounded-md px-3 py-1.5 border font-medium"
                   :class="selectedSubtitle === index ? 'border-white/30 text-white bg-white/5' : 'border-transparent text-white/60 hover:text-white'"
                   @click="selectSubtitle(index)">
-                  <Captions v-if="index === 0" class="size-3.5" />
-                  <Languages v-else class="size-3.5" />
+                  <AppIcon name="captions" v-if="index === 0" class="size-3.5" />
+                  <AppIcon name="languages" v-else class="size-3.5" />
                   <span>{{ subtitleLabel(sub, index) }}</span>
                   <span class="rounded px-1.5 text-[10px] font-bold"
                     :class="selectedSubtitle === index ? 'bg-white text-black' : 'bg-white/10 text-white/50'">
@@ -728,7 +722,7 @@ useHead(() => ({
                   :to="episodeLink(index)"
                   class="group flex items-center justify-center gap-1.5 rounded-lg transition-all py-2.5 px-2 text-[13px] bg-[#191b24] text-white/90 hover:text-[#FFD166] hover:bg-[#1f2130] shadow-sm"
                   :class="selectedEpisode === index ? 'bg-[#F5C518]/20 text-[#FFD166] border border-[#F5C518]/40' : ''">
-                  <Play class="size-3 fill-current" />
+                  <AppIcon name="play" class="size-3 fill-current" />
                   {{ formatEpisodeName(episode.name, index) }}
                 </NuxtLink>
               </div>

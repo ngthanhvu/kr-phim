@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ArrowLeft, Check, Eye, EyeOff, KeyRound, LockKeyhole, Mail, UserRound, X } from 'lucide-vue-next'
-
 const open = defineModel<boolean>({ default: false })
 const { fetchUser } = useAuth()
 
@@ -84,7 +82,7 @@ watch(open, (val) => {
           <button type="button"
             class="absolute right-4 top-4 z-20 grid h-8 w-8 place-items-center rounded-full bg-black/20 text-white/70 backdrop-blur-sm transition hover:bg-black/40 hover:text-white"
             @click="closeModal">
-            <X class="size-4" />
+            <AppIcon name="x" class="size-4" />
           </button>
 
           <div class="flex flex-col md:flex-row">
@@ -132,12 +130,12 @@ watch(open, (val) => {
                   <button type="button"
                     class="mb-3 flex items-center gap-1.5 text-sm text-white/50 transition hover:text-white"
                     @click="mode = 'login'">
-                    <ArrowLeft class="size-3.5" />
+                    <AppIcon name="arrow-left" class="size-3.5" />
                     Quay lại đăng nhập
                   </button>
                   <div class="flex items-center gap-2.5">
                     <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFD166]/10">
-                      <KeyRound class="size-5 text-[#FFD166]" />
+                      <AppIcon name="key" class="size-5 text-[#FFD166]" />
                     </div>
                     <div>
                       <h2 class="text-xl font-bold text-white">Quên mật khẩu</h2>
@@ -151,7 +149,7 @@ watch(open, (val) => {
                 <Transition name="form-slide" mode="out-in">
                   <div v-if="mode === 'forgot'" :key="'forgot'" class="space-y-3">
                     <div class="relative">
-                      <Mail class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                      <AppIcon name="mail" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                       <input v-model="email" type="email" required placeholder="Email của bạn"
                         class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                     </div>
@@ -159,28 +157,28 @@ watch(open, (val) => {
                   <div v-else :key="mode" class="space-y-3">
                     <Transition name="form-field">
                       <div v-if="mode === 'register'" class="relative">
-                        <UserRound class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                        <AppIcon name="user-round" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                         <input v-model="name" type="text" placeholder="Tên hiển thị"
                           class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                       </div>
                     </Transition>
 
                     <div class="relative">
-                      <Mail class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                      <AppIcon name="mail" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                       <input v-model="email" type="email" required placeholder="Email hoặc số điện thoại"
                         class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-4 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                     </div>
 
                     <div class="relative">
-                      <LockKeyhole class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
+                      <AppIcon name="lock" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/30" />
                       <input v-model="password" :type="showPassword ? 'text' : 'password'" required minlength="6"
                         :placeholder="mode === 'login' ? 'Mật khẩu' : 'Mật khẩu (tối thiểu 6 ký tự)'"
                         class="h-12 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-11 pr-11 text-sm text-white placeholder:text-white/30 outline-none transition-all focus:border-[#FFD166]/40 focus:bg-white/[0.06] focus:ring-2 focus:ring-[#FFD166]/10">
                       <button type="button"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 transition hover:text-white/60"
                         @click="showPassword = !showPassword">
-                        <EyeOff v-if="showPassword" class="size-4" />
-                        <Eye v-else class="size-4" />
+                        <AppIcon v-if="showPassword" name="eye-off" class="size-4" />
+                        <AppIcon v-else name="eye" class="size-4" />
                       </button>
                     </div>
                   </div>
@@ -241,7 +239,7 @@ watch(open, (val) => {
 
                 <Transition name="form-message">
                   <p v-if="success" class="mt-4 flex items-center justify-center gap-2 rounded-xl bg-green-500/10 p-3 text-sm font-medium text-green-400">
-                    <Check class="size-4 shrink-0" />
+                    <AppIcon name="check" class="size-4 shrink-0" />
                     {{ success }}
                   </p>
                 </Transition>

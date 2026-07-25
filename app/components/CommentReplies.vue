@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { CornerDownLeft, Crown, Image, Loader2, ThumbsDown, ThumbsUp, Trash2, User, Venus, Mars, Minus } from 'lucide-vue-next'
-
 const props = defineProps<{
   replies: any[]
   depth?: number
@@ -41,11 +39,11 @@ function formatMentions(content: string) {
         :class="reply.userRole === 'admin' ? 'ring-2 ring-yellow-400 ring-offset-1 ring-offset-[#0d0f17]' : ''">
         <img v-if="reply.userAvatar" :src="reply.userAvatar"
           class="size-8 rounded-full object-cover" alt="" />
-        <User v-else class="size-3.5 text-slate-500" />
+        <AppIcon name="user" v-else class="size-3.5 text-slate-500" />
       </div>
       <div v-if="reply.userRole === 'admin'"
-        class="absolute -top-0.5 -left-0.5 size-3.5 bg-cinek-500 rounded-full flex items-center justify-center">
-        <Crown class="size-2 text-slate-950" />
+        class="absolute -top-0.5 -left-0.5 size-3 bg-yellow-400 rounded-full flex items-center justify-center ring-1 ring-[#0d0f17]">
+        <svg class="size-1.5 text-slate-950" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z"/></svg>
       </div>
     </div>
     <div class="flex-1 min-w-0">
@@ -53,9 +51,9 @@ function formatMentions(content: string) {
         <span v-if="reply.userRole === 'admin'"
           class="px-1.5 py-0.5 rounded text-[9px] font-black bg-yellow-400 text-slate-900">ADMIN</span>
         <span class="text-xs font-semibold text-white">{{ reply.userName }}</span>
-        <Venus v-if="reply.userGender === 'female'" class="size-3 text-pink-400" />
-        <Mars v-if="reply.userGender === 'male'" class="size-3 text-blue-400" />
-        <Minus v-if="reply.userGender === 'other'" class="size-3 text-purple-400" />
+        <AppIcon name="venus" v-if="reply.userGender === 'female'" class="size-3 text-pink-400" />
+        <AppIcon name="mars" v-if="reply.userGender === 'male'" class="size-3 text-blue-400" />
+        <AppIcon name="minus" v-if="reply.userGender === 'other'" class="size-3 text-purple-400" />
         <span class="text-xs text-slate-600">{{ reply.timeAgo || '' }}</span>
       </div>
       <p class="text-xs text-slate-400 whitespace-pre-wrap wrap-break-word leading-relaxed cursor-pointer select-none py-1 transition-all duration-200"
@@ -67,22 +65,22 @@ function formatMentions(content: string) {
         <button type="button" @click="handleVote(reply.id, reply.userVote === 1 ? 0 : 1)"
           class="flex items-center gap-1 text-xs"
           :class="reply.userVote === 1 ? 'text-cinek-400' : 'text-slate-600 hover:text-slate-400'">
-          <ThumbsUp class="size-3" /><span v-if="reply.likeCount">{{ reply.likeCount }}</span>
+          <AppIcon name="thumbs-up" class="size-3" /><span v-if="reply.likeCount">{{ reply.likeCount }}</span>
         </button>
         <button type="button" @click="handleVote(reply.id, reply.userVote === -1 ? 0 : -1)"
           class="flex items-center gap-1 text-xs"
           :class="reply.userVote === -1 ? 'text-red-400' : 'text-slate-600 hover:text-slate-400'">
-          <ThumbsDown class="size-3" /><span v-if="reply.dislikeCount">{{ reply.dislikeCount }}</span>
+          <AppIcon name="thumbs-down" class="size-3" /><span v-if="reply.dislikeCount">{{ reply.dislikeCount }}</span>
         </button>
         <button v-if="depth < maxDepth" type="button" @click="emit('start-reply', reply.id)"
           class="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-400">
-          <CornerDownLeft class="size-3" /><span>Trả lời</span>
+          <AppIcon name="corner-down-left" class="size-3" /><span>Trả lời</span>
         </button>
         <button v-if="user && (user.id === reply.userId || user.role === 'admin')" type="button"
           @click="emit('delete', reply.id)" class="text-xs text-slate-600 hover:text-red-400 disabled:opacity-50"
           :disabled="props.isDeleting?.has(reply.id)">
-          <Loader2 v-if="props.isDeleting?.has(reply.id)" class="size-3 animate-spin" />
-          <Trash2 v-else class="size-3" />
+          <AppIcon name="loader" v-if="props.isDeleting?.has(reply.id)" class="size-3 animate-spin" />
+          <AppIcon name="trash" v-else class="size-3" />
         </button>
       </div>
       <!-- Reply form -->
@@ -103,18 +101,20 @@ function formatMentions(content: string) {
                 <span class="text-xs text-slate-500">Tiết lộ</span>
               </div>
               <button type="button" class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition">
-                <Image class="size-4" /><span>GIF</span>
+                <AppIcon name="image" class="size-4" /><span>GIF</span>
               </button>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-xs text-slate-600">{{ (replyContent[reply.id] || '').length }} / 1000</span>
+              <span class="text-xs text-white/30">{{ (replyContent[reply.id] || '').length }} / 1000</span>
               <button type="button" @click="emit('cancel-reply', reply.id)"
-                class="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:text-white transition">Hủy</button>
+                class="px-3 py-1.5 rounded-lg text-xs text-white/50 hover:text-white transition">Hủy</button>
               <button type="button" @click="emit('submit-reply', reply.id)"
-                class="px-4 py-1.5 rounded-lg bg-cinek-500 text-xs font-bold text-slate-950 hover:bg-cinek-400 transition"
+                class="flex items-center gap-2 text-sm font-semibold transition disabled:opacity-30 disabled:cursor-not-allowed"
+                :class="(replyContent[reply.id] || '').trim() ? 'text-[#FFD166] hover:text-[#FFC845]' : 'text-white/30'"
                 :disabled="props.isSubmittingReply?.[reply.id]">
-                <Loader2 v-if="props.isSubmittingReply?.[reply.id]" class="size-3 animate-spin inline" />
-                <span v-else>Gửi</span>
+                <span>Gửi</span>
+                <AppIcon name="loader" v-if="props.isSubmittingReply?.[reply.id]" class="size-4 animate-spin" />
+                <AppIcon name="send" v-else class="size-4" />
               </button>
             </div>
           </div>

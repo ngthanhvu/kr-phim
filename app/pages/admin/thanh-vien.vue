@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Edit, Mail, Search, Trash2, ToggleLeft, ToggleRight, UserRound } from 'lucide-vue-next'
-
 definePageMeta({
   layout: 'admin',
 })
@@ -68,7 +66,7 @@ const members = computed(() => data.value?.items || [])
     <div class="rounded-xl border border-white/10 bg-slate-900/50">
       <div class="flex items-center gap-3 border-b border-white/10 p-4">
         <div class="relative flex-1">
-          <Search class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <AppIcon name="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input v-model="searchInput" type="search" placeholder="Tìm kiếm thành viên..."
             class="h-10 w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 text-sm text-white placeholder:text-slate-400 outline-none focus:border-yellow-400/50">
         </div>
@@ -123,7 +121,7 @@ const members = computed(() => data.value?.items || [])
                     :disabled="currentUser?.id === member.id"
                     :title="currentUser?.id === member.id ? 'Không thể xoá chính mình' : 'Xoá thành viên'"
                     @click="deleteMember(member)">
-                    <Trash2 class="size-4" />
+                    <AppIcon name="trash" class="size-4" />
                   </button>
                 </div>
               </td>

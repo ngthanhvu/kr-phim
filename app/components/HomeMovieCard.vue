@@ -1,6 +1,4 @@
 ﻿<script setup lang="ts">
-import { ChevronDown, ChevronUp, Circle, Heart, Play } from 'lucide-vue-next'
-
 const props = defineProps<{
   movie: {
     source: string
@@ -139,14 +137,14 @@ onBeforeUnmount(() => {
           <div class="grid grid-cols-[1fr_6.25rem_6.25rem] gap-2">
             <span
               class="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-yellow-400 px-4 text-sm font-black text-slate-950 transition hover:bg-white">
-              <Play class="size-4 fill-current" />
+              <AppIcon name="play" class="size-4 fill-current" />
               Xem ngay
             </span>
             <span class="grid h-10 place-items-center rounded-md border border-white/30 bg-white/8 text-white">
-              <Heart class="size-5 fill-current" />
+              <AppIcon name="heart" class="size-5 fill-current" />
             </span>
             <span class="grid h-10 place-items-center rounded-md border border-white/30 bg-white/8 text-white">
-              <Circle class="size-5 fill-current" />
+              <AppIcon name="circle" class="size-5 fill-current" />
             </span>
           </div>
 
@@ -171,10 +169,10 @@ onBeforeUnmount(() => {
               class="mt-1 inline-flex items-center gap-0.5 text-[10px] font-semibold text-yellow-300 transition hover:text-yellow-200"
               @click.stop="isDescriptionExpanded = !isDescriptionExpanded">
               <template v-if="isDescriptionExpanded">
-                Thu gọn <ChevronUp class="size-3" />
+                Thu gọn <AppIcon name="chevron-up" class="size-3" />
               </template>
               <template v-else>
-                Xem thêm <ChevronDown class="size-3" />
+                Xem thêm <AppIcon name="chevron-down" class="size-3" />
               </template>
             </button>
           </div>

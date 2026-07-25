@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { BarChart3, Film, Play, RefreshCw, TrendingUp, Tv, Users, X } from 'lucide-vue-next'
-
 definePageMeta({
   layout: 'admin',
 })
@@ -77,7 +75,7 @@ function barWidth(views: number) {
       <button type="button"
         class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-4 text-sm font-black text-slate-950 transition hover:bg-yellow-300"
         @click="syncOpen = true">
-        <RefreshCw class="size-4" />
+        <AppIcon name="refresh" class="size-4" />
         Đồng bộ phim
       </button>
     </div>
@@ -91,7 +89,7 @@ function barWidth(views: number) {
             <p class="mt-2 text-3xl font-black text-white">{{ stats?.total?.toLocaleString() || 0 }}</p>
           </div>
           <div class="grid size-11 place-items-center rounded-xl bg-yellow-400/10 text-yellow-400">
-            <Film class="size-5" />
+            <AppIcon name="film" class="size-5" />
           </div>
         </div>
       </div>
@@ -103,7 +101,7 @@ function barWidth(views: number) {
             <p class="mt-2 text-3xl font-black text-green-400">{{ stats?.active?.toLocaleString() || 0 }}</p>
           </div>
           <div class="grid size-11 place-items-center rounded-xl bg-green-400/10 text-green-400">
-            <TrendingUp class="size-5" />
+            <AppIcon name="trending-up" class="size-5" />
           </div>
         </div>
       </div>
@@ -115,7 +113,7 @@ function barWidth(views: number) {
             <p class="mt-2 text-3xl font-black text-blue-400">{{ stats?.series?.toLocaleString() || 0 }}</p>
           </div>
           <div class="grid size-11 place-items-center rounded-xl bg-blue-400/10 text-blue-400">
-            <Tv class="size-5" />
+            <AppIcon name="tv" class="size-5" />
           </div>
         </div>
       </div>
@@ -127,7 +125,7 @@ function barWidth(views: number) {
             <p class="mt-2 text-3xl font-black text-purple-400">{{ stats?.single?.toLocaleString() || 0 }}</p>
           </div>
           <div class="grid size-11 place-items-center rounded-xl bg-purple-400/10 text-purple-400">
-            <Play class="size-5" />
+            <AppIcon name="play" class="size-5" />
           </div>
         </div>
       </div>
@@ -315,7 +313,7 @@ function barWidth(views: number) {
             <button type="button"
               class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-white transition hover:bg-white/10"
               @click="syncOpen = false">
-              <X class="size-5" />
+              <AppIcon name="x" class="size-5" />
             </button>
 
             <h2 class="text-xl font-black text-white">Đồng bộ phim</h2>
@@ -357,7 +355,7 @@ function barWidth(views: number) {
                 class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-300 disabled:opacity-50"
                 :disabled="syncing || !Object.values(syncSources).some(Boolean)"
                 @click="handleSync">
-                <RefreshCw class="size-4" :class="syncing ? 'animate-spin' : ''" />
+                <AppIcon name="refresh" class="size-4" :class="syncing ? 'animate-spin' : ''" />
                 {{ syncing ? 'Đang đồng bộ...' : 'Đồng bộ' }}
               </button>
             </div>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Heart } from 'lucide-vue-next'
 import type { LibraryMovieItem } from '~/composables/useMovieLibrary'
 
 const { loadFavorites } = useMovieLibrary()
@@ -58,7 +57,7 @@ useHead({
             <img v-if="item.thumb || item.poster" :src="item.thumb || item.poster" :alt="item.name"
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div v-else class="grid h-full w-full place-items-center bg-white/8">
-              <Heart class="size-10 text-yellow-300" />
+              <AppIcon name="heart" class="size-10 text-yellow-300" />
             </div>
             <span class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs font-black text-slate-950">
               Yêu thích
@@ -71,7 +70,7 @@ useHead({
 
       <div v-else
         class="flex min-h-80 flex-col items-center justify-center rounded-lg border border-white/10 bg-white/6 p-6 text-center">
-        <Heart class="size-12 text-yellow-300" />
+        <AppIcon name="heart" class="size-12 text-yellow-300" />
         <h2 class="mt-4 text-xl font-black">Chưa có phim yêu thích</h2>
         <p class="mt-2 max-w-md text-sm leading-6 text-slate-300">
           Bấm nút Yêu thích ở trang phim để lưu phim vào đây.

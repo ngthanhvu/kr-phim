@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Heart, Info, Play, Plus, Trash2 } from 'lucide-vue-next'
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
 const { data, pending, error } = useFetch('/api/movies', {
@@ -384,7 +383,7 @@ useHead({
               <NuxtLink :to="movieLink(hero)"
                 class="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 text-[#0f1115] rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-[0_0_15px_rgba(254,207,89,0.5)] shrink-0 pointer-events-auto"
                 style="background:linear-gradient(39deg, rgb(254, 207, 89), rgb(255, 241, 204))" aria-label="Xem ngay">
-                <Play class="size-6 md:size-7 lg:size-8 fill-current" />
+                <AppIcon name="play" class="size-6 md:size-7 lg:size-8 fill-current" />
               </NuxtLink>
 
               <!-- Info + Add to List combo button -->
@@ -394,7 +393,7 @@ useHead({
                 <button type="button"
                   class="group/btn w-16 md:w-20 h-full flex items-center justify-center transition-all hover:bg-white/10"
                   aria-label="Thêm vào danh sách">
-                  <Plus class="size-5 md:size-6 text-white" />
+                  <AppIcon name="plus" class="size-5 md:size-6 text-white" />
                 </button>
                 <!-- Divider -->
                 <div class="w-px h-6 bg-white/30"></div>
@@ -402,7 +401,7 @@ useHead({
                 <NuxtLink :to="movieLink(hero)"
                   class="group/link w-16 md:w-20 h-full flex items-center justify-center transition-colors text-white hover:text-[#FECF59]"
                   aria-label="Thông tin phim">
-                  <Info
+                  <AppIcon name="info"
                     class="size-6 md:size-7 text-white fill-none stroke-current group-hover/link:text-[#FECF59] transition-all" />
                 </NuxtLink>
               </div>
@@ -499,7 +498,7 @@ useHead({
           <button type="button"
             class="grid size-10 shrink-0 place-items-center rounded-full border border-white/20 bg-white/8 text-white transition hover:border-yellow-400/60 hover:bg-white/14"
             aria-label="Xóa lịch sử xem" @click="clearWatchHistory">
-            <Trash2 class="size-4" />
+            <AppIcon name="trash" class="size-4" />
           </button>
         </div>
 

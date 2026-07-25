@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Save, Settings as SettingsIcon } from 'lucide-vue-next'
-
 definePageMeta({
   layout: 'admin',
 })
@@ -26,7 +24,7 @@ const allowRegistration = ref(true)
       <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
         <div class="mb-5 flex items-center gap-3">
           <div class="grid size-10 place-items-center rounded-lg bg-yellow-400/10">
-            <SettingsIcon class="size-4 text-yellow-400" />
+            <AppIcon name="settings" class="size-4 text-yellow-400" />
           </div>
           <div>
             <h2 class="text-lg font-black text-white">Cài đặt chung</h2>
@@ -74,7 +72,7 @@ const allowRegistration = ref(true)
       <div class="flex justify-end">
         <button type="button"
           class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-300">
-          <Save class="size-4" />
+          <AppIcon name="save" class="size-4" />
           Lưu thay đổi
         </button>
       </div>

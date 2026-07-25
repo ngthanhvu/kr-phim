@@ -1,15 +1,4 @@
 ﻿<script setup lang="ts">
-import {
-  Heart,
-  History,
-  LogOut,
-  Menu,
-  Search,
-  Settings,
-  User,
-  X,
-} from 'lucide-vue-next'
-
 const route = useRoute()
 const router = useRouter()
 const keyword = ref(typeof route.query.q === 'string' ? route.query.q : '')
@@ -42,12 +31,12 @@ const navItems = [
 
 const memberMenuItems = computed(() => {
   const items = [
-    { label: 'Trang cá nhân', icon: User, to: '/thanh-vien' },
-    { label: 'Yêu thích', icon: Heart, to: '/yeu-thich' },
-    { label: 'Lịch sử', icon: History, to: '/lich-su' },
+    { label: 'Trang cá nhân', icon: 'user' as const, to: '/thanh-vien' },
+    { label: 'Yêu thích', icon: 'heart' as const, to: '/yeu-thich' },
+    { label: 'Lịch sử', icon: 'history' as const, to: '/lich-su' },
   ]
   if (user.value?.role === 'admin') {
-    items.push({ label: 'Trang quản trị', icon: Settings, to: '/admin' })
+    items.push({ label: 'Trang quản trị', icon: 'settings' as const, to: '/admin' })
   }
   return items
 })
@@ -109,7 +98,7 @@ watch(() => route.path, () => {
       <form
         class="ml-auto flex w-full max-w-xs items-center rounded-full border border-white/10 bg-white/8 px-4 py-2 shadow-2xl shadow-yellow-950/20 sm:max-w-sm"
         @submit.prevent="submitSearch">
-        <Search class="mr-3 size-4 shrink-0 text-yellow-200" />
+        <AppIcon name="search" class="mr-3 size-4 shrink-0 text-yellow-200" />
         <input v-model="keyword" type="search" placeholder="Tìm phim Hàn Quốc..."
           class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
       </form>
@@ -151,14 +140,14 @@ watch(() => route.path, () => {
             </div>
             <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
               class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/[0.04] hover:text-white">
-              <component :is="item.icon" class="size-4 shrink-0 text-white/50" />
+              <AppIcon :name="item.icon" class="size-4 shrink-0 text-white/50" />
               <span class="text-[13px] font-medium text-white/70">{{ item.label }}</span>
             </NuxtLink>
             <div class="my-1.5 border-t border-white/[0.06]" />
             <button type="button"
               class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 text-[13px] font-medium text-red-400/70 transition hover:bg-red-400/8 hover:text-red-400"
               @click="handleLogout">
-              <LogOut class="size-4 shrink-0" />
+              <AppIcon name="log-out" class="size-4 shrink-0" />
               Đăng xuất
             </button>
           </div>
@@ -168,7 +157,7 @@ watch(() => route.path, () => {
       <button type="button"
         class="grid size-10 shrink-0 cursor-pointer place-items-center rounded-lg border border-white/10 bg-white/8 text-white transition hover:bg-white/16 lg:hidden"
         aria-label="Mở menu" @click="mobileMenuOpen = true">
-        <Menu class="size-5" />
+        <AppIcon name="menu" class="size-5" />
       </button>
     </nav>
 
@@ -182,7 +171,7 @@ watch(() => route.path, () => {
               <button type="button"
                 class="grid size-10 cursor-pointer place-items-center rounded-lg border border-white/10 bg-white/8 text-white transition hover:bg-white/16"
                 aria-label="Đóng menu" @click="closeMobileMenu">
-                <X class="size-5" />
+                <AppIcon name="x" class="size-5" />
               </button>
             </div>
 
@@ -210,14 +199,14 @@ watch(() => route.path, () => {
                 <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
                   class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-semibold text-slate-200 transition hover:bg-white/8 hover:text-white"
                   @click="closeMobileMenu">
-                  <component :is="item.icon" class="size-4 shrink-0" />
+                  <AppIcon :name="item.icon" class="size-4 shrink-0" />
                   {{ item.label }}
                 </NuxtLink>
                 <div class="my-2 border-t border-white/10" />
                 <button type="button"
                   class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-black text-red-400 transition hover:bg-white/8 hover:text-red-300"
                   @click="handleLogout">
-                  <LogOut class="size-4 shrink-0" />
+                  <AppIcon name="log-out" class="size-4 shrink-0" />
                   Đăng xuất
                 </button>
               </template>
