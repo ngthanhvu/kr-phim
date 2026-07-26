@@ -37,8 +37,8 @@ const {
   clearWatchHistory: removeWatchHistory,
 } = useWatchHistory()
 
-let heroTimer: ReturnType<typeof setInterval> | undefined
 const heroDetailCache = new Map<string, any>()
+const heroSliderRef = ref<{ goTo: (index: number) => void } | null>(null)
 
 const heroDescription = computed(() => {
   const content = String(heroDetail.value?.content || '').trim()
@@ -164,18 +164,8 @@ function getEpisodeDisplay(movie: any) {
   return ep
 }
 
-function selectHero(index: number) {
-  heroIndex.value = index
-}
-
-function nextHero() {
-  if (!heroSlides.value.length) return
-  heroIndex.value = (heroIndex.value + 1) % heroSlides.value.length
-}
-
-function previousHero() {
-  if (!heroSlides.value.length) return
-  heroIndex.value = (heroIndex.value - 1 + heroSlides.value.length) % heroSlides.value.length
+function goToSlide(index: number) {
+  heroSliderRef.value?.goTo(index)
 }
 
 function watchHistoryLink(item: WatchHistoryItem) {
@@ -267,13 +257,11 @@ watch(hero, async (currentHero) => {
 }, { immediate: true })
 
 onMounted(() => {
-  heroTimer = setInterval(nextHero, 6500)
   loadWatchHistory()
   window.addEventListener('storage', loadWatchHistory)
 })
 
 onBeforeUnmount(() => {
-  if (heroTimer) clearInterval(heroTimer)
   if (import.meta.client) window.removeEventListener('storage', loadWatchHistory)
 })
 
@@ -300,12 +288,16 @@ useHead({
   <main class="min-h-screen overflow-hidden bg-black">
     <AppHeader />
 
-    <section v-if="hero" class="relative w-full h-screen overflow-hidden">
-      <TransitionGroup name="hero-fade">
-        <img v-for="(slide, index) in heroSlides" v-show="index === heroIndex" :key="`${slide.source}-${slide.slug}`"
-          :src="slide.thumb || slide.poster" :alt="slide.name"
-          class="absolute inset-0 h-full w-full object-cover object-top lg:object-[72%_center]">
-      </TransitionGroup>
+    <div v-if="hero" class="relative bg-black mt-16 md:mt-0">
+      <section class="relative w-full aspect-video md:h-screen overflow-hidden">
+      <ClientOnly>
+        <HeroSlider
+          v-if="heroSlides.length"
+          ref="heroSliderRef"
+          :slides="heroSlides"
+          @update:modelValue="heroIndex = $event"
+        />
+      </ClientOnly>
 
       <!-- Dot pattern overlay (desktop) -->
       <div class="absolute inset-0 pointer-events-none opacity-30 hidden md:block"
@@ -313,7 +305,7 @@ useHead({
       </div>
 
       <!-- Mobile gradient overlay -->
-      <div class="absolute inset-0 pointer-events-none md:hidden" style="background:linear-gradient(to top, #0f111a 5%, rgba(15,17,21,0.6) 30%, transparent 60%),
+      <div class="absolute inset-0 pointer-events-none md:hidden" style="background:linear-gradient(to top, black 0%, rgba(15,17,21,0.95) 45%, rgba(15,17,21,0.7) 65%, transparent 85%),
                   radial-gradient(ellipse at center, transparent 60%, rgba(15,17,26,0.7) 100%)">
       </div>
 
@@ -410,20 +402,23 @@ useHead({
         </div>
       </div>
 
+    </section>
+
+      <!-- Mobile fade gradient between hero and thumbnails -->
       <!-- Thumbnail navigation -->
       <div
-        class="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 z-30 flex gap-2 overflow-x-auto max-w-[calc(100%-2rem)] md:max-w-md lg:max-w-lg pb-2 md:pb-0 snap-x px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden"
+        class="relative md:absolute md:bottom-8 md:left-auto md:right-8 md:translate-x-0 z-50 flex gap-2 overflow-x-auto max-w-full md:max-w-md lg:max-w-lg py-3 md:py-0 pb-2 md:pb-0 snap-x px-4 md:px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden bg-black md:bg-transparent"
         style="scrollbar-width:none;-ms-overflow-style:none">
         <button v-for="(slide, index) in heroSlides" :key="`${slide.source}-${slide.slug}-thumb`" type="button"
-          class="relative shrink-0 w-[14vw] sm:w-[10vw] md:w-[7vw] lg:w-[6vw] xl:w-[5vw] max-w-10 md:max-w-18.75 lg:max-w-21.25 aspect-square md:aspect-video transition-all duration-300 rounded-full md:rounded-lg overflow-hidden snap-center transform-gpu border-2"
+          class="relative shrink-0 w-[14vw] sm:w-[10vw] md:w-[7vw] lg:w-[6vw] xl:w-[5vw] max-w-10 md:max-w-18.75 lg:max-w-21.25 aspect-square md:aspect-video transition-all duration-300 rounded-full md:rounded-lg overflow-hidden snap-center transform-gpu border-2 cursor-pointer"
           :class="index === heroIndex ? 'border-white/90 opacity-100 scale-100 shadow-md' : 'border-transparent opacity-80 scale-95 hover:scale-100 hover:opacity-100'"
           style="-webkit-mask-image:-webkit-radial-gradient(white, black)" :aria-label="`Chuyển đến phim ${index + 1}`"
-          @click="selectHero(index)">
+          @click="goToSlide(index)">
           <img :src="slide.thumb || slide.poster" :alt="slide.name"
-            class="absolute inset-0 h-full w-full object-cover rounded-full md:rounded-lg">
+            class="absolute inset-0 h-full w-full object-cover rounded-full md:rounded-lg pointer-events-none">
         </button>
       </div>
-    </section>
+    </div>
 
     <section v-else-if="pending"
       class="mx-auto flex min-h-screen max-w-390 items-center px-4 pt-36 sm:px-6 lg:px-8 lg:pt-24 xl:px-10">
