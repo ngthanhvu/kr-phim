@@ -49,7 +49,7 @@ defineExpose({ goTo })
     <SwiperSlide v-for="(slide, index) in props.slides" :key="`${slide.source}-${slide.slug}-${index}`"
       class="h-full w-full">
       <img :src="slide.thumb || slide.poster" :alt="slide.name"
-        class="h-full w-full object-cover object-top lg:object-[72%_center]">
+        class="absolute inset-[-1px] h-[calc(100%+2px)] w-[calc(100%+2px)] max-w-none object-cover object-top lg:object-[72%_center]">
     </SwiperSlide>
   </Swiper>
 </template>

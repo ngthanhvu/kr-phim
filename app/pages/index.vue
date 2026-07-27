@@ -289,131 +289,119 @@ useHead({
     <AppHeader />
 
     <div v-if="hero" class="relative bg-black mt-16 md:mt-0">
-      <section class="relative w-full aspect-video md:h-screen overflow-hidden">
-      <ClientOnly>
-        <HeroSlider
-          v-if="heroSlides.length"
-          ref="heroSliderRef"
-          :slides="heroSlides"
-          @update:modelValue="heroIndex = $event"
-        />
-      </ClientOnly>
+      <section class="relative w-full aspect-video md:h-screen overflow-hidden bg-black after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1.5 after:bg-black after:z-10">
+        <ClientOnly>
+          <HeroSlider v-if="heroSlides.length" ref="heroSliderRef" :slides="heroSlides"
+            @update:modelValue="heroIndex = $event" />
+        </ClientOnly>
 
-      <!-- Dot pattern overlay (desktop) -->
-      <div class="absolute inset-0 pointer-events-none opacity-30 hidden md:block"
-        style="background-image:radial-gradient(rgba(0,0,0,0.4) 0.4px, transparent 1px);background-size:3px 3px">
-      </div>
+        <!-- Mobile gradient overlay (bottom only) -->
+        <div class="absolute inset-0 z-10 pointer-events-none md:hidden" style="background:linear-gradient(to top, #000000 0%, rgba(0,0,0,0.92) 8%, rgba(0,0,0,0.75) 22%, rgba(0,0,0,0.35) 50%, transparent 78%)">
+        </div>
 
-      <!-- Mobile gradient overlay -->
-      <div class="absolute inset-0 pointer-events-none md:hidden" style="background:linear-gradient(to top, black 0%, rgba(15,17,21,0.95) 45%, rgba(15,17,21,0.7) 65%, transparent 85%),
-                  radial-gradient(ellipse at center, transparent 60%, rgba(15,17,26,0.7) 100%)">
-      </div>
+        <!-- Desktop gradient overlay (bottom only) -->
+        <div class="absolute inset-0 z-10 pointer-events-none hidden md:block" style="background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 20%, rgba(0,0,0,0.35) 45%, transparent 70%)">
+        </div>
 
-      <!-- Desktop gradient overlay -->
-      <div class="absolute inset-0 pointer-events-none hidden md:block" style="background:linear-gradient(to right, rgba(15,17,26,0.6) 0%, rgba(15,17,26,0.1) 30%, transparent 60%),
-                  linear-gradient(to top, #0f111a 0%, transparent 40%),
-                  radial-gradient(ellipse at center, transparent 65%, rgba(15,17,26,0.8) 100%)">
-      </div>
-
-      <!-- Content overlay -->
-      <div class="absolute inset-0 z-20 flex items-end pb-0 md:pb-[6vw] lg:pb-[5vw] xl:pb-32 pointer-events-none">
-        <div class="max-w-350 w-full mx-auto px-4 md:px-8 pointer-events-none">
-          <div
-            class="max-w-xl mx-auto md:mx-0 md:max-w-[50vw] lg:max-w-2xl flex flex-col items-center md:items-start text-center md:text-left">
-            <!-- Title -->
-            <div class="mb-1 md:mb-4 lg:mb-6">
-              <NuxtLink :to="movieLink(hero)" class="md:pointer-events-none" aria-label="Xem chi tiết phim">
-                <h1 class="text-lg md:text-3xl lg:text-5xl font-black leading-tight text-white drop-shadow-2xl">
-                  {{ hero.name }}
-                </h1>
-              </NuxtLink>
-            </div>
-
-            <!-- Original name -->
-            <p class="text-xs md:text-sm lg:text-base font-medium text-[#FECF59] mb-2 md:mb-3 lg:mb-4 drop-shadow">
-              {{ hero.originName || 'Kho phim Hàn Vietsub mới cập nhật' }}
-            </p>
-
-            <!-- Badges (mobile) -->
+        <!-- Content overlay -->
+        <div class="absolute inset-0 z-20 flex items-end pb-8 md:pb-[8vw] lg:pb-[7vw] xl:pb-40 pointer-events-none">
+          <div class="max-w-350 w-full mx-auto px-4 md:px-8 pointer-events-none">
             <div
-              class="flex justify-center md:justify-start items-center flex-wrap gap-2 mb-3 md:mb-4 text-[10px] md:text-xs text-white/90">
-              <div v-if="hero.rating"
-                class="flex items-center text-[11px] font-bold rounded overflow-hidden border border-solid border-[rgba(1,180,228,0.5)]">
-                <span class="bg-[#01B4E4] text-white px-1.5 py-0.5">TMDb</span>
-                <span class="bg-[rgba(1,180,228,0.1)] text-white px-1.5 py-0.5">{{ hero.rating.toFixed(1) }}</span>
-              </div>
-              <span v-if="hero.quality"
-                class="inline-flex items-center justify-center rounded-sm text-[#141414] font-black leading-none tracking-normal h-5.5 px-2 text-[11px]"
-                style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%)">
-                {{ hero.quality }}
-              </span>
-              <span v-if="getEpisodeDisplay(hero)" class="px-2 py-0.75 rounded border border-white bg-black/40">
-                {{ getEpisodeDisplay(hero) }}
-              </span>
-            </div>
-
-            <!-- Genre tags (desktop only) -->
-            <div v-if="hero.categories?.length"
-              class="hidden md:flex justify-center md:justify-start items-center flex-wrap gap-2 mb-4">
-              <span v-for="category in hero.categories.slice(0, 4)" :key="category"
-                class="text-[10px] md:text-xs text-white/80 bg-white/10 px-2 py-0.75 rounded-md">
-                {{ category }}
-              </span>
-            </div>
-
-            <!-- Description (desktop only) -->
-            <div class="hidden md:block mb-4 lg:mb-8 max-w-sm lg:max-w-lg">
-              <p class="text-xs lg:text-sm text-white font-light leading-relaxed line-clamp-2 lg:line-clamp-3">
-                {{ heroDescription }}
-              </p>
-            </div>
-
-            <!-- Action buttons (desktop only) -->
-            <div
-              class="hidden md:flex justify-center md:justify-start items-center gap-4 pointer-events-auto relative z-40">
-              <!-- Watch Now button -->
-              <NuxtLink :to="movieLink(hero)"
-                class="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 text-[#0f1115] rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-[0_0_15px_rgba(254,207,89,0.5)] shrink-0 pointer-events-auto"
-                style="background:linear-gradient(39deg, rgb(254, 207, 89), rgb(255, 241, 204))" aria-label="Xem ngay">
-                <AppIcon name="play" class="size-6 md:size-7 lg:size-8 fill-current" />
-              </NuxtLink>
-
-              <!-- Info + Add to List combo button -->
-              <div
-                class="flex bg-white/5 border border-white/20 rounded-full backdrop-blur-md h-10 md:h-12 lg:h-14 items-center overflow-hidden pointer-events-auto">
-                <!-- Add to list button -->
-                <button type="button"
-                  class="group/btn w-16 md:w-20 h-full flex items-center justify-center transition-all hover:bg-white/10"
-                  aria-label="Thêm vào danh sách">
-                  <AppIcon name="plus" class="size-5 md:size-6 text-white" />
-                </button>
-                <!-- Divider -->
-                <div class="w-px h-6 bg-white/30"></div>
-                <!-- Info/details button -->
-                <NuxtLink :to="movieLink(hero)"
-                  class="group/link w-16 md:w-20 h-full flex items-center justify-center transition-colors text-white hover:text-[#FECF59]"
-                  aria-label="Thông tin phim">
-                  <AppIcon name="info"
-                    class="size-6 md:size-7 text-white fill-none stroke-current group-hover/link:text-[#FECF59] transition-all" />
+              class="max-w-xl mx-auto md:mx-0 md:max-w-[50vw] lg:max-w-2xl flex flex-col items-center md:items-start text-center md:text-left">
+              <!-- Title -->
+              <div class="mb-1 md:mb-4 lg:mb-6">
+                <NuxtLink :to="movieLink(hero)" class="md:pointer-events-none" aria-label="Xem chi tiết phim">
+                  <h1 class="text-lg md:text-3xl lg:text-5xl font-black leading-tight text-white drop-shadow-2xl">
+                    {{ hero.name }}
+                  </h1>
                 </NuxtLink>
+              </div>
+
+              <!-- Original name -->
+              <p class="text-xs md:text-sm lg:text-base font-medium text-[#FECF59] mb-2 md:mb-3 lg:mb-4 drop-shadow">
+                {{ hero.originName || 'Kho phim Hàn Vietsub mới cập nhật' }}
+              </p>
+
+              <!-- Badges (mobile) -->
+              <div
+                class="flex justify-center md:justify-start items-center flex-wrap gap-2 mb-3 md:mb-4 text-[10px] md:text-xs text-white/90">
+                <div v-if="hero.rating"
+                  class="flex items-center text-[11px] font-bold rounded overflow-hidden border border-solid border-[rgba(1,180,228,0.5)]">
+                  <span class="bg-[#01B4E4] text-white px-1.5 py-0.5">TMDb</span>
+                  <span class="bg-[rgba(1,180,228,0.1)] text-white px-1.5 py-0.5">{{ hero.rating.toFixed(1) }}</span>
+                </div>
+                <span v-if="hero.quality"
+                  class="inline-flex items-center justify-center rounded-sm text-[#141414] font-black leading-none tracking-normal h-5.5 px-2 text-[11px]"
+                  style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%)">
+                  {{ hero.quality }}
+                </span>
+                <span v-if="getEpisodeDisplay(hero)" class="px-2 py-0.75 rounded border border-white bg-black/40">
+                  {{ getEpisodeDisplay(hero) }}
+                </span>
+              </div>
+
+              <!-- Genre tags (desktop only) -->
+              <div v-if="hero.categories?.length"
+                class="hidden md:flex justify-center md:justify-start items-center flex-wrap gap-2 mb-4">
+                <span v-for="category in hero.categories.slice(0, 4)" :key="category"
+                  class="text-[10px] md:text-xs text-white/80 bg-white/10 px-2 py-0.75 rounded-md">
+                  {{ category }}
+                </span>
+              </div>
+
+              <!-- Description (desktop only) -->
+              <div class="hidden md:block mb-4 lg:mb-8 max-w-sm lg:max-w-lg">
+                <p class="text-xs lg:text-sm text-white font-light leading-relaxed line-clamp-2 lg:line-clamp-3">
+                  {{ heroDescription }}
+                </p>
+              </div>
+
+              <!-- Action buttons (desktop only) -->
+              <div
+                class="hidden md:flex justify-center md:justify-start items-center gap-4 pointer-events-auto relative z-40">
+                <!-- Watch Now button -->
+                <NuxtLink :to="movieLink(hero)"
+                  class="w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 text-[#0f1115] rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-[0_0_15px_rgba(254,207,89,0.5)] shrink-0 pointer-events-auto"
+                  style="background:linear-gradient(39deg, rgb(254, 207, 89), rgb(255, 241, 204))"
+                  aria-label="Xem ngay">
+                  <AppIcon name="play" class="size-6 md:size-7 lg:size-8 fill-current" />
+                </NuxtLink>
+
+                <!-- Info + Add to List combo button -->
+                <div
+                  class="flex bg-white/5 border border-white/20 rounded-full backdrop-blur-md h-10 md:h-12 lg:h-14 items-center overflow-hidden pointer-events-auto">
+                  <!-- Add to list button -->
+                  <button type="button"
+                    class="group/btn w-16 md:w-20 h-full flex items-center justify-center transition-all hover:bg-white/10"
+                    aria-label="Thêm vào danh sách">
+                    <AppIcon name="plus" class="size-5 md:size-6 text-white" />
+                  </button>
+                  <!-- Divider -->
+                  <div class="w-px h-6 bg-white/30"></div>
+                  <!-- Info/details button -->
+                  <NuxtLink :to="movieLink(hero)"
+                    class="group/link w-16 md:w-20 h-full flex items-center justify-center transition-colors text-white hover:text-[#FECF59]"
+                    aria-label="Thông tin phim">
+                    <AppIcon name="info"
+                      class="size-6 md:size-7 text-white fill-none stroke-current group-hover/link:text-[#FECF59] transition-all" />
+                  </NuxtLink>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-    </section>
+      </section>
 
-      <!-- Mobile fade gradient between hero and thumbnails -->
       <!-- Thumbnail navigation -->
       <div
-        class="relative md:absolute md:bottom-8 md:left-auto md:right-8 md:translate-x-0 z-50 flex gap-2 overflow-x-auto max-w-full md:max-w-md lg:max-w-lg py-3 md:py-0 pb-2 md:pb-0 snap-x px-4 md:px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden bg-black md:bg-transparent"
+        class="relative md:absolute md:bottom-8 md:left-auto md:right-8 md:translate-x-0 z-50 flex gap-2 overflow-x-auto max-w-full md:max-w-md lg:max-w-lg py-3 md:py-0 pb-2 md:pb-0 snap-x px-4 md:px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden bg-transparent"
         style="scrollbar-width:none;-ms-overflow-style:none">
         <button v-for="(slide, index) in heroSlides" :key="`${slide.source}-${slide.slug}-thumb`" type="button"
           class="relative shrink-0 w-[14vw] sm:w-[10vw] md:w-[7vw] lg:w-[6vw] xl:w-[5vw] max-w-10 md:max-w-18.75 lg:max-w-21.25 aspect-square md:aspect-video transition-all duration-300 rounded-full md:rounded-lg overflow-hidden snap-center transform-gpu border-2 cursor-pointer"
           :class="index === heroIndex ? 'border-white/90 opacity-100 scale-100 shadow-md' : 'border-transparent opacity-80 scale-95 hover:scale-100 hover:opacity-100'"
-          style="-webkit-mask-image:-webkit-radial-gradient(white, black)" :aria-label="`Chuyển đến phim ${index + 1}`"
-          @click="goToSlide(index)">
+          style="-webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black);"
+          :aria-label="`Chuyển đến phim ${index + 1}`" @click="goToSlide(index)">
           <img :src="slide.thumb || slide.poster" :alt="slide.name"
             class="absolute inset-0 h-full w-full object-cover rounded-full md:rounded-lg pointer-events-none">
         </button>
