@@ -48,7 +48,7 @@ defineExpose({ goTo })
     class="absolute inset-0 h-full w-full" @slide-change="onSlideChange">
     <SwiperSlide v-for="(slide, index) in props.slides" :key="`${slide.source}-${slide.slug}-${index}`"
       class="h-full w-full">
-      <img :src="slide.thumb || slide.poster" :alt="slide.name"
+      <img :src="slide.poster || slide.thumb" :alt="slide.name"
         class="absolute inset-[-1px] h-[calc(100%+2px)] w-[calc(100%+2px)] max-w-none object-cover object-top lg:object-[72%_center]">
     </SwiperSlide>
   </Swiper>

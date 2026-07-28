@@ -565,7 +565,7 @@ useHead(() => ({
             </div>
 
             <button v-else type="button" class="absolute inset-0 text-white" @click="startPlayer">
-              <img :src="movie.thumb || movie.poster" :alt="movie.name" class="h-full w-full object-cover opacity-45">
+              <img :src="movie.poster || movie.thumb" :alt="movie.name" class="h-full w-full object-cover opacity-45">
               <div class="absolute inset-0 bg-black/45" />
               <div class="absolute inset-0 grid place-items-center">
                 <span
@@ -612,7 +612,7 @@ useHead(() => ({
             <div class="mb-6 flex items-start gap-6 lg:gap-8">
               <div
                 class="hidden shrink-0 aspect-2/3 w-32 rounded-xl overflow-hidden shadow-2xl sm:block md:w-40 lg:w-37.5">
-                <img :src="movie.poster || movie.thumb" :alt="movie.name" class="w-full h-full object-cover">
+                <img :src="movie.thumb || movie.poster" :alt="movie.name" class="w-full h-full object-cover">
               </div>
               <div class="flex-1 flex flex-col gap-4 pt-1 w-full text-center sm:text-left">
                 <div>

@@ -215,7 +215,7 @@ useHead(() => ({
           <div class="shrink-0 w-40 md:w-56 lg:w-64 max-w-70 mx-auto md:mx-0 flex flex-col gap-8">
             <div
               class="relative rounded-xl overflow-hidden shadow-2xl shadow-[#0f111a]/50 ring-1 ring-white/10 bg-[#16161e] w-full aspect-2/3">
-              <img :src="movie.poster || movie.thumb" :alt="movie.name"
+              <img :src="movie.thumb || movie.poster" :alt="movie.name"
                 class="w-full h-full object-cover relative z-10">
             </div>
 

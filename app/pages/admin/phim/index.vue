@@ -18,6 +18,7 @@ const syncOpen = ref(false)
 const deleting = ref(false)
 const deleteConfirmOpen = ref(false)
 const syncSources = ref({ ophim: true, nguonc: true, kkphim: true })
+const syncResult = ref<{ total: number, created: number, updated: number, sourceStats: Record<string, { fetched: number, error?: string }> } | null>(null)
 
 let searchTimeout: ReturnType<typeof setTimeout> | undefined
 
@@ -60,12 +61,13 @@ async function handleSync() {
   if (!sources.length) return
 
   syncing.value = true
+  syncResult.value = null
   try {
-    await $fetch('/api/admin/sync', {
+    const result: any = await $fetch('/api/admin/sync', {
       method: 'POST',
       body: { sources },
     })
-    syncOpen.value = false
+    syncResult.value = result
     await refresh()
   } catch (err) {
     console.error('Sync failed:', err)
@@ -148,7 +150,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
             <tr class="border-b border-white/10 text-center text-xs font-semibold uppercase text-slate-400">
               <th class="w-12 px-4 py-3 text-center">STT</th>
               <th class="px-4 py-3 text-center">Phim</th>
-              <th class="px-4 py-3 text-center">Nguồn</th>
+              <th class="px-4 py-3 text-center">Nguồn trùng</th>
               <th class="px-4 py-3 text-center">Tập</th>
               <th class="px-4 py-3 text-center">Lượt xem</th>
               <th class="px-4 py-3 text-center">Trạng thái</th>
@@ -169,7 +171,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               </td>
               <td class="px-4 py-3 text-center">
                 <span class="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white">
-                  {{ movie.source?.toUpperCase() }}
+                  {{ (movie.sources || []).length }} nguồn
                 </span>
               </td>
               <td class="px-4 py-3 text-center text-sm text-slate-300">
@@ -195,9 +197,11 @@ const totalPages = computed(() => data.value?.totalPages || 1)
                     class="rounded bg-purple-400/10 px-2 py-0.5 text-[10px] font-semibold text-purple-400">Poster</span>
                   <span v-if="movie.customThumb"
                     class="rounded bg-pink-400/10 px-2 py-0.5 text-[10px] font-semibold text-pink-400">Thumb</span>
-                  <span v-if="movie.customEpisodes?.length"
-                    class="rounded bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400">{{ movie.customEpisodes.length }} tập</span>
-                  <span v-if="!movie.customContent && !movie.customPoster && !movie.customThumb && !movie.customEpisodes?.length"
+                  <span v-if="movie.customServers?.length"
+                    class="rounded bg-emerald-400/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                    {{ movie.customServers.length }} server · {{ movie.customServers.reduce((t: number, s: any) => t + (s.episodes?.length || 0), 0) }} tập
+                  </span>
+                  <span v-if="!movie.customContent && !movie.customPoster && !movie.customThumb && !movie.customServers?.length"
                     class="text-xs text-slate-500">Mặc định</span>
                 </div>
               </td>
@@ -280,6 +284,24 @@ const totalPages = computed(() => data.value?.totalPages || 1)
                 </div>
                 <AdminToggle v-model="syncSources.kkphim" />
               </label>
+            </div>
+
+            <div v-if="syncResult" class="mt-4 rounded-lg border border-white/10 bg-white/5 p-4">
+              <p class="text-sm font-semibold text-white">Kết quả đồng bộ</p>
+              <div class="mt-2 space-y-1 text-xs text-slate-400">
+                <p>Tổng phim lấy được: <span class="font-bold text-white">{{ syncResult.total }}</span></p>
+                <p>Đã tạo: <span class="font-bold text-green-400">{{ syncResult.created }}</span></p>
+                <p>Đã cập nhật: <span class="font-bold text-yellow-400">{{ syncResult.updated }}</span></p>
+                <div v-if="syncResult.sourceStats" class="mt-2">
+                  <p class="font-semibold text-white">Theo nguồn:</p>
+                  <ul class="mt-1 space-y-0.5">
+                    <li v-for="(stats, source) in syncResult.sourceStats" :key="source">
+                      <span class="uppercase text-white">{{ source }}</span>: {{ stats.fetched }} phim
+                      <span v-if="stats.error" class="text-red-400">({{ stats.error }})</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <div class="mt-6 flex justify-end gap-3">

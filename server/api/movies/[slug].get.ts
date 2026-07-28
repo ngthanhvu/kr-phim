@@ -1,6 +1,53 @@
 import { movies } from '../../database/schema'
 import { eq, and } from 'drizzle-orm'
-import { getMovieDetailGroup, parseSourceRefs } from '../../utils/movies'
+import type { MovieDetail, NormalizedServer } from '../../utils/movies'
+
+function mapCustomServers(movie: any): NormalizedServer[] {
+  const servers = movie.customServers || movie.custom_servers
+  if (!Array.isArray(servers) || !servers.length) return []
+
+  return servers.map((server: any) => ({
+    name: String(server.name || 'Server'),
+    source: movie.source,
+    sourceSlug: movie.slug,
+    episodes: (server.episodes || []).map((ep: any) => ({
+      name: String(ep.name || ''),
+      linkEmbed: ep.linkEmbed || undefined,
+      linkM3u8: ep.linkM3u8 || undefined,
+    })).filter((ep: any) => ep.name || ep.linkEmbed || ep.linkM3u8),
+  })).filter((server: any) => server.episodes.length)
+}
+
+function mapMovieToDetail(movie: any): MovieDetail {
+  const servers = mapCustomServers(movie)
+
+  return {
+    id: `${movie.source}:${movie.slug}`,
+    source: movie.source,
+    name: movie.name,
+    originName: movie.originName || '',
+    slug: movie.slug,
+    thumb: movie.customThumb || movie.thumb || '',
+    poster: movie.customPoster || movie.poster || '',
+    year: movie.year || undefined,
+    time: movie.time || undefined,
+    episode: movie.episode || undefined,
+    episodeTotal: movie.episodeTotal || undefined,
+    quality: movie.quality || undefined,
+    lang: movie.lang || undefined,
+    type: movie.type || undefined,
+    rating: movie.rating || undefined,
+    updatedAt: movie.apiUpdatedAt ? new Date(movie.apiUpdatedAt).toISOString() : undefined,
+    categories: movie.categories || [],
+    countries: movie.countries || [],
+    sources: movie.sources || [],
+    content: movie.customContent || movie.content || '',
+    actors: movie.actors || [],
+    directors: [],
+    trailer: undefined,
+    servers,
+  }
+}
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -34,19 +81,5 @@ export default defineEventHandler(async (event) => {
     recordToUpdate = fallback[0]
   }
 
-  const refs = parseSourceRefs(query.sources || query.srcs, query.source, slug)
-
-  const detail = await getMovieDetailGroup(refs)
-
-  if (detail.episodeTotal && recordToUpdate) {
-    try {
-      await db
-        .update(movies)
-        .set({ episodeTotal: detail.episodeTotal })
-        .where(eq(movies.id, recordToUpdate.id))
-    } catch {
-    }
-  }
-
-  return detail
+  return mapMovieToDetail(recordToUpdate)
 })

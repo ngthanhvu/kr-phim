@@ -177,7 +177,7 @@ useHead({
           :to="movieLink(movie)" class="group">
           <div
             class="relative aspect-2/3 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:-translate-y-1 group-hover:ring-yellow-300/60">
-            <img :src="movie.poster || movie.thumb" :alt="movie.name"
+            <img :src="movie.thumb || movie.poster" :alt="movie.name"
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950 via-slate-950/70 to-transparent p-3">
               <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>

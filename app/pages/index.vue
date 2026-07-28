@@ -436,6 +436,22 @@ useHead({
       </div>
     </section>
 
+    <section v-else class="flex min-h-screen items-center justify-center px-4 pt-16 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <div class="mx-auto mb-6 flex size-20 items-center justify-center rounded-full bg-yellow-400/10">
+          <AppIcon name="film" class="size-10 text-yellow-400" />
+        </div>
+        <h1 class="text-2xl font-black text-white sm:text-3xl">Web đang chưa cập nhật phim</h1>
+        <p class="mx-auto mt-3 max-w-md text-sm text-slate-400 sm:text-base">
+          Hiện tại chưa có bộ phim nào. Vui lòng quay lại sau để khám phá kho phim mới nhất nhé!
+        </p>
+        <NuxtLink to="/phim"
+          class="mt-6 inline-flex items-center gap-2 rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-black text-slate-950 transition hover:bg-yellow-300">
+          Khám phá kho phim
+        </NuxtLink>
+      </div>
+    </section>
+
     <div class="relative z-10 mx-auto max-w-390 px-4 pb-16 pt-8 sm:px-6 lg:px-8 xl:px-10">
       <div v-if="sourceStatus.length" class="hidden">
         <span v-for="source in sourceStatus" :key="source.name"

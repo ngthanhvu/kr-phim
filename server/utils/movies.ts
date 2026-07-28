@@ -200,7 +200,7 @@ function interleaveMovies(groups: NormalizedMovie[][]) {
   return interleaved
 }
 
-function groupMovies(items: NormalizedMovie[]) {
+export function groupMovies(items: NormalizedMovie[]) {
   const groups = new Map<string, NormalizedMovie>()
   const exactAliases = new Map<string, string>()
   const looseAliases = new Map<string, string>()
@@ -291,7 +291,7 @@ export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): Normal
     originName: text(movie?.origin_name),
     slug: text(movie?.slug),
     thumb: joinOphimImage(pathImage, movie?.thumb_url),
-    poster: joinOphimImage(pathImage, movie?.poster_url || movie?.thumb_url),
+    poster: joinOphimImage(pathImage, movie?.poster_url),
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
@@ -314,7 +314,7 @@ export function normalizeKkphimMovie(movie: any, pathImage = KKPHIM_IMAGE): Norm
     originName: text(movie?.origin_name),
     slug: text(movie?.slug),
     thumb: joinKkphimImage(pathImage, movie?.thumb_url),
-    poster: joinKkphimImage(pathImage, movie?.poster_url || movie?.thumb_url),
+    poster: joinKkphimImage(pathImage, movie?.poster_url),
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
@@ -339,7 +339,7 @@ function normalizeNguoncMovie(movie: any): NormalizedMovie {
     originName: text(movie?.original_name || movie?.origin_name),
     slug: text(movie?.slug),
     thumb: joinImage('', image),
-    poster: joinImage('', movie?.poster_url || image),
+    poster: joinImage('', movie?.poster_url),
     year: Number(movie?.year || movie?.release_year) || undefined,
     time: text(movie?.time || movie?.duration),
     episode: text(movie?.episode_current || movie?.current_episode),

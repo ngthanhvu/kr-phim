@@ -203,7 +203,7 @@ useHead({
             <NuxtLink v-for="movie in selectedDay.items" :key="`${movie.source}-${movie.slug}`"
               :to="{ path: `/phim/${movie.slug}`, query: { source: movie.source } }"
               class="schedule-card">
-              <img :src="movie.poster || movie.thumb" :alt="movie.name"
+              <img :src="movie.thumb || movie.poster" :alt="movie.name"
                 class="schedule-card-image">
               <div class="schedule-card-body">
                 <h2 class="schedule-card-title">

@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
     @mouseenter="showPreview" @mouseleave="scheduleHide" @focus="showPreview" @blur="scheduleHide">
     <div
       class="absolute inset-0 overflow-hidden rounded-md bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10 transition duration-300 group-hover:ring-yellow-300/60">
-      <img :src="movie.poster || movie.thumb" :alt="movie.name"
+      <img :src="movie.thumb || movie.poster" :alt="movie.name"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
       <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950 via-slate-950/70 to-transparent p-3">
         <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>
@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
         class="fixed z-90 hidden origin-top-left overflow-hidden rounded-xl bg-[#07111d] text-white shadow-2xl shadow-black/60 ring-1 ring-yellow-300/45 sm:block"
         :style="previewStyle" @mouseenter="keepPreview" @mouseleave="scheduleHide">
         <div class="relative h-44 overflow-hidden">
-          <img :src="movie.thumb || movie.poster" :alt="movie.name" class="h-full w-full object-cover object-top">
+          <img :src="movie.poster || movie.thumb" :alt="movie.name" class="h-full w-full object-cover object-top">
           <div class="absolute inset-0 bg-linear-to-t from-[#07111d] via-[#07111d]/30 to-transparent" />
           <div class="absolute inset-x-0 bottom-0 p-4">
             <h3 class="line-clamp-2 text-xl font-black leading-tight text-white">
