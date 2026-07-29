@@ -3,10 +3,13 @@ import { eq, and } from 'drizzle-orm'
 import type { MovieDetail, NormalizedServer } from '../../utils/movies'
 
 function mapCustomServers(movie: any): NormalizedServer[] {
-  const servers = movie.customServers || movie.custom_servers
-  if (!Array.isArray(servers) || !servers.length) return []
+  let raw = movie.customServers ?? movie.custom_servers
+  if (typeof raw === 'string') {
+    try { raw = JSON.parse(raw) } catch { raw = null }
+  }
+  if (!Array.isArray(raw) || !raw.length) return []
 
-  return servers.map((server: any) => ({
+  return raw.map((server: any) => ({
     name: String(server.name || 'Server'),
     source: movie.source,
     sourceSlug: movie.slug,
@@ -14,7 +17,7 @@ function mapCustomServers(movie: any): NormalizedServer[] {
       name: String(ep.name || ''),
       linkEmbed: ep.linkEmbed || undefined,
       linkM3u8: ep.linkM3u8 || undefined,
-    })).filter((ep: any) => ep.name || ep.linkEmbed || ep.linkM3u8),
+    })).filter((ep: any) => ep.linkEmbed || ep.linkM3u8 || ep.name),
   })).filter((server: any) => server.episodes.length)
 }
 

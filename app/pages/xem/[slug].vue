@@ -374,13 +374,9 @@ async function shareMovie() {
   catch { flashActionMessage('Chưa chia sẻ được.') }
 }
 
-function getEpisodeDisplay() {
-  const ep = movie.value?.episode, total = movie.value?.episodeTotal
-  if (!ep) return undefined
-  const totalNum = total ? total.replace(/[^0-9]/g, '') : '', epNum = ep.replace(/[^0-9]/g, '')
-  if (epNum && totalNum && epNum !== totalNum) return `Tập ${epNum}/${totalNum}`
-  return ep
-}
+const episodeDisplay = computed(() =>
+  getEpisodeDisplay(movie.value?.episode, movie.value?.episodeTotal),
+)
 
 onMounted(async () => {
   await refreshFavoriteState()
@@ -635,9 +631,9 @@ useHead(() => ({
                   <span v-if="movie.year"
                     class="text-[11px] font-medium px-2 py-0.5 border border-white/20 rounded text-white/90">{{
                       movie.year }}</span>
-                  <span v-if="getEpisodeDisplay()"
+                  <span v-if="episodeDisplay"
                     class="text-[11px] font-medium px-2 py-0.5 border border-white/20 rounded text-white/90">{{
-                      getEpisodeDisplay() }}</span>
+                      episodeDisplay }}</span>
                 </div>
 
                 <!-- Genres -->

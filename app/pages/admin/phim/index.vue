@@ -91,6 +91,53 @@ async function handleDeleteAll() {
 
 const movies = computed(() => data.value?.items || [])
 const totalPages = computed(() => data.value?.totalPages || 1)
+
+function extractEpisodeNumber(value?: string): number {
+  if (!value) return 0
+  const match = value.match(/(\d+)(?:\/\d+)?\s*$/)
+  if (match) return Number(match[1]) || 0
+  const anyNumber = value.match(/\d+/)
+  return anyNumber ? Number(anyNumber[0]) : 0
+}
+
+function formatEpisode(movie: any) {
+  const current = extractEpisodeNumber(movie.episode)
+  const total = extractEpisodeNumber(movie.episodeTotal)
+  if (current > 0 && total > 0) {
+    return `${current}/${total}`
+  }
+  if (current > 0) return String(current)
+  if (movie.episode) return movie.episode
+  return '-'
+}
+
+function formatDate(value?: string | number | Date | null) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleString('vi-VN')
+}
+
+function formatRelativeTime(dateValue?: string | number | Date | null) {
+  if (!dateValue) return 'Không rõ'
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return 'Không rõ'
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  const units = [
+    { label: 'năm', seconds: 365 * 24 * 60 * 60 },
+    { label: 'tháng', seconds: 30 * 24 * 60 * 60 },
+    { label: 'tuần', seconds: 7 * 24 * 60 * 60 },
+    { label: 'ngày', seconds: 24 * 60 * 60 },
+    { label: 'giờ', seconds: 60 * 60 },
+    { label: 'phút', seconds: 60 },
+  ]
+  for (const unit of units) {
+    const value = Math.floor(seconds / unit.seconds)
+    if (value > 0) return `${value} ${unit.label} trước`
+  }
+  return 'Vừa xong'
+}
 </script>
 
 <template>
@@ -153,6 +200,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               <th class="px-4 py-3 text-center">Nguồn trùng</th>
               <th class="px-4 py-3 text-center">Tập</th>
               <th class="px-4 py-3 text-center">Lượt xem</th>
+              <th class="px-4 py-3 text-center">Cập nhật API</th>
               <th class="px-4 py-3 text-center">Trạng thái</th>
               <th class="px-4 py-3 text-center">Chỉnh sửa</th>
               <th class="px-4 py-3 text-center">Thao tác</th>
@@ -175,13 +223,19 @@ const totalPages = computed(() => data.value?.totalPages || 1)
                 </span>
               </td>
               <td class="px-4 py-3 text-center text-sm text-slate-300">
-                <template v-if="movie.episode && movie.episodeTotal && !movie.episode.includes('/')">
-                  <span class="font-semibold text-yellow-300">Tập {{ movie.episode.replace(/[^0-9]/g, '') }}/{{ movie.episodeTotal.replace(/[^0-9]/g, '') }}</span>
-                </template>
-                <span v-else>{{ movie.episode || '-' }}</span>
+                <span
+                  class="font-semibold text-yellow-300"
+                  :title="(movie.sources || []).map((s: any) => `${s.source.toUpperCase()}: ${s.episode || s.episodeTotal || '?'}`).join('\n')">
+                  {{ formatEpisode(movie) }}
+                </span>
               </td>
               <td class="px-4 py-3 text-center text-sm text-slate-300">
                 {{ (movie.views || 0).toLocaleString() }}
+              </td>
+              <td class="px-4 py-3 text-center text-sm text-slate-300">
+                <span :title="formatDate(movie.apiUpdatedAt || movie.syncedAt)">
+                  {{ formatRelativeTime(movie.apiUpdatedAt || movie.syncedAt) }}
+                </span>
               </td>
               <td class="px-4 py-3 text-center">
                 <span class="rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -218,7 +272,7 @@ const totalPages = computed(() => data.value?.totalPages || 1)
               </td>
             </tr>
             <tr v-if="!movies.length">
-              <td colspan="8" class="px-4 py-12 text-center text-sm text-slate-400">
+              <td colspan="9" class="px-4 py-12 text-center text-sm text-slate-400">
                 {{ debouncedKeyword ? 'Không tìm thấy phim nào.' : 'Chưa có phim nào. Bấm "Đồng bộ từ API" để lấy phim.' }}
               </td>
             </tr>

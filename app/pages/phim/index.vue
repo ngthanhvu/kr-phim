@@ -70,20 +70,6 @@ function movieLink(movie: any) {
   }
 }
 
-function getEpisodeDisplay(movie: any) {
-  const ep = movie.episode
-  const total = movie.episodeTotal
-  if (!ep) return undefined
-
-  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
-  const epNum = ep.replace(/[^0-9]/g, '')
-
-  if (epNum && totalNum && epNum !== totalNum) {
-    return `Tập ${epNum}/${totalNum}`
-  }
-
-  return ep
-}
 
 function nextPage() {
   page.value += 1
@@ -135,7 +121,7 @@ useHead({
           <div
             class="flex min-w-0 flex-1 items-center rounded-full border border-white/10 bg-white/8 px-4 py-3 shadow-2xl shadow-yellow-950/20">
             <AppIcon name="search" class="mr-3 size-4 shrink-0 text-yellow-200" />
-            <input v-model="keyword" type="search" placeholder="Tìm phim Hàn Quốc..."
+            <input v-model="keyword" type="search" placeholder="Tìm phim..."
               class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
           </div>
 
@@ -181,15 +167,15 @@ useHead({
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
             <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-950 via-slate-950/70 to-transparent p-3">
               <p class="line-clamp-2 text-sm font-bold leading-snug text-white">{{ movie.name }}</p>
-              <p class="mt-1 truncate text-xs text-yellow-100">{{ getEpisodeDisplay(movie) || movie.year || movie.quality }}</p>
+              <p class="mt-1 truncate text-xs text-yellow-100">{{ getEpisodeDisplay(movie.episode, movie.episodeTotal) || movie.year || movie.quality }}</p>
             </div>
             <span v-if="movie.sources?.length > 1"
               class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs font-black text-slate-950">
               {{ movie.sources.length }} server
             </span>
-            <span v-if="getEpisodeDisplay(movie)"
+            <span v-if="getEpisodeDisplay(movie.episode, movie.episodeTotal)"
               class="absolute right-2 top-2 rounded bg-red-600/90 px-2 py-1 text-xs font-black text-white backdrop-blur-sm">
-              {{ getEpisodeDisplay(movie) }}
+              {{ getEpisodeDisplay(movie.episode, movie.episodeTotal) }}
             </span>
           </div>
         </NuxtLink>

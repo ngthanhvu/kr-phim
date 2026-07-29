@@ -99,7 +99,7 @@ watch(() => route.path, () => {
         class="ml-auto flex w-full max-w-xs items-center rounded-full border border-white/10 bg-white/8 px-4 py-2 shadow-2xl shadow-yellow-950/20 sm:max-w-sm"
         @submit.prevent="submitSearch">
         <AppIcon name="search" class="mr-3 size-4 shrink-0 text-yellow-200" />
-        <input v-model="keyword" type="search" placeholder="Tìm phim Hàn Quốc..."
+        <input v-model="keyword" type="search" placeholder="Tìm phim..."
           class="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-400">
       </form>
 
@@ -108,7 +108,8 @@ watch(() => route.path, () => {
           class="inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-full bg-[#F2F4F7] px-4 text-sm font-semibold text-[#1c1c1c] shadow-sm transition hover:bg-white hover:shadow-md"
           aria-label="Tài khoản thành viên" @click="handleMemberClick">
           <template v-if="user">
-            <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" class="size-7 rounded-full object-cover ring-2 ring-[#FFD166]/20">
+            <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName"
+              class="size-7 rounded-full object-cover ring-2 ring-[#FFD166]/20">
             <span v-else
               class="grid size-7 place-items-center rounded-full bg-[#FFD166]/20 text-xs font-bold text-[#FFD166]">
               {{ displayInitial }}
@@ -117,7 +118,8 @@ watch(() => route.path, () => {
           </template>
           <template v-else>
             <svg class="size-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
             </svg>
             <span>Thành viên</span>
           </template>
@@ -125,10 +127,11 @@ watch(() => route.path, () => {
 
         <Transition name="member-menu">
           <div v-if="user && memberMenuOpen"
-            class="absolute right-0 top-[calc(100%+0.5rem)] w-56 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#12121a]/95 py-2 text-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
-            <div class="border-b border-white/[0.06] px-4 py-3">
+            class="absolute right-0 top-[calc(100%+0.5rem)] w-56 overflow-hidden rounded-2xl border border-white/8 bg-[#12121a]/95 py-2 text-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            <div class="border-b border-white/6 px-4 py-3">
               <div class="flex items-center gap-2.5">
-                <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" class="size-8 rounded-full object-cover ring-2 ring-[#FFD166]/20">
+                <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName"
+                  class="size-8 rounded-full object-cover ring-2 ring-[#FFD166]/20">
                 <div v-else class="grid size-8 shrink-0 place-items-center rounded-full bg-[#FFD166]/10">
                   <span class="text-xs font-bold text-[#FFD166]">{{ displayInitial }}</span>
                 </div>
@@ -139,11 +142,11 @@ watch(() => route.path, () => {
               </div>
             </div>
             <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
-              class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/[0.04] hover:text-white">
+              class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/4 hover:text-white">
               <AppIcon :name="item.icon" class="size-4 shrink-0 text-white/50" />
               <span class="text-[13px] font-medium text-white/70">{{ item.label }}</span>
             </NuxtLink>
-            <div class="my-1.5 border-t border-white/[0.06]" />
+            <div class="my-1.5 border-t border-white/6" />
             <button type="button"
               class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 text-[13px] font-medium text-red-400/70 transition hover:bg-red-400/8 hover:text-red-400"
               @click="handleLogout">
@@ -176,7 +179,8 @@ watch(() => route.path, () => {
             </div>
 
             <div v-if="user" class="flex items-center gap-3 border-b border-white/10 px-4 py-4">
-              <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName" class="size-9 rounded-full object-cover ring-2 ring-[#FFD166]/20">
+              <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName"
+                class="size-9 rounded-full object-cover ring-2 ring-[#FFD166]/20">
               <span v-else
                 class="grid size-9 place-items-center rounded-full bg-yellow-400/10 text-sm font-black text-yellow-400">
                 {{ displayInitial }}

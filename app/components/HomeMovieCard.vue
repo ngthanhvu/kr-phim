@@ -19,20 +19,9 @@ const props = defineProps<{
   }
 }>()
 
-const episodeDisplay = computed(() => {
-  const ep = props.movie.episode
-  const total = props.movie.episodeTotal
-  if (!ep) return undefined
-
-  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
-  const epNum = ep.replace(/[^0-9]/g, '')
-
-  if (epNum && totalNum && epNum !== totalNum) {
-    return `Tập ${epNum}/${totalNum}`
-  }
-
-  return ep
-})
+const episodeDisplay = computed(() =>
+  getEpisodeDisplay(props.movie.episode, props.movie.episodeTotal),
+)
 
 const isPreviewVisible = ref(false)
 const isDescriptionExpanded = ref(false)

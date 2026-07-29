@@ -45,13 +45,11 @@ export default defineEventHandler(async (event) => {
 
   if ('customServers' in body) {
     updates.customServers = Array.isArray(body.customServers) && body.customServers.length
-      ? body.customServers
-        .filter((server: any) => server.name?.trim())
-        .map((server: any) => ({
-          name: server.name.trim(),
+      ? body.customServers.map((server: any) => ({
+          name: server.name?.trim() || `Server ${body.customServers.indexOf(server) + 1}`,
           episodes: Array.isArray(server.episodes)
-            ? server.episodes.filter((ep: any) => ep.name?.trim()).map((ep: any) => ({
-                name: ep.name.trim(),
+            ? server.episodes.filter((ep: any) => ep.linkEmbed?.trim() || ep.linkM3u8?.trim() || ep.name?.trim()).map((ep: any) => ({
+                name: ep.name?.trim() || '',
                 linkEmbed: ep.linkEmbed?.trim() || null,
                 linkM3u8: ep.linkM3u8?.trim() || null,
               }))

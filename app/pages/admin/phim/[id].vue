@@ -115,7 +115,7 @@ const apiActors = computed(() => {
 })
 
 function addServer() {
-  customServers.value.push({ name: '', episodes: [] })
+  customServers.value.push({ name: `Server ${customServers.value.length + 1}`, episodes: [] })
 }
 
 function removeServer(serverIndex: number) {

@@ -27,6 +27,8 @@ export interface MovieSourceRef {
   source: Source
   slug: string
   name?: string
+  episode?: string
+  episodeTotal?: string
 }
 
 export interface NormalizedEpisode {
@@ -179,6 +181,8 @@ function movieSourceRef(movie: NormalizedMovie): MovieSourceRef {
     source: movie.source,
     slug: movie.slug,
     name: movie.name,
+    episode: movie.episode,
+    episodeTotal: movie.episodeTotal,
   }
 }
 
@@ -198,6 +202,16 @@ function interleaveMovies(groups: NormalizedMovie[][]) {
   }
 
   return interleaved
+}
+
+function extractEpisodeNumber(value?: string): number {
+  if (!value) return 0
+  const match = value.match(/(\d+)(?:\/\d+)?\s*$/)
+  if (!match) {
+    const anyNumber = value.match(/\d+/)
+    return anyNumber ? Number(anyNumber[0]) : 0
+  }
+  return Number(match[1])
 }
 
 export function groupMovies(items: NormalizedMovie[]) {
@@ -243,7 +257,11 @@ export function groupMovies(items: NormalizedMovie[]) {
       continue
     }
 
-    if (!existing.sources?.some((source) => source.source === movie.source && source.slug === movie.slug)) {
+    const existingRef = existing.sources?.find((source) => source.source === movie.source && source.slug === movie.slug)
+    if (existingRef) {
+      existingRef.episode = movie.episode
+      existingRef.episodeTotal = movie.episodeTotal
+    } else {
       existing.sources = [...(existing.sources || []), movieSourceRef(movie)]
     }
 
@@ -256,6 +274,17 @@ export function groupMovies(items: NormalizedMovie[]) {
     existing.updatedAt = existing.updatedAt && movie.updatedAt
       ? (new Date(existing.updatedAt).getTime() > new Date(movie.updatedAt).getTime() ? existing.updatedAt : movie.updatedAt)
       : existing.updatedAt || movie.updatedAt
+
+    const existingCurrent = extractEpisodeNumber(existing.episode)
+    const newCurrent = extractEpisodeNumber(movie.episode)
+    if (newCurrent > existingCurrent) {
+      existing.episode = movie.episode
+    }
+    const existingTotal = extractEpisodeNumber(existing.episodeTotal)
+    const newTotal = extractEpisodeNumber(movie.episodeTotal)
+    if (newTotal > existingTotal) {
+      existing.episodeTotal = movie.episodeTotal
+    }
 
     for (const alias of aliases) {
       if (movie.year) exactAliases.set(`${alias}:${movie.year}`, groupKey)

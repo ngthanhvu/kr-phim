@@ -149,20 +149,6 @@ function movieLink(movie: any) {
   }
 }
 
-function getEpisodeDisplay(movie: any) {
-  const ep = movie?.episode
-  const total = movie?.episodeTotal
-  if (!ep) return undefined
-
-  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
-  const epNum = ep.replace(/[^0-9]/g, '')
-
-  if (epNum && totalNum && epNum !== totalNum) {
-    return `Tập ${epNum}/${totalNum}`
-  }
-
-  return ep
-}
 
 function goToSlide(index: number) {
   heroSliderRef.value?.goTo(index)
@@ -335,8 +321,8 @@ useHead({
                   style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%)">
                   {{ hero.quality }}
                 </span>
-                <span v-if="getEpisodeDisplay(hero)" class="px-2 py-0.75 rounded border border-white bg-black/40">
-                  {{ getEpisodeDisplay(hero) }}
+                <span v-if="getEpisodeDisplay(hero.episode, hero.episodeTotal)" class="px-2 py-0.75 rounded border border-white bg-black/40">
+                  {{ getEpisodeDisplay(hero.episode, hero.episodeTotal) }}
                 </span>
               </div>
 

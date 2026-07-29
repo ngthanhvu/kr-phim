@@ -68,17 +68,9 @@ function episodeLink(index: number) {
   }
 }
 
-function getEpisodeDisplay() {
-  const ep = movie.value?.episode
-  const total = movie.value?.episodeTotal
-  if (!ep) return undefined
-  const totalNum = total ? total.replace(/[^0-9]/g, '') : ''
-  const epNum = ep.replace(/[^0-9]/g, '')
-  if (epNum && totalNum && epNum !== totalNum) {
-    return `Tập ${epNum}/${totalNum}`
-  }
-  return ep
-}
+const episodeDisplay = computed(() =>
+  getEpisodeDisplay(movie.value?.episode, movie.value?.episodeTotal),
+)
 
 function serverLabel(server: any, index: number) {
   const label = String(server?.name || '').replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
@@ -254,9 +246,9 @@ useHead(() => ({
                 class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
                 {{ movie.lang }}
               </span>
-              <span v-if="getEpisodeDisplay()"
+              <span v-if="episodeDisplay"
                 class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
-                {{ getEpisodeDisplay() }}
+                {{ episodeDisplay }}
               </span>
               <span v-if="movie.rating"
                 class="inline-flex items-center rounded overflow-hidden border border-solid border-[rgba(1,180,228,0.5)]">
@@ -331,7 +323,7 @@ useHead(() => ({
             <div class="hidden md:grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-5">
               <div class="flex items-start gap-2">
                 <span class="text-slate-500 shrink-0 w-20">Trạng thái:</span>
-                <span class="text-slate-200">{{ getEpisodeDisplay() || movie.episode || 'Đang cập nhật' }}</span>
+                <span class="text-slate-200">{{ episodeDisplay || movie.episode || 'Đang cập nhật' }}</span>
               </div>
               <div class="flex items-start gap-2">
                 <span class="text-slate-500 shrink-0 w-20">Loại:</span>
@@ -375,9 +367,9 @@ useHead(() => ({
                     class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
                     {{ movie.lang }}
                   </span>
-                  <span v-if="getEpisodeDisplay()"
+                  <span v-if="episodeDisplay"
                     class="px-2 py-0.75 rounded border border-white bg-black/20 backdrop-blur-sm font-medium">
-                    {{ getEpisodeDisplay() }}
+                    {{ episodeDisplay }}
                   </span>
                   <span v-if="movie.rating"
                     class="inline-flex items-center rounded overflow-hidden border border-solid border-[rgba(1,180,228,0.5)]">
@@ -387,7 +379,7 @@ useHead(() => ({
                 </div>
 
                 <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Trạng thái:</span><span>{{
-                  getEpisodeDisplay() || movie.episode || 'Đang cập nhật' }}</span></div>
+                  episodeDisplay || movie.episode || 'Đang cập nhật' }}</span></div>
                 <div class="flex gap-2"><span class="text-slate-500 shrink-0 w-20">Loại:</span><span>{{ movie.type ===
                   'single' ? 'Phim lẻ' : movie.type === 'series' ? 'Phim bộ' : movie.type || 'Đang cập nhật' }}</span>
                 </div>
@@ -440,7 +432,7 @@ useHead(() => ({
                     <AppIcon name="server" class="size-4" />
                     Máy chủ:
                   </div>
-                  <button v-for="(server, index) in servers" :key="server.name" type="button"
+                  <button v-for="(server, index) in servers" :key="index" type="button"
                     class="group flex items-center gap-1.5 text-[13px] transition-colors rounded-md px-3.5 py-2 border font-medium"
                     :class="selectedServer === index
                       ? 'border-white/30 text-white bg-white/5'
