@@ -1,7 +1,7 @@
 import {
   faArrowLeft,
-  faArrowUp,
   faArrowTurnDown,
+  faArrowTrendDown,
   faArrowTrendUp,
   faArrowsRotate,
   faBackward,
@@ -92,8 +92,8 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 
 library.add(
   faArrowLeft,
-  faArrowUp,
   faArrowTurnDown,
+  faArrowTrendDown,
   faArrowTrendUp,
   faArrowsRotate,
   faBackward,
@@ -249,6 +249,7 @@ export type IconName =
   | 'toggle-left'
   | 'toggle-right'
   | 'trash'
+  | 'trending-down'
   | 'trending-up'
   | 'tv'
   | 'type'
@@ -331,6 +332,7 @@ const iconMap: Record<IconName, [string, string]> = {
   'toggle-left': ['fas', 'toggle-off'],
   'toggle-right': ['fas', 'toggle-on'],
   'trash': ['fas', 'trash-can'],
+  'trending-down': ['fas', 'arrow-trend-down'],
   'trending-up': ['fas', 'arrow-trend-up'],
   'tv': ['fas', 'tv'],
   'type': ['fas', 'font'],
