@@ -23,6 +23,16 @@ const { data: additionalData } = useFetch('/api/movies', {
   }),
 })
 
+const { data: sectionsData } = useFetch('/api/home/sections', {
+  lazy: true,
+  default: () => ({
+    recentComments: [],
+    trending: [],
+    mostRated: [],
+    hotGenres: [],
+  }),
+})
+
 const movies = computed(() => data.value?.items ?? [])
 const additionalMovies = computed(() => additionalData.value?.items ?? [])
 const homeCatalog = computed(() => uniqueHeroMovies([...movies.value, ...additionalMovies.value]))
@@ -131,6 +141,74 @@ const rows = computed(() => [
     items: singleMovies.value,
   },
 ])
+
+const recentComments = computed(() => sectionsData.value?.recentComments || [])
+const trendingMovies = computed(() => sectionsData.value?.trending || [])
+const mostRatedMovies = computed(() => sectionsData.value?.mostRated || [])
+const hotGenres = computed(() => sectionsData.value?.hotGenres || [])
+const commentsCarouselRef = ref<HTMLDivElement | null>(null)
+
+function scrollComments(direction: 'left' | 'right') {
+  const container = commentsCarouselRef.value
+  if (!container) return
+  const firstCard = container.querySelector('a') as HTMLElement | null
+  if (!firstCard) return
+  const cardWidth = firstCard.offsetWidth
+  const gap = 16
+  const scrollAmount = cardWidth + gap
+  container.scrollBy({
+    left: direction === 'left' ? -scrollAmount : scrollAmount,
+    behavior: 'smooth',
+  })
+}
+
+function timeAgo(dateStr: string): string {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return ''
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  if (seconds < 60) return 'Vừa xong'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes} phút trước`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} giờ trước`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days} ngày trước`
+  return date.toLocaleDateString('vi-VN')
+}
+
+function formatCommentContent(content: string, maxLength = 120) {
+  if (!content) return ''
+  if (/!\[GIF\]\(/i.test(content)) return 'Đã gửi một GIF'
+  if (content.length <= maxLength) return content
+  return `${content.slice(0, maxLength).trim()}...`
+}
+
+function movieLinkFromSection(movie: any) {
+  return {
+    path: `/phim/${movie?.slug}`,
+    query: {
+      source: movie?.source,
+    },
+  }
+}
+
+function genreTagColor(index: number) {
+  const colors = [
+    'bg-yellow-500',
+    'bg-green-500',
+    'bg-indigo-500',
+    'bg-cyan-500',
+    'bg-orange-500',
+    'bg-pink-500',
+    'bg-red-500',
+    'bg-lime-500',
+    'bg-teal-500',
+    'bg-violet-500',
+  ]
+  return colors[index % colors.length]
+}
 
 function movieSourcesQuery(movie: any) {
   return (movie?.sources || [{ source: movie?.source, slug: movie?.slug }])
@@ -275,18 +353,21 @@ useHead({
     <AppHeader />
 
     <div v-if="hero" class="relative bg-black mt-16 md:mt-0">
-      <section class="relative w-full aspect-video md:h-screen overflow-hidden bg-black after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1.5 after:bg-black after:z-10">
+      <section
+        class="relative w-full aspect-video md:h-screen overflow-hidden bg-black after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1.5 after:bg-black after:z-10">
         <ClientOnly>
           <HeroSlider v-if="heroSlides.length" ref="heroSliderRef" :slides="heroSlides"
             @update:modelValue="heroIndex = $event" />
         </ClientOnly>
 
         <!-- Mobile gradient overlay (bottom only) -->
-        <div class="absolute inset-0 z-10 pointer-events-none md:hidden" style="background:linear-gradient(to top, #000000 0%, rgba(0,0,0,0.92) 8%, rgba(0,0,0,0.75) 22%, rgba(0,0,0,0.35) 50%, transparent 78%)">
+        <div class="absolute inset-0 z-10 pointer-events-none md:hidden"
+          style="background:linear-gradient(to top, #000000 0%, rgba(0,0,0,0.92) 8%, rgba(0,0,0,0.75) 22%, rgba(0,0,0,0.35) 50%, transparent 78%)">
         </div>
 
         <!-- Desktop gradient overlay (bottom only) -->
-        <div class="absolute inset-0 z-10 pointer-events-none hidden md:block" style="background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 20%, rgba(0,0,0,0.35) 45%, transparent 70%)">
+        <div class="absolute inset-0 z-10 pointer-events-none hidden md:block"
+          style="background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 20%, rgba(0,0,0,0.35) 45%, transparent 70%)">
         </div>
 
         <!-- Content overlay -->
@@ -321,7 +402,8 @@ useHead({
                   style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%)">
                   {{ hero.quality }}
                 </span>
-                <span v-if="getEpisodeDisplay(hero.episode, hero.episodeTotal)" class="px-2 py-0.75 rounded border border-white bg-black/40">
+                <span v-if="getEpisodeDisplay(hero.episode, hero.episodeTotal)"
+                  class="px-2 py-0.75 rounded border border-white bg-black/40">
                   {{ getEpisodeDisplay(hero.episode, hero.episodeTotal) }}
                 </span>
               </div>
@@ -528,6 +610,187 @@ useHead({
 
         <div class="no-scrollbar -mx-4 ml-0.5 flex snap-x gap-4 overflow-x-auto px-4 pb-5 sm:ml-0">
           <HomeMovieCard v-for="movie in row.items" :key="`${movie.source}-${movie.slug}`" :movie="movie" />
+        </div>
+      </section>
+
+      <!-- Community sections -->
+      <section class="rounded-2xl border border-white/20 bg-black p-5">
+        <!-- Bình luận mới -->
+        <div v-if="recentComments.length" class="mb-8">
+          <div class="mb-5 flex items-center gap-3">
+            <AppIcon name="message-circle" class="size-6 text-yellow-400" />
+            <h2 class="text-2xl font-black uppercase text-white">Bình luận mới</h2>
+          </div>
+
+          <div class="relative">
+            <div ref="commentsCarouselRef"
+              class="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-5">
+              <NuxtLink v-for="comment in recentComments" :key="comment.id" :to="movieLinkFromSection(comment.movie)"
+                class="group relative h-50 snap-start overflow-hidden rounded-2xl bg-[#181a22]
+                        transition-all sm:min-w-60 md:min-w-65 lg:min-w-67.5
+                        xl:min-w-72.5 2xl:min-w-77.5">
+                <!-- Blurred background -->
+                <div v-if="comment.movie?.poster" class="absolute inset-0" :style="{
+                  backgroundImage: `url(${comment.movie.poster})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  filter: 'blur(8px) saturate(1.2)',
+                  transform: 'scale(1.2)'
+                }" />
+                <!-- Dark gradient overlay -->
+                <div v-if="comment.movie?.poster" class="absolute inset-0 bg-linear-to-t
+              from-black via-black/80 to-black/40" />
+                <!-- Content -->
+                <div class="relative z-10 flex h-full flex-col p-4">
+                  <!-- Top: Avatar + Poster -->
+                  <div class="flex items-end justify-between">
+                    <!-- Avatar -->
+                    <img v-if="comment.user?.avatar" :src="comment.user.avatar" :alt="comment.user?.name" class="size-12 shrink-0 rounded-full object-cover
+                  ring-2 ring-white/20 shadow-md mt-auto">
+                    <!-- Fallback Avatar -->
+                    <div v-else class="grid size-12 shrink-0 place-items-center rounded-full
+                  bg-linear-to-br from-yellow-400 to-orange-500
+                  text-lg font-black text-slate-950
+                  ring-2 ring-white/20 shadow-md mt-auto">
+                      {{ (comment.user?.name || 'A').charAt(0).toUpperCase() }}
+                    </div>
+                    <!-- Movie Poster -->
+                    <div class="h-19 w-13 shrink-0 overflow-hidden
+                 rounded-lg shadow-md ring-1 ring-white/10">
+                      <img v-if="comment.movie?.poster" :src="comment.movie.poster" :alt="comment.movie?.name"
+                        class="h-full w-full object-cover">
+                      <img v-else-if="comment.movie?.thumb" :src="comment.movie.thumb" :alt="comment.movie?.name"
+                        class="h-full w-full object-cover">
+                      <div v-else class="h-full w-full bg-slate-700" />
+                    </div>
+                  </div>
+                  <!-- User Name + Gender -->
+                  <div class="mt-2 flex min-w-0 items-center gap-1.5">
+                    <span class="truncate text-sm font-bold text-white">
+                      {{ comment.user?.name || 'Ẩn danh' }}
+                    </span>
+                    <AppIcon v-if="comment.user?.gender === 'female'" name="venus"
+                      class="size-3.5 shrink-0 text-pink-400" />
+                    <AppIcon v-if="comment.user?.gender === 'male'" name="mars"
+                      class="size-3.5 shrink-0 text-blue-400" />
+                    <AppIcon v-if="comment.user?.gender === 'other'" name="minus"
+                      class="size-3.5 shrink-0 text-purple-400" />
+                  </div>
+                  <!-- Comment -->
+                  <p class="mt-1 line-clamp-2 text-[13px] leading-relaxed text-white/60">
+                    {{ formatCommentContent(comment.content, 180) }}
+                  </p>
+                  <!-- Stats -->
+                  <div class="mt-auto flex items-center gap-5 text-xs text-white/50">
+                    <!-- Like -->
+                    <span class="flex items-center gap-1">
+                      <AppIcon name="thumbs-up" class="size-3.5" />
+                      {{ comment.likeCount ?? 0 }}
+                    </span>
+                    <!-- Dislike -->
+                    <span class="flex items-center gap-1">
+                      <AppIcon name="thumbs-down" class="size-3.5" />
+                      {{ comment.dislikeCount ?? 0 }}
+                    </span>
+                    <!-- Replies -->
+                    <span class="flex items-center gap-1">
+                      <AppIcon name="message-square" class="size-3.5" />
+                      {{ comment.replyCount ?? 0 }}
+                    </span>
+                  </div>
+                </div>
+              </NuxtLink>
+            </div>
+
+            <button type="button"
+              class="absolute -left-5 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black text-white backdrop-blur-sm transition hover:bg-slate-900"
+              @click="scrollComments('left')">
+              <AppIcon name="chevron-left" class="size-5" />
+            </button>
+            <button type="button"
+              class="absolute -right-5 top-1/2 z-10 grid size-10 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-black text-white backdrop-blur-sm transition hover:bg-slate-900"
+              @click="scrollComments('right')">
+              <AppIcon name="chevron-right" class="size-5" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Top sections -->
+        <div class="grid gap-4 lg:grid-cols-3">
+          <!-- Sôi nổi nhất -->
+          <div class="rounded-xl border border-white/20 p-4">
+            <div class="mb-5 flex items-center gap-3">
+              <AppIcon name="zap" class="size-5 text-orange-500" />
+              <h2 class="text-lg font-black uppercase text-white">Sôi nổi nhất</h2>
+            </div>
+            <div class="space-y-4">
+              <NuxtLink v-for="(movie, index) in trendingMovies" :key="`${movie.source}-${movie.slug}-trending`"
+                :to="movieLinkFromSection(movie)" class="group flex items-center gap-3 transition hover:opacity-80">
+                <span class="w-6 text-center text-lg font-black text-white">{{ index + 1 }}.</span>
+                <AppIcon :name="index < 2 ? 'chevron-up' : index === 2 ? 'minus' : 'chevron-down'"
+                  :class="index < 2 ? 'text-green-400' : index === 2 ? 'text-slate-400' : 'text-red-400'"
+                  class="size-4 shrink-0" />
+                <img :src="movie.thumb || movie.poster" :alt="movie.name"
+                  class="h-16 w-11 shrink-0 rounded-md object-cover ring-1 ring-white/10">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-bold text-white group-hover:text-yellow-300">{{ movie.name }}</p>
+                  <p class="truncate text-xs text-slate-400">{{ movie.originName || movie.source }}</p>
+                </div>
+              </NuxtLink>
+            </div>
+            <NuxtLink to="/phim" class="mt-5 inline-block text-sm font-semibold text-slate-400 hover:text-white">
+              Xem thêm
+            </NuxtLink>
+          </div>
+
+          <!-- Yêu thích nhất -->
+          <div class="rounded-xl border border-white/20 p-4">
+            <div class="mb-5 flex items-center gap-3">
+              <AppIcon name="heart" class="size-5 text-pink-500" />
+              <h2 class="text-lg font-black uppercase text-white">Yêu thích nhất</h2>
+            </div>
+            <div class="space-y-4">
+              <NuxtLink v-for="(movie, index) in mostRatedMovies" :key="`${movie.source}-${movie.slug}-rated`"
+                :to="movieLinkFromSection(movie)" class="group flex items-center gap-3 transition hover:opacity-80">
+                <span class="w-6 text-center text-lg font-black text-white">{{ index + 1 }}.</span>
+                <AppIcon :name="index < 2 ? 'chevron-up' : index === 2 ? 'minus' : 'chevron-down'"
+                  :class="index < 2 ? 'text-green-400' : index === 2 ? 'text-slate-400' : 'text-red-400'"
+                  class="size-4 shrink-0" />
+                <img :src="movie.thumb || movie.poster" :alt="movie.name"
+                  class="h-16 w-11 shrink-0 rounded-md object-cover ring-1 ring-white/10">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-bold text-white group-hover:text-yellow-300">{{ movie.name }}</p>
+                  <p class="truncate text-xs text-slate-400">{{ movie.originName || movie.source }}</p>
+                </div>
+              </NuxtLink>
+            </div>
+            <NuxtLink to="/phim" class="mt-5 inline-block text-sm font-semibold text-slate-400 hover:text-white">
+              Xem thêm
+            </NuxtLink>
+          </div>
+
+          <!-- Thể loại hot -->
+          <div class="rounded-xl border border-white/20 p-4">
+            <div class="mb-5 flex items-center gap-3">
+              <AppIcon name="layers" class="size-5 text-yellow-500" />
+              <h2 class="text-lg font-black uppercase text-white">Thể loại hot</h2>
+            </div>
+            <div class="space-y-4">
+              <NuxtLink v-for="(genre, index) in hotGenres" :key="genre.name" to="/phim"
+                class="group flex items-center gap-3 transition hover:opacity-80">
+                <span class="w-6 text-center text-lg font-black text-white">{{ index + 1 }}.</span>
+                <AppIcon :name="index < 2 ? 'chevron-up' : index === 2 ? 'minus' : 'chevron-down'"
+                  :class="index < 2 ? 'text-green-400' : index === 2 ? 'text-slate-400' : 'text-red-400'"
+                  class="size-4 shrink-0" />
+                <span class="rounded-lg px-4 py-1.5 text-sm font-black text-slate-950" :class="genreTagColor(index)">
+                  {{ genre.name }}
+                </span>
+              </NuxtLink>
+            </div>
+            <NuxtLink to="/phim" class="mt-5 inline-block text-sm font-semibold text-slate-400 hover:text-white">
+              Xem thêm
+            </NuxtLink>
+          </div>
         </div>
       </section>
     </div>

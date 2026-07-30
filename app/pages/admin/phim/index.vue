@@ -13,6 +13,8 @@ const statusFilter = ref('')
 const sourceFilter = ref('')
 const typeFilter = ref('')
 const currentPage = ref(1)
+const sortBy = ref('')
+const sortOrder = ref<'asc' | 'desc'>('desc')
 const syncing = ref(false)
 const syncOpen = ref(false)
 const deleting = ref(false)
@@ -37,6 +39,8 @@ const { data, refresh } = await useFetch('/api/admin/movies', {
     status: statusFilter.value,
     source: sourceFilter.value,
     type: typeFilter.value,
+    sortBy: sortBy.value,
+    sortOrder: sortOrder.value,
     limit: 20,
   })),
 })
@@ -44,6 +48,24 @@ const { data, refresh } = await useFetch('/api/admin/movies', {
 watch([statusFilter, sourceFilter, typeFilter], () => {
   currentPage.value = 1
 })
+
+watch([sortBy, sortOrder], () => {
+  currentPage.value = 1
+})
+
+function getDefaultSortOrder(column: string): 'asc' | 'desc' {
+  if (column === 'name') return 'asc'
+  return 'desc'
+}
+
+function toggleSort(column: string) {
+  if (sortBy.value === column) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortBy.value = column
+    sortOrder.value = getDefaultSortOrder(column)
+  }
+}
 
 async function toggleActive(movie: any) {
   await $fetch(`/api/admin/movies/${movie.id}`, {
@@ -91,6 +113,38 @@ async function handleDeleteAll() {
 
 const movies = computed(() => data.value?.items || [])
 const totalPages = computed(() => data.value?.totalPages || 1)
+
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const pages: (number | 'ellipsis')[] = []
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+    return pages
+  }
+
+  pages.push(1)
+
+  if (current > 4) {
+    pages.push('ellipsis')
+  }
+
+  const start = Math.max(2, Math.min(current - 1, total - 4))
+  const end = Math.min(total - 1, Math.max(current + 1, 5))
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  if (end < total - 1) {
+    pages.push('ellipsis')
+  }
+
+  pages.push(total)
+
+  return pages
+})
 
 function extractEpisodeNumber(value?: string): number {
   if (!value) return 0
@@ -196,12 +250,32 @@ function formatRelativeTime(dateValue?: string | number | Date | null) {
           <thead>
             <tr class="border-b border-white/10 text-center text-xs font-semibold uppercase text-slate-400">
               <th class="w-12 px-4 py-3 text-center">STT</th>
-              <th class="px-4 py-3 text-center">Phim</th>
+              <th class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white" @click="toggleSort('name')">
+                <div class="flex items-center justify-center gap-1">
+                  Phim
+                  <AppIcon v-if="sortBy === 'name'" :name="sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'" class="size-3" />
+                </div>
+              </th>
               <th class="px-4 py-3 text-center">Nguồn trùng</th>
               <th class="px-4 py-3 text-center">Tập</th>
-              <th class="px-4 py-3 text-center">Lượt xem</th>
-              <th class="px-4 py-3 text-center">Cập nhật API</th>
-              <th class="px-4 py-3 text-center">Trạng thái</th>
+              <th class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white" @click="toggleSort('views')">
+                <div class="flex items-center justify-center gap-1">
+                  Lượt xem
+                  <AppIcon v-if="sortBy === 'views'" :name="sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'" class="size-3" />
+                </div>
+              </th>
+              <th class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white" @click="toggleSort('apiUpdatedAt')">
+                <div class="flex items-center justify-center gap-1">
+                  Cập nhật API
+                  <AppIcon v-if="sortBy === 'apiUpdatedAt'" :name="sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'" class="size-3" />
+                </div>
+              </th>
+              <th class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white" @click="toggleSort('active')">
+                <div class="flex items-center justify-center gap-1">
+                  Trạng thái
+                  <AppIcon v-if="sortBy === 'active'" :name="sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'" class="size-3" />
+                </div>
+              </th>
               <th class="px-4 py-3 text-center">Chỉnh sửa</th>
               <th class="px-4 py-3 text-center">Thao tác</th>
             </tr>
@@ -288,6 +362,20 @@ function formatRelativeTime(dateValue?: string | number | Date | null) {
             :disabled="currentPage <= 1" @click="currentPage--">
             ‹
           </button>
+          <template v-for="(page, index) in visiblePages" :key="index">
+            <span v-if="page === 'ellipsis'"
+              class="grid size-8 place-items-center text-sm text-slate-400">
+              ...
+            </span>
+            <button v-else type="button"
+              class="grid size-8 place-items-center rounded-lg border text-sm transition"
+              :class="page === currentPage
+                ? 'border-yellow-400 bg-yellow-400 text-slate-950'
+                : 'border-white/10 text-slate-400 hover:bg-white/10 hover:text-white'"
+              @click="currentPage = page">
+              {{ page }}
+            </button>
+          </template>
           <button type="button"
             class="grid size-8 place-items-center rounded-lg border border-white/10 text-slate-400 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
             :disabled="currentPage >= totalPages" @click="currentPage++">
