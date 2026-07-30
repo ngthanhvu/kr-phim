@@ -617,17 +617,18 @@ useHead({
       <section class="relative overflow-visible rounded-2xl border border-white/15 bg-[#0E111A]">
         <!-- Bình luận mới -->
         <div v-if="recentComments.length" class="relative border-b border-white/10 px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
-          <div class="mb-5 flex items-center gap-3">
-            <AppIcon name="message-circle" class="size-6 text-yellow-400" />
-            <h2 class="text-2xl font-black uppercase text-white">Bình luận mới</h2>
+          <div class="mb-4 flex items-center gap-3 lg:mb-5">
+            <AppIcon name="message-circle" class="size-5 text-yellow-400 lg:size-6" />
+            <h2 class="text-base font-black uppercase text-white sm:text-lg lg:text-2xl">Bình luận mới</h2>
           </div>
 
           <div class="relative">
-            <div ref="commentsCarouselRef" class="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+            <div ref="commentsCarouselRef"
+              class="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain scroll-smooth pb-2">
               <NuxtLink v-for="comment in recentComments" :key="comment.id" :to="movieLinkFromSection(comment.movie)"
-                class="group relative h-50 snap-start overflow-hidden rounded-2xl bg-[#181a22]
-                 transition-all duration-800 ease-in-out sm:min-w-60 md:min-w-65 lg:min-w-67.5
-                 xl:min-w-72.5 2xl:min-w-77.5">
+                class="group relative h-48 min-w-[82%] snap-start overflow-hidden rounded-xl bg-[#181a22]
+                 transition-all duration-800 ease-in-out sm:h-50 sm:min-w-60 sm:rounded-2xl md:min-w-65
+                 lg:min-w-67.5 xl:min-w-72.5 2xl:min-w-77.5">
                 <!-- Blurred background -->
                 <div v-if="comment.movie?.poster"
                   class="absolute inset-0 transition-all duration-700 ease-in-out group-hover:blur-sm group-hover:saturate-150"
@@ -654,17 +655,18 @@ useHead({
                   <div class="flex items-end justify-between">
                     <!-- Avatar -->
                     <img v-if="comment.user?.avatar" :src="comment.user.avatar" :alt="comment.user?.name"
-                      class="mt-auto size-12 shrink-0 rounded-full object-cover shadow-md ring-2 ring-white/20">
+                      class="mt-auto size-10 shrink-0 rounded-full object-cover shadow-md ring-2 ring-white/20 sm:size-12">
 
                     <!-- Fallback Avatar -->
-                    <div v-else class="mt-auto grid size-12 shrink-0 place-items-center rounded-full
-                       bg-linear-to-br from-yellow-400 to-orange-500 text-lg font-black text-slate-950
-                       shadow-md ring-2 ring-white/20">
+                    <div v-else class="mt-auto grid size-10 shrink-0 place-items-center rounded-full
+                       bg-linear-to-br from-yellow-400 to-orange-500 text-base font-black text-slate-950
+                       shadow-md ring-2 ring-white/20 sm:size-12 sm:text-lg">
                       {{ (comment.user?.name || 'A').charAt(0).toUpperCase() }}
                     </div>
 
                     <!-- Movie Poster -->
-                    <div class="h-19 w-13 shrink-0 overflow-hidden rounded-lg shadow-md ring-1 ring-white/10">
+                    <div
+                      class="h-18 w-12 shrink-0 overflow-hidden rounded-lg shadow-md ring-1 ring-white/10 sm:h-19 sm:w-13">
                       <img v-if="comment.movie?.poster" :src="comment.movie.poster" :alt="comment.movie?.name"
                         class="h-full w-full object-cover">
                       <img v-else-if="comment.movie?.thumb" :src="comment.movie.thumb" :alt="comment.movie?.name"
@@ -728,9 +730,11 @@ useHead({
         </div>
 
         <!-- Top sections -->
-        <div class="grid items-stretch lg:grid-cols-3">
+        <div
+          class="no-scrollbar flex snap-x snap-mandatory items-stretch overflow-x-auto overscroll-x-contain scroll-smooth lg:grid lg:grid-cols-3 lg:overflow-visible">
           <!-- Sôi nổi nhất -->
-          <div class="flex h-full flex-col p-5 sm:p-6 lg:border-r lg:border-white/10">
+          <div
+            class="flex h-full min-w-[92%] snap-start flex-col p-5 sm:min-w-[70%] sm:p-6 lg:min-w-0 lg:border-r lg:border-white/10">
             <div class="mb-3 flex items-center gap-2">
               <AppIcon name="zap" class="size-4 text-orange-500" />
               <h2 class="text-sm font-black uppercase text-white">
@@ -751,10 +755,10 @@ useHead({
                   : index === 2
                     ? 'minus'
                     : 'trending-down'" :class="index < 2
-                  ? 'text-green-400'
-                  : index === 2
-                    ? 'text-slate-400'
-                    : 'text-red-400'" class="size-3.5 shrink-0" />
+                      ? 'text-green-400'
+                      : index === 2
+                        ? 'text-slate-400'
+                        : 'text-red-400'" class="size-3.5 shrink-0" />
 
                 <img :src="movie.thumb || movie.poster" :alt="movie.name"
                   class="h-12 w-8 shrink-0 rounded object-cover ring-1 ring-white/10">
@@ -773,8 +777,8 @@ useHead({
           </div>
 
           <!-- Yêu thích nhất -->
-          <div class="flex h-full flex-col border-t border-white/10 p-5 sm:p-6
-             lg:border-t-0 lg:border-r lg:border-white/10">
+          <div class="flex h-full min-w-[92%] snap-start flex-col border-l border-white/10 p-5
+             sm:min-w-[70%] sm:p-6 lg:min-w-0 lg:border-l-0 lg:border-r lg:border-white/10">
             <div class="mb-3 flex items-center gap-2">
               <AppIcon name="heart" class="size-4 text-pink-500" />
               <h2 class="text-sm font-black uppercase text-white">
@@ -795,10 +799,10 @@ useHead({
                   : index === 2
                     ? 'minus'
                     : 'trending-down'" :class="index < 2
-                  ? 'text-green-400'
-                  : index === 2
-                    ? 'text-slate-400'
-                    : 'text-red-400'" class="size-3.5 shrink-0" />
+                      ? 'text-green-400'
+                      : index === 2
+                        ? 'text-slate-400'
+                        : 'text-red-400'" class="size-3.5 shrink-0" />
 
                 <img :src="movie.thumb || movie.poster" :alt="movie.name"
                   class="h-12 w-8 shrink-0 rounded object-cover ring-1 ring-white/10">
@@ -817,7 +821,8 @@ useHead({
           </div>
 
           <!-- Thể loại hot -->
-          <div class="flex h-full flex-col border-t border-white/10 p-5 sm:p-6 lg:border-t-0">
+          <div
+            class="flex h-full min-w-[92%] snap-start flex-col border-l border-white/10 p-5 sm:min-w-[70%] sm:p-6 lg:min-w-0 lg:border-l-0">
             <div class="mb-3 flex items-center gap-2">
               <AppIcon name="layers" class="size-4 text-yellow-500" />
               <h2 class="text-sm font-black uppercase text-white">
@@ -837,10 +842,10 @@ useHead({
                   : index === 2
                     ? 'minus'
                     : 'trending-down'" :class="index < 2
-                  ? 'text-green-400'
-                  : index === 2
-                    ? 'text-slate-400'
-                    : 'text-red-400'" class="size-3.5 shrink-0" />
+                      ? 'text-green-400'
+                      : index === 2
+                        ? 'text-slate-400'
+                        : 'text-red-400'" class="size-3.5 shrink-0" />
 
                 <div class="flex h-12 items-center">
                   <span class="rounded-xl px-4 py-2 text-[10px] font-black text-white" :class="genreTagColor(index)">

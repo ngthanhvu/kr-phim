@@ -4,8 +4,28 @@ import { comments, users, movies } from '../../database/schema'
 export default defineEventHandler(async () => {
   const db = useDb()
 
-  const [recentComments, trending, mostRated, allCategories] = await Promise.all([
-    // Recent comments (top-level only) with user and movie info
+  // Comment counts per movie (top-level only)
+  const commentCountsRows = await db
+    .select({
+      source: comments.source,
+      slug: comments.slug,
+      cCount: count(),
+    })
+    .from(comments)
+    .where(isNull(comments.parentId))
+    .groupBy(comments.source, comments.slug)
+
+  const commentCountMap = new Map<string, number>()
+  for (const row of commentCountsRows) {
+    commentCountMap.set(`${row.source}:${row.slug}`, Number(row.cCount))
+  }
+
+  function getCommentCount(movie: any) {
+    return commentCountMap.get(`${movie.source}:${movie.slug}`) || 0
+  }
+
+  const [recentComments, rawMovies, allCategories] = await Promise.all([
+    // Recent comments
     db
       .select({
         id: comments.id,
@@ -31,7 +51,7 @@ export default defineEventHandler(async () => {
       .orderBy(desc(comments.createdAt))
       .limit(10),
 
-    // Trending by views
+    // All active movies (used for trending + most rated in JS)
     db
       .select({
         source: movies.source,
@@ -44,33 +64,26 @@ export default defineEventHandler(async () => {
         rating: movies.rating,
       })
       .from(movies)
-      .where(eq(movies.active, true))
-      .orderBy(desc(movies.views), desc(movies.rating))
-      .limit(5),
+      .where(eq(movies.active, true)),
 
-    // Most rated / favorite
-    db
-      .select({
-        source: movies.source,
-        slug: movies.slug,
-        name: movies.name,
-        originName: movies.originName,
-        thumb: movies.thumb,
-        poster: movies.poster,
-        views: movies.views,
-        rating: movies.rating,
-      })
-      .from(movies)
-      .where(eq(movies.active, true))
-      .orderBy(desc(movies.rating), desc(movies.views))
-      .limit(5),
-
-    // All categories for hot genres calculation
+    // Categories for hot genres
     db
       .select({ categories: movies.categories })
       .from(movies)
       .where(eq(movies.active, true)),
   ])
+
+  // Trending: views + commentCount * 50
+  const trendingWithScore = rawMovies.map(m => ({
+    ...m,
+    _score: Number(m.views) + getCommentCount(m) * 50,
+  })).sort((a, b) => b._score - a._score).slice(0, 5)
+
+  // Most rated: rating + commentCount * 2
+  const mostRatedWithScore = rawMovies.map(m => ({
+    ...m,
+    _score: Number(m.rating) + getCommentCount(m) * 2,
+  })).sort((a, b) => b._score - a._score).slice(0, 5)
 
   // Count replies for each recent comment
   const commentIds = recentComments.map(c => c.id)
@@ -124,7 +137,7 @@ export default defineEventHandler(async () => {
           }
         : null,
     })),
-    trending: trending.map(m => ({
+    trending: trendingWithScore.map(m => ({
       source: m.source,
       slug: m.slug,
       name: m.name,
@@ -134,7 +147,7 @@ export default defineEventHandler(async () => {
       views: m.views,
       rating: m.rating,
     })),
-    mostRated: mostRated.map(m => ({
+    mostRated: mostRatedWithScore.map(m => ({
       source: m.source,
       slug: m.slug,
       name: m.name,

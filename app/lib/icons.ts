@@ -1,5 +1,6 @@
 import {
   faArrowLeft,
+  faArrowUp,
   faArrowTurnDown,
   faArrowTrendDown,
   faArrowTrendUp,
@@ -92,6 +93,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 
 library.add(
   faArrowLeft,
+  faArrowUp,
   faArrowTurnDown,
   faArrowTrendDown,
   faArrowTrendUp,
