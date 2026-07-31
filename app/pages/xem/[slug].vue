@@ -580,7 +580,7 @@ useHead(() => ({
               </div>
               <div class="text-sm">
                 <span class="font-semibold text-white">{{ formatEpisodeName(activeEpisode?.name, selectedEpisode)
-                }}</span>
+                  }}</span>
                 <span class="mx-2 text-white/30">•</span>
                 <span class="text-white/60">{{ serverLabel(activeServer, selectedServer) }}</span>
               </div>
@@ -600,65 +600,88 @@ useHead(() => ({
           </div>
         </div>
 
-        <!-- Movie Info + Episodes -->
-        <div class="mt-4 flex flex-col gap-8 xl:mt-8 xl:flex-row">
-          <!-- Main Content -->
-          <div class="min-w-0 flex-1">
+        <!-- Main + Sidebar Grid -->
+        <!-- Main + Sidebar Grid -->
+        <div class="mt-4 grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
+
+          <!-- Left Column -->
+          <div class="min-w-0">
+
             <!-- Movie Info Card -->
             <div class="mb-6 flex items-start gap-6 lg:gap-8">
               <div
-                class="hidden shrink-0 aspect-2/3 w-32 rounded-xl overflow-hidden shadow-2xl sm:block md:w-40 lg:w-37.5">
-                <img :src="movie.thumb || movie.poster" :alt="movie.name" class="w-full h-full object-cover">
+                class="hidden shrink-0 aspect-2/3 w-32 overflow-hidden rounded-xl shadow-2xl sm:block md:w-40 lg:w-37.5">
+                <img :src="movie.thumb || movie.poster" :alt="movie.name" class="h-full w-full object-cover">
               </div>
-              <div class="flex-1 flex flex-col gap-4 pt-1 w-full text-center sm:text-left">
+
+              <div class="flex w-full min-w-0 flex-1 flex-col gap-4 pt-1 text-center sm:text-left">
                 <div>
-                  <h1 class="text-2xl md:text-[28px] font-bold text-white mb-2 leading-tight">{{ movie.name }}</h1>
-                  <h2 class="text-cinek-500 text-sm md:text-[15px] font-medium opacity-90">{{ movie.originName }}</h2>
+                  <h1 class="mb-2 text-2xl font-bold leading-tight text-white md:text-[28px]">
+                    {{ movie.name }}
+                  </h1>
+
+                  <h2 class="text-sm font-medium text-cinek-500 opacity-90 md:text-[15px]">
+                    {{ movie.originName }}
+                  </h2>
                 </div>
 
                 <!-- Badges -->
-                <div class="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+                <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <span v-if="movie.rating"
-                    class="inline-flex items-center rounded overflow-hidden border border-solid border-[rgba(1,180,228,0.5)]">
-                    <span class="bg-[#01B4E4] text-white px-1.5 py-0.5 font-bold text-[10px]">TMDb</span>
-                    <span class="bg-[rgba(1,180,228,0.1)] text-white px-1.5 py-0.5 text-[10px]">{{
-                      movie.rating.toFixed(1) }}</span>
+                    class="inline-flex items-center overflow-hidden rounded border border-solid border-[rgba(1,180,228,0.5)]">
+                    <span class="bg-[#01B4E4] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      TMDb
+                    </span>
+                    <span class="bg-[rgba(1,180,228,0.1)] px-1.5 py-0.5 text-[10px] text-white">
+                      {{ movie.rating.toFixed(1) }}
+                    </span>
                   </span>
+
                   <span v-if="movie.quality"
-                    class="inline-flex items-center justify-center rounded-sm font-black h-5.5 px-2 text-[11px]"
-                    style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%);color:#141414">{{
-                      movie.quality }}</span>
+                    class="inline-flex h-5.5 items-center justify-center rounded-sm px-2 text-[11px] font-black"
+                    style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%);color:#141414">
+                    {{ movie.quality }}
+                  </span>
+
                   <span v-if="movie.year"
-                    class="text-[11px] font-medium px-2 py-0.5 border border-white/20 rounded text-white/90">{{
-                      movie.year }}</span>
+                    class="rounded border border-white/20 px-2 py-0.5 text-[11px] font-medium text-white/90">
+                    {{ movie.year }}
+                  </span>
+
                   <span v-if="episodeDisplay"
-                    class="text-[11px] font-medium px-2 py-0.5 border border-white/20 rounded text-white/90">{{
-                      episodeDisplay }}</span>
+                    class="rounded border border-white/20 px-2 py-0.5 text-[11px] font-medium text-white/90">
+                    {{ episodeDisplay }}
+                  </span>
                 </div>
 
                 <!-- Genres -->
                 <div v-if="movie.categories?.length"
-                  class="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+                  class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <span v-for="cat in movie.categories.slice(0, 4)" :key="cat"
-                    class="text-[11px] font-medium px-2.5 py-1 bg-white/5 rounded text-white/70">{{ cat }}</span>
+                    class="rounded bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/70">
+                    {{ cat }}
+                  </span>
                 </div>
 
                 <!-- Episode Progress -->
                 <div v-if="episodeProgress?.total"
-                  class="inline-flex self-center sm:self-start items-center gap-1.5 px-3 py-1.5 rounded-full mt-2 border bg-cinek-500/10 border-cinek-500/20 text-cinek-500">
+                  class="mt-2 inline-flex self-center items-center gap-1.5 rounded-full border border-cinek-500/20 bg-cinek-500/10 px-3 py-1.5 text-cinek-500 sm:self-start">
                   <AppIcon name="loader" class="size-3.5 animate-spin" />
-                  <span class="text-xs font-medium">Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total
-                    }} tập</span>
+                  <span class="text-xs font-medium">
+                    Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total }} tập
+                  </span>
                 </div>
 
                 <!-- Description -->
                 <div class="mt-2 text-left">
-                  <p class="text-[13px] md:text-sm text-white/70 leading-relaxed line-clamp-3"
-                    :class="descriptionExpanded ? 'line-clamp-none' : ''">{{ movie.content ||
-                      'Đang cập nhật nội dung phim.' }}</p>
+                  <p class="line-clamp-3 text-[13px] leading-relaxed text-white/70 md:text-sm"
+                    :class="descriptionExpanded ? 'line-clamp-none' : ''">
+                    {{ movie.content || 'Đang cập nhật nội dung phim.' }}
+                  </p>
+
                   <NuxtLink
                     :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs } }"
-                    class="inline-flex items-center gap-1 text-[13px] text-cinek-500 hover:underline mt-1">
+                    class="mt-1 inline-flex items-center gap-1 text-[13px] text-cinek-500 hover:underline">
                     Thông tin phim
                     <AppIcon name="chevron-right" class="size-4" />
                   </NuxtLink>
@@ -667,26 +690,35 @@ useHead(() => ({
             </div>
 
             <!-- Episode Section -->
-            <div id="episodes-section" class="mt-8 mb-12 scroll-mt-24">
+            <div id="episodes-section" class="mb-8 scroll-mt-24">
+
               <!-- Header: Season + Server -->
-              <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+
+                <!-- Season -->
                 <div class="relative flex min-w-0 items-center gap-1.5 sm:gap-2">
                   <div class="flex shrink-0 items-center gap-1 text-[12px] font-semibold text-white/50">
-                    <AppIcon name="layers" class="size-4" /> Phần:
+                    <AppIcon name="layers" class="size-4" />
+                    Phần:
                   </div>
-                  <button
-                    class="flex items-center gap-1.5 border border-white/30 text-white bg-white/5 rounded-md px-3 py-1.5 text-sm font-medium">
+
+                  <button type="button"
+                    class="flex items-center gap-1.5 rounded-md border border-white/30 bg-white/5 px-3 py-1.5 text-sm font-medium text-white">
                     <span>Phần 1</span>
                   </button>
                 </div>
+
+                <!-- Server -->
                 <div class="flex min-w-0 items-center gap-2">
-                  <span class="text-[13px] text-white/60 font-medium hidden sm:inline-block shrink-0">Chọn
-                    Server:</span>
-                  <div class="relative min-w-0 sm:w-auto">
+                  <span class="hidden shrink-0 text-[13px] font-medium text-white/60 sm:inline-block">
+                    Chọn Server:
+                  </span>
+
+                  <div class="min-w-0">
                     <div class="flex flex-wrap gap-2">
                       <button v-for="(server, index) in servers" :key="server.name" type="button"
-                        class="flex items-center gap-1.5 text-[13px] transition-colors rounded-md px-3 py-1.5 border font-medium"
-                        :class="selectedServer === index ? 'border-white/30 text-white bg-white/5' : 'border-transparent text-white/60 hover:text-white'"
+                        class="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors"
+                        :class="selectedServer === index ? 'border-white/30 bg-white/5 text-white' : 'border-transparent text-white/60 hover:text-white'"
                         @click="selectServer(index)">
                         {{ serverLabel(server, index) }}
                       </button>
@@ -696,14 +728,16 @@ useHead(() => ({
               </div>
 
               <!-- Subtitle/Source Buttons -->
-              <div v-if="activeServer?.channels?.length" class="flex flex-wrap gap-2 mb-6">
+              <div v-if="activeServer?.channels?.length" class="mb-6 flex flex-wrap gap-2">
                 <button v-for="(sub, index) in activeServer.channels" :key="sub.name || index" type="button"
-                  class="group flex items-center gap-1.5 text-xs transition-colors rounded-md px-3 py-1.5 border font-medium"
-                  :class="selectedSubtitle === index ? 'border-white/30 text-white bg-white/5' : 'border-transparent text-white/60 hover:text-white'"
+                  class="group flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                  :class="selectedSubtitle === index ? 'border-white/30 bg-white/5 text-white' : 'border-transparent text-white/60 hover:text-white'"
                   @click="selectSubtitle(index)">
-                  <AppIcon name="captions" v-if="index === 0" class="size-3.5" />
-                  <AppIcon name="languages" v-else class="size-3.5" />
+                  <AppIcon v-if="index === 0" name="captions" class="size-3.5" />
+                  <AppIcon v-else name="languages" class="size-3.5" />
+
                   <span>{{ subtitleLabel(sub, index) }}</span>
+
                   <span class="rounded px-1.5 text-[10px] font-bold"
                     :class="selectedSubtitle === index ? 'bg-white text-black' : 'bg-white/10 text-white/50'">
                     {{ sub.episodes?.length || 0 }}
@@ -713,43 +747,59 @@ useHead(() => ({
 
               <!-- Episode Grid -->
               <div v-if="activeSubtitle?.episodes?.length"
-                class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2.5 gap-y-2.5">
+                class="grid grid-cols-3 gap-x-2.5 gap-y-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
                 <NuxtLink v-for="(episode, index) in activeSubtitle.episodes" :key="`${episode.name}-${index}`"
                   :to="episodeLink(index)"
-                  class="group flex items-center justify-center gap-1.5 rounded-lg transition-all py-2.5 px-2 text-[13px] bg-[#191b24] text-white/90 hover:text-[#FFD166] hover:bg-[#1f2130] shadow-sm"
-                  :class="selectedEpisode === index ? 'bg-[#F5C518]/20 text-[#FFD166] border border-[#F5C518]/40' : ''">
+                  class="group flex items-center justify-center gap-1.5 rounded-lg bg-[#191b24] px-2 py-2.5 text-[13px] text-white/90 shadow-sm transition-all hover:bg-[#1f2130] hover:text-[#FFD166]"
+                  :class="selectedEpisode === index ? 'border border-[#F5C518]/40 bg-[#F5C518]/20 text-[#FFD166]' : ''">
                   <AppIcon name="play" class="size-3 fill-current" />
                   {{ formatEpisodeName(episode.name, index) }}
                 </NuxtLink>
               </div>
+
               <p v-else
                 class="mt-4 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
                 Chưa có tập xem.
               </p>
             </div>
+
+            <!-- Comment Section -->
+            <div class="mb-8 w-full">
+              <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)"
+                :movie-name="movie?.name" />
+            </div>
           </div>
 
           <!-- Sidebar -->
-          <aside class="xl:w-[320px] shrink-0 xl:border-l xl:border-white/5 xl:pl-8">
-            <h3 class="text-sm font-bold text-white mb-4">Phim đề xuất</h3>
-            <div class="space-y-3">
-              <NuxtLink v-for="rel in relatedMovies" :key="rel.slug"
-                :to="{ path: `/phim/${rel.slug}`, query: { source: rel.source } }"
-                class="flex gap-3 group rounded-lg p-2 transition hover:bg-white/5 bg-[#1A1A24]">
-                <img :src="rel.thumb || rel.poster" :alt="rel.name" class="w-12 h-16 rounded object-cover shrink-0">
-                <div class="min-w-0">
-                  <p class="text-sm font-semibold text-white group-hover:text-yellow-300 transition truncate">{{
-                    rel.name }}</p>
-                  <p class="text-[11px] text-slate-400 mt-0.5">{{ rel.year || rel.quality || '' }}</p>
-                  <p v-if="rel.episode" class="text-[10px] text-white/60 mt-1">{{ rel.episode }}</p>
-                </div>
-              </NuxtLink>
+          <aside class="min-w-0 xl:border-l xl:border-white/5 xl:pl-8">
+            <div class="xl:sticky xl:top-24">
+              <h3 class="mb-4 text-sm font-bold text-white">
+                Phim đề xuất
+              </h3>
+
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
+                <NuxtLink v-for="rel in relatedMovies" :key="rel.slug"
+                  :to="{ path: `/phim/${rel.slug}`, query: { source: rel.source } }"
+                  class="group flex gap-3 rounded-lg bg-[#1A1A24] p-2 transition hover:bg-white/5">
+                  <img :src="rel.thumb || rel.poster" :alt="rel.name" class="h-16 w-12 shrink-0 rounded object-cover">
+
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-semibold text-white transition group-hover:text-yellow-300">
+                      {{ rel.name }}
+                    </p>
+
+                    <p class="mt-0.5 text-[11px] text-slate-400">
+                      {{ rel.year || rel.quality || '' }}
+                    </p>
+
+                    <p v-if="rel.episode" class="mt-1 text-[10px] text-white/60">
+                      {{ rel.episode }}
+                    </p>
+                  </div>
+                </NuxtLink>
+              </div>
             </div>
           </aside>
-        </div>
-
-        <div class="mb-3">
-          <CommentSection :source="currentMovieSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
         </div>
       </section>
     </template>
