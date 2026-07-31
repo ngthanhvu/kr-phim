@@ -53,20 +53,9 @@ const filteredMovies = computed(() => {
 const totalPages = computed(() => Number(data.value?.pagination?.totalPages || data.value?.pagination?.total_pages || 0))
 const sourceStatus = computed(() => data.value?.sources ?? [])
 
-function movieSourcesQuery(movie: any) {
-  return (movie.sources || [{ source: movie.source, slug: movie.slug }])
-    .filter((source: any) => source.source && source.slug)
-    .map((source: any) => `${source.source}:${source.slug}`)
-    .join(',')
-}
-
 function movieLink(movie: any) {
   return {
     path: `/phim/${movie.slug}`,
-    query: {
-      source: movie.source,
-      srcs: movieSourcesQuery(movie),
-    },
   }
 }
 

@@ -14,9 +14,6 @@ async function refreshFavorites() {
 function movieLink(item: LibraryMovieItem) {
   return {
     path: `/phim/${item.slug}`,
-    query: {
-      source: item.source,
-    },
   }
 }
 

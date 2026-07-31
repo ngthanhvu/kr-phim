@@ -32,23 +32,8 @@ const isDescriptionExpanded = ref(false);
 const previewStyle = ref<Record<string, string>>({});
 let hideTimer: ReturnType<typeof setTimeout> | undefined;
 
-const movieSourcesQuery = computed(() =>
-  (
-    props.movie.sources || [
-      { source: props.movie.source, slug: props.movie.slug },
-    ]
-  )
-    .filter((source) => source.source && source.slug)
-    .map((source) => `${source.source}:${source.slug}`)
-    .join(","),
-);
-
 const movieLink = computed(() => ({
   path: `/phim/${props.movie.slug}`,
-  query: {
-    source: props.movie.source,
-    srcs: movieSourcesQuery.value || undefined,
-  },
 }));
 
 function showPreview(event: MouseEvent) {

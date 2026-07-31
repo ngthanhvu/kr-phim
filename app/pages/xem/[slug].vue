@@ -45,13 +45,12 @@ const { loadWatchHistory: fetchWatchHistory, saveWatchHistory: persistWatchHisto
 const { isFavorite, saveFavorite, removeFavorite, saveWatchLater } = useMovieLibrary()
 
 const { data: movie, pending, error } = useFetch(() => `/api/movies/${route.params.slug}`, {
-  query: computed(() => ({ source: route.query.source, srcs: route.query.srcs })),
-  watch: [() => route.query.source, () => route.query.srcs],
+  lazy: true, default: () => ({}),
 })
 
-const currentMovieSource = computed(() => String(route.query.source || movie.value?.source || ''))
+const currentMovieSource = computed(() => String(movie.value?.source || ''))
 const libraryItem = computed(() => movie.value ? {
-  source: currentMovieSource.value, slug: String(route.params.slug),
+  source: movie.value.source, slug: String(route.params.slug),
   name: movie.value.name, originName: movie.value.originName, thumb: movie.value.thumb, poster: movie.value.poster, updatedAt: Date.now(),
 } : null)
 
@@ -98,7 +97,7 @@ function subtitleLabel(server: any, index: number) {
 }
 
 function episodeLink(index: number) {
-  return { path: `/xem/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs, server: selectedServer.value, ep: index + 1 } }
+  return { path: `/xem/${route.params.slug}`, query: { server: selectedServer.value, ep: index + 1 } }
 }
 
 function episodeIndexForServer(serverIndex: number, subIndex = selectedSubtitle.value, episodeIndex = selectedEpisode.value) {
@@ -114,7 +113,7 @@ async function selectServer(index: number) {
   selectedSubtitle.value = 0
   selectedEpisode.value = episodeIndexForServer(index, 0)
   resetProgressTimer(); destroyHlsPlayer()
-  await navigateTo({ path: `/xem/${route.params.slug}`, query: { ...route.query, server: index, ep: selectedEpisode.value + 1 } }, { replace: true })
+  await navigateTo({ path: `/xem/${route.params.slug}`, query: { server: index, ep: selectedEpisode.value + 1 } }, { replace: true })
   if (shouldAutoplay) nextTick(() => startPlayer())
 }
 
@@ -123,7 +122,7 @@ async function selectSubtitle(index: number) {
   selectedSubtitle.value = index
   selectedEpisode.value = episodeIndexForServer(selectedServer.value, index)
   resetProgressTimer(); destroyHlsPlayer()
-  await navigateTo({ path: `/xem/${route.params.slug}`, query: { ...route.query, server: selectedServer.value, ep: selectedEpisode.value + 1 } }, { replace: true })
+  await navigateTo({ path: `/xem/${route.params.slug}`, query: { server: selectedServer.value, ep: selectedEpisode.value + 1 } }, { replace: true })
   if (hasStarted.value) nextTick(() => startPlayer())
 }
 
@@ -247,7 +246,7 @@ function handleVideoError() { hlsErrorMessage.value = 'HLS phát lỗi.'; isVide
 
 async function loadResumeProgress() {
   if (!import.meta.client || !movie.value) return
-  const source = String(route.query.source || movie.value.source || '')
+  const source = String(movie.value.source || '')
   const items = await fetchWatchHistory(30)
   const item = items.find((i) => i.slug === String(route.params.slug) && i.source === source)
   const saved = Math.floor(item?.progressSeconds || 0)
@@ -350,7 +349,7 @@ function handleTouchEnd(event: TouchEvent) {
 async function saveWatchHistory() {
   if (!import.meta.client || !movie.value) return
   await persistWatchHistory({
-    source: String(route.query.source || movie.value.source || ''), slug: String(route.params.slug),
+    source: String(movie.value.source || ''), slug: String(route.params.slug),
     name: movie.value.name, originName: movie.value.originName, thumb: movie.value.thumb, poster: movie.value.poster,
     episodeName: activeEpisode.value?.name, episodeIndex: selectedEpisode.value, serverIndex: selectedServer.value,
     progressSeconds: Math.floor(progressSeconds.value), durationSeconds: Math.floor(durationSeconds.value), updatedAt: Date.now(),
@@ -680,7 +679,7 @@ useHead(() => ({
                   </p>
 
                   <NuxtLink
-                    :to="{ path: `/phim/${route.params.slug}`, query: { source: route.query.source, srcs: route.query.srcs } }"
+                    :to="{ path: `/phim/${route.params.slug}` }"
                     class="mt-1 inline-flex items-center gap-1 text-[13px] text-cinek-500 hover:underline">
                     Thông tin phim
                     <AppIcon name="chevron-right" class="size-4" />
@@ -779,7 +778,7 @@ useHead(() => ({
 
               <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
                 <NuxtLink v-for="rel in relatedMovies" :key="rel.slug"
-                  :to="{ path: `/phim/${rel.slug}`, query: { source: rel.source } }"
+                  :to="`/phim/${rel.slug}`"
                   class="group flex gap-3 rounded-lg bg-[#1A1A24] p-2 transition hover:bg-white/5">
                   <img :src="rel.thumb || rel.poster" :alt="rel.name" class="h-16 w-12 shrink-0 rounded object-cover">
 

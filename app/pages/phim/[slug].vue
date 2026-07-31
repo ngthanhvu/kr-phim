@@ -1,7 +1,5 @@
 ﻿<script setup lang="ts">
 const route = useRoute()
-const requestedSource = computed(() => String(route.query.source || 'nguonc'))
-const requestedSources = computed(() => typeof route.query.srcs === 'string' ? route.query.srcs : '')
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
 const contentExpanded = ref(false)
@@ -16,19 +14,9 @@ const {
   saveWatchLater,
 } = useMovieLibrary()
 
-const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`, {
-  query: computed(() => ({
-    source: requestedSource.value,
-    srcs: requestedSources.value || undefined,
-  })),
-  watch: [requestedSource, requestedSources],
-})
+const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`)
 
-const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value])
-const activeSource = computed(() => String(activeServer.value?.source || movie.value?.source || route.query.source || 'nguonc'))
-const activeSourceSlug = computed(() => String(activeServer.value?.sourceSlug || movie.value?.slug || route.params.slug))
-const activeSourceServerIndex = computed(() => Number(activeServer.value?.sourceServerIndex ?? 0))
 const actors = computed(() => movie.value?.actors ?? [])
 const actorSummary = computed(() => actors.value.map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
 const episodeCount = computed(() => {
@@ -38,8 +26,8 @@ const episodeCount = computed(() => {
 const libraryItem = computed(() => {
   if (!movie.value) return null
   return {
-    source: activeSource.value,
-    slug: activeSourceSlug.value,
+    source: movie.value.source,
+    slug: movie.value.slug,
     name: movie.value.name,
     originName: movie.value.originName,
     thumb: movie.value.thumb,
@@ -48,23 +36,20 @@ const libraryItem = computed(() => {
   }
 })
 const firstWatchLink = computed(() => ({
-  path: `/xem/${activeSourceSlug.value}`,
-  query: { source: activeSource.value, srcs: requestedSources.value || undefined, server: activeSourceServerIndex.value, ep: 1 },
+  path: `/xem/${movie.value?.slug}`,
+  query: { server: selectedServer.value, ep: 1 },
 }))
 
 function actorInitial(name: string) {
   return name.trim().charAt(0).toUpperCase()
 }
 
+const servers = computed(() => movie.value?.servers ?? [])
+
 function episodeLink(index: number) {
   return {
-    path: `/xem/${activeSourceSlug.value}`,
-    query: {
-      source: activeSource.value,
-      srcs: requestedSources.value || undefined,
-      server: activeSourceServerIndex.value,
-      ep: index + 1,
-    },
+    path: `/xem/${movie.value?.slug}`,
+    query: { server: selectedServer.value, ep: index + 1 },
   }
 }
 
@@ -139,12 +124,9 @@ onMounted(async () => {
   // await loadComments()
   await $fetch(`/api/movies/${route.params.slug}/view`, {
     method: 'POST',
-    query: { source: route.query.source },
   }).catch(() => { })
 })
 
-watch(requestedSource, () => { selectedServer.value = 0 })
-watch(requestedSources, () => { selectedServer.value = 0 })
 watch(libraryItem, () => { refreshFavoriteState() })
 
 useHead(() => ({
@@ -491,7 +473,7 @@ useHead(() => ({
             <!-- Comment Section -->
             <div class="mt-10">
               <ClientOnly>
-                <CommentSection :source="activeSource" :slug="String(route.params.slug)" :movie-name="movie?.name" />
+                <CommentSection :source="movie?.source" :slug="String(route.params.slug)" :movie-name="movie?.name" />
               </ClientOnly>
             </div>
           </div>

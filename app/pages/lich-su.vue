@@ -15,7 +15,6 @@ function watchHistoryLink(item: WatchHistoryItem) {
   return {
     path: `/xem/${item.slug}`,
     query: {
-      source: item.source,
       server: item.serverIndex || 0,
       ep: (item.episodeIndex || 0) + 1,
     },

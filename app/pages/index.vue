@@ -188,9 +188,6 @@ function formatCommentContent(content: string, maxLength = 120) {
 function movieLinkFromSection(movie: any) {
   return {
     path: `/phim/${movie?.slug}`,
-    query: {
-      source: movie?.source,
-    },
   }
 }
 
@@ -210,24 +207,11 @@ function genreTagColor(index: number) {
   return colors[index % colors.length]
 }
 
-function movieSourcesQuery(movie: any) {
-  return (movie?.sources || [{ source: movie?.source, slug: movie?.slug }])
-    .filter((source: any) => source.source && source.slug)
-    .map((source: any) => `${source.source}:${source.slug}`)
-    .join(',')
-}
-
 function movieLink(movie: any) {
   return {
     path: `/phim/${movie?.slug}`,
-    query: {
-      source: movie?.source,
-      srcs: movieSourcesQuery(movie) || undefined,
-    },
   }
 }
-
-
 function goToSlide(index: number) {
   heroSliderRef.value?.goTo(index)
 }
@@ -236,7 +220,6 @@ function watchHistoryLink(item: WatchHistoryItem) {
   return {
     path: `/xem/${item.slug}`,
     query: {
-      source: item.source,
       server: item.serverIndex || 0,
       ep: (item.episodeIndex || 0) + 1,
     },
@@ -296,7 +279,7 @@ watch(hero, async (currentHero) => {
     return
   }
 
-  const cacheKey = `${currentHero.source}:${currentHero.slug}`
+  const cacheKey = currentHero.slug
   if (heroDetailCache.has(cacheKey)) {
     heroDetail.value = heroDetailCache.get(cacheKey)
     return
@@ -304,15 +287,10 @@ watch(hero, async (currentHero) => {
 
   heroDetail.value = null
   try {
-    const detail = await $fetch(`/api/movies/${currentHero.slug}`, {
-      query: {
-        source: currentHero.source,
-        srcs: movieSourcesQuery(currentHero) || undefined,
-      },
-    })
+    const detail = await $fetch(`/api/movies/${currentHero.slug}`)
     heroDetailCache.set(cacheKey, detail)
 
-    if (hero.value?.slug === currentHero.slug && hero.value?.source === currentHero.source) {
+    if (hero.value?.slug === currentHero.slug) {
       heroDetail.value = detail
     }
   } catch {
