@@ -8,6 +8,7 @@ const props = defineProps<{
   replyContent: Record<number, string>
   isReplyAnonymous: Record<number, boolean>
   isSubmittingReply?: Record<number, boolean>
+  isDeleting?: Map<number, boolean>
   openGifPicker?: (id: number) => void
 }>()
 
@@ -131,9 +132,11 @@ function formatMentions(content: string) {
       <div v-if="reply.replies?.length" class="mt-3 pl-4 border-l-2 border-white/10">
         <CommentReplies :replies="reply.replies" :depth="depth + 1" :user="user" :parent-id="reply.id"
           :is-replying-to="isReplyingTo" :reply-content="replyContent" :is-reply-anonymous="isReplyAnonymous"
-          :is-submitting-reply="isSubmittingReply" :open-gif-picker="openGifPicker"
+          :is-submitting-reply="isSubmittingReply" :is-deleting="isDeleting" :open-gif-picker="openGifPicker"
           @start-reply="emit('start-reply', $event)" @cancel-reply="emit('cancel-reply', $event)"
-          @submit-reply="emit('submit-reply', $event)" @vote="emit('vote', $event)" @delete="emit('delete', $event)" />
+          @submit-reply="emit('submit-reply', $event)" 
+          @vote="(a, b, c, d) => emit('vote', a, b, c, d)" 
+          @delete="emit('delete', $event)" />
       </div>
     </div>
     </div>

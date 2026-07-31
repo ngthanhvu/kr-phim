@@ -29,14 +29,16 @@ const navItems = [
   { label: 'Phim lẻ', to: '/phim?type=single' },
 ]
 
+interface MemberMenuItem { label: string, icon: string, to: string }
+
 const memberMenuItems = computed(() => {
-  const items = [
-    { label: 'Trang cá nhân', icon: 'user' as const, to: '/thanh-vien' },
-    { label: 'Yêu thích', icon: 'heart' as const, to: '/yeu-thich' },
-    { label: 'Lịch sử', icon: 'history' as const, to: '/lich-su' },
+  const items: MemberMenuItem[] = [
+    { label: 'Trang cá nhân', icon: 'user', to: '/thanh-vien' },
+    { label: 'Yêu thích', icon: 'heart', to: '/yeu-thich' },
+    { label: 'Lịch sử', icon: 'history', to: '/lich-su' },
   ]
   if (user.value?.role === 'admin') {
-    items.push({ label: 'Trang quản trị', icon: 'settings' as const, to: '/admin' })
+    items.push({ label: 'Trang quản trị', icon: 'settings', to: '/admin' })
   }
   return items
 })
@@ -143,7 +145,7 @@ watch(() => route.path, () => {
             </div>
             <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
               class="flex h-10 w-full cursor-pointer items-center gap-2.5 px-4 transition hover:bg-white/4 hover:text-white">
-              <AppIcon :name="item.icon" class="size-4 shrink-0 text-white/50" />
+              <AppIcon :name="item.icon as any" class="size-4 shrink-0 text-white/50" />
               <span class="text-[13px] font-medium text-white/70">{{ item.label }}</span>
             </NuxtLink>
             <div class="my-1.5 border-t border-white/6" />
@@ -203,7 +205,7 @@ watch(() => route.path, () => {
                 <NuxtLink v-for="item in memberMenuItems" :key="item.label" :to="item.to"
                   class="flex h-11 w-full cursor-pointer items-center gap-3 px-4 text-left text-sm font-semibold text-slate-200 transition hover:bg-white/8 hover:text-white"
                   @click="closeMobileMenu">
-                  <AppIcon :name="item.icon" class="size-4 shrink-0" />
+                  <AppIcon :name="item.icon as any" class="size-4 shrink-0" />
                   {{ item.label }}
                 </NuxtLink>
                 <div class="my-2 border-t border-white/10" />

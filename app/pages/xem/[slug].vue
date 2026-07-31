@@ -57,8 +57,51 @@ const libraryItem = computed(() => movie.value ? {
 
 const servers = computed(() => movie.value?.servers ?? [])
 const activeServer = computed(() => servers.value[selectedServer.value] ?? servers.value[0])
-const activeSubtitle = computed(() => activeServer.value?.channels?.[selectedSubtitle.value] ?? activeServer.value)
-const activeEpisode = computed(() => activeSubtitle.value?.episodes?.[selectedEpisode.value] ?? activeSubtitle.value?.episodes?.[0])
+// Server may have channels property at runtime
+const activeSubtitle = computed(() => {
+  const server = (servers.value[selectedServer.value] as any)
+  if (Array.isArray(server?.channels) && server.channels.length > 0) {
+    return server.channels[selectedSubtitle.value] ?? server
+  }
+  return server
+})
+const activeEpisode = computed(() => {
+  const sub = activeSubtitle.value as any
+  if (!sub) return undefined
+  const arr = sub?.episodes || []
+  return arr[selectedEpisode.value] || arr[0]
+})
+
+// Player/computed properties needed for template
+const durationSeconds = computed(() => videoRef.value ? Math.floor(videoRef.value.duration || 0) : 0)
+const hlsPlayerUrl = computed(() => {
+  const ep = activeEpisode.value
+  return ep?.linkM3u8 || ep?.link_embed || ''
+})
+const hasNextEpisode = computed(() => {
+  const totalEps = activeSubtitle.value?.episodes?.length || 0
+  return selectedEpisode.value < totalEps - 1
+})
+const shouldShowHlsControls = computed(() => controlsVisible.value || isSettingsOpen.value)
+const episodeProgress = computed(() => {
+  if (!movie.value?.episode || !movie.value?.episodeTotal) return null
+  const match = String(movie.value.episode).match(/(\d+)\s*\/\s*(\d+)/)
+  if (match) return { available: Number(match[1]), total: Number(match[2]) }
+  return null
+})
+const progressPercent = computed(() => {
+  if (!durationSeconds.value) return 0
+  return Math.round((progressSeconds.value / durationSeconds.value) * 100)
+})
+
+function getProxyUrl(url: string): string {
+  if (!url) return ''
+  return '/api/proxy-m3u8?url=' + encodeURIComponent(url)
+}
+
+// Skip intro/outro seconds (set from admin config when available)
+const skipIntroSeconds = 0
+const skipOutroSeconds = ref(0)
 
 
 // Related movies
@@ -98,7 +141,8 @@ function episodeLink(index: number) {
 }
 
 function episodeIndexForServer(serverIndex: number, subIndex = selectedSubtitle.value, episodeIndex = selectedEpisode.value) {
-  const sub = servers.value[serverIndex]?.channels?.[subIndex] ?? servers.value[serverIndex]
+  const server = (servers.value[serverIndex] as any)
+  const sub = server?.channels?.[subIndex] ?? server
   const count = sub?.episodes?.length || 0
   return count ? Math.min(Math.max(episodeIndex, 0), count - 1) : 0
 }
@@ -576,7 +620,7 @@ useHead(() => ({
               </div>
               <div class="text-sm">
                 <span class="font-semibold text-white">{{ formatEpisodeName(activeEpisode?.name, selectedEpisode)
-                  }}</span>
+                }}</span>
                 <span class="mx-2 text-white/30">•</span>
                 <span class="text-white/60">{{ serverLabel(activeServer, selectedServer) }}</span>
               </div>
@@ -698,9 +742,9 @@ useHead(() => ({
                     <div class="flex flex-wrap gap-2">
                       <button v-for="(server, index) in servers" :key="server.name" type="button"
                         class="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors"
-                        :class="selectedServer === index ? 'border-white/30 bg-white/5 text-white' : 'border-transparent text-white/60 hover:text-white'"
-                        @click="selectServer(index)">
-                        {{ serverLabel(server, index) }}
+                        :class="selectedServer === Number(index) ? 'border-white/30 bg-white/5 text-white' : 'border-transparent text-white/60 hover:text-white'"
+                        @click="selectServer(Number(index))">
+                        {{ serverLabel(server, Number(index)) }}
                       </button>
                     </div>
                   </div>
@@ -708,18 +752,18 @@ useHead(() => ({
               </div>
 
               <!-- Subtitle/Source Buttons -->
-              <div v-if="activeServer?.channels?.length" class="mb-6 flex flex-wrap gap-2">
-                <button v-for="(sub, index) in activeServer.channels" :key="sub.name || index" type="button"
+              <div v-if="(activeServer as any)?.channels?.length" class="mb-6 flex flex-wrap gap-2">
+                <button v-for="(sub, index) in (activeServer as any)?.channels" :key="sub.name || index" type="button"
                   class="group flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-                  :class="selectedSubtitle === index ? 'border-white/30 bg-white/5 text-white' : 'border-transparent text-white/60 hover:text-white'"
-                  @click="selectSubtitle(index)">
-                  <AppIcon v-if="index === 0" name="captions" class="size-3.5" />
+                  :class="selectedSubtitle === Number(index) ? 'border-white/30 bg-white/5 text-white' : 'border-transparent text-white/60 hover:text-white'"
+                  @click="selectSubtitle(Number(index))">
+                  <AppIcon v-if="Number(index) === 0" name="captions" class="size-3.5" />
                   <AppIcon v-else name="languages" class="size-3.5" />
 
-                  <span>{{ subtitleLabel(sub, index) }}</span>
+                  <span>{{ subtitleLabel(sub, Number(index)) }}</span>
 
                   <span class="rounded px-1.5 text-[10px] font-bold"
-                    :class="selectedSubtitle === index ? 'bg-white text-black' : 'bg-white/10 text-white/50'">
+                    :class="selectedSubtitle === Number(index) ? 'bg-white text-black' : 'bg-white/10 text-white/50'">
                     {{ sub.episodes?.length || 0 }}
                   </span>
                 </button>
@@ -729,11 +773,11 @@ useHead(() => ({
               <div v-if="activeSubtitle?.episodes?.length"
                 class="grid grid-cols-3 gap-x-2.5 gap-y-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
                 <NuxtLink v-for="(episode, index) in activeSubtitle.episodes" :key="`${episode.name}-${index}`"
-                  :to="episodeLink(index)"
+                  :to="episodeLink(Number(index))"
                   class="group flex items-center justify-center gap-1.5 rounded-lg bg-[#191b24] px-2 py-2.5 text-[13px] text-white/90 shadow-sm transition-all hover:bg-[#1f2130] hover:text-[#FFD166]"
-                  :class="selectedEpisode === index ? 'border border-[#F5C518]/40 bg-[#F5C518]/20 text-[#FFD166]' : ''">
+                  :class="selectedEpisode === Number(index) ? 'border border-[#F5C518]/40 bg-[#F5C518]/20 text-[#FFD166]' : ''">
                   <AppIcon name="play" class="size-3 fill-current" />
-                  {{ formatEpisodeName(episode.name, index) }}
+                  {{ formatEpisodeName(episode.name, Number(index)) }}
                 </NuxtLink>
               </div>
 

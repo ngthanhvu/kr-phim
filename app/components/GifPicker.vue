@@ -18,7 +18,7 @@ const popupStyle = ref({})
 async function fetchTrending() {
   isLoading.value = true
   try {
-    const data = await $fetch(`${GIPHY_BASE}/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=pg-13`)
+    const data: any = await $fetch(`${GIPHY_BASE}/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=pg-13`)
     gifs.value = data.data || []
   } catch {
     gifs.value = []
@@ -34,7 +34,7 @@ async function searchGifs(query: string) {
   }
   isLoading.value = true
   try {
-    const data = await $fetch(`${GIPHY_BASE}/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20&rating=pg-13&lang=vi`)
+    const data: any = await $fetch(`${GIPHY_BASE}/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=20&rating=pg-13&lang=vi`)
     gifs.value = data.data || []
   } catch {
     gifs.value = []

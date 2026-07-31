@@ -313,8 +313,7 @@ useHead({
     <AppHeader />
 
     <div v-if="hero" class="relative bg-black mt-16 md:mt-0">
-      <section
-        class="relative w-full aspect-video md:h-screen overflow-hidden bg-black after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1.5 after:bg-black after:z-10">
+      <section class="relative w-full aspect-video md:h-screen overflow-hidden bg-black">
         <ClientOnly>
           <HeroSlider v-if="heroSlides.length" ref="heroSliderRef" :slides="heroSlides"
             @update:modelValue="heroIndex = $event" />
@@ -322,12 +321,12 @@ useHead({
 
         <!-- Mobile gradient overlay (bottom only) -->
         <div class="absolute inset-0 z-10 pointer-events-none md:hidden"
-          style="background:linear-gradient(to top, #000000 0%, rgba(0,0,0,0.92) 8%, rgba(0,0,0,0.75) 22%, rgba(0,0,0,0.35) 50%, transparent 78%)">
+          style="background:linear-gradient(to top, #0E111A 0%, rgba(14,17,26,0.95) 8%, rgba(14,17,26,0.78) 22%, rgba(14,17,26,0.38) 50%, transparent 78%)">
         </div>
 
         <!-- Desktop gradient overlay (bottom only) -->
         <div class="absolute inset-0 z-10 pointer-events-none hidden md:block"
-          style="background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.75) 20%, rgba(0,0,0,0.35) 45%, transparent 70%)">
+          style="background:linear-gradient(to top, #0E111A 0%, rgba(14,17,26,0.78) 20%, rgba(14,17,26,0.38) 45%, transparent 70%)">
         </div>
 
         <!-- Content overlay -->
@@ -675,13 +674,13 @@ useHead({
             </div>
 
             <!-- Carousel navigation -->
-            <button type="button" class="absolute -left-[4.25rem] top-1/2 z-20 hidden size-14 -translate-y-1/2 place-items-center
+            <button type="button" class="absolute -left-17 top-1/2 z-20 hidden size-14 -translate-y-1/2 place-items-center
                rounded-full border border-white/15 bg-[#11141d] text-white shadow-lg
                transition hover:bg-[#181c27] lg:grid" @click="scrollComments('left')">
               <AppIcon name="chevron-left" class="size-6" />
             </button>
 
-            <button type="button" class="absolute -right-[4.25rem] top-1/2 z-20 hidden size-14 -translate-y-1/2 place-items-center
+            <button type="button" class="absolute -right-17 top-1/2 z-20 hidden size-14 -translate-y-1/2 place-items-center
                rounded-full border border-white/15 bg-[#11141d] text-white shadow-lg
                transition hover:bg-[#181c27] lg:grid" @click="scrollComments('right')">
               <AppIcon name="chevron-right" class="size-6" />

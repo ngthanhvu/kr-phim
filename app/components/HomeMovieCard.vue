@@ -36,11 +36,13 @@ const movieLink = computed(() => ({
   path: `/phim/${props.movie.slug}`,
 }));
 
-function showPreview(event: MouseEvent) {
+function showPreview(event: MouseEvent | FocusEvent) {
   if (window.matchMedia("(max-width: 639px)").matches) return;
   if (hideTimer) clearTimeout(hideTimer);
 
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const rect = ((event as any)?.currentTarget || (event as any)?.target)?.getBoundingClientRect();
+  if (!rect) return;
+
   const width = 408;
   const height = 344;
   const gap = 14;
@@ -81,8 +83,8 @@ onBeforeUnmount(() => {
 <template>
   <div class="w-44 shrink-0 snap-start sm:w-52 xl:w-56">
     <!-- Movie Card -->
-    <NuxtLink :to="movieLink" class="group block" @mouseenter="showPreview" @mouseleave="scheduleHide"
-      @focus="showPreview" @blur="scheduleHide">
+      <NuxtLink :to="movieLink" class="group block" @mouseenter="showPreview" @mouseleave="scheduleHide"
+        @focus.passive="showPreview" @blur="scheduleHide">
       <!-- Poster wrapper -->
       <div class="relative aspect-2/3">
         <div class="h-full w-full overflow-hidden rounded-t-[7px] bg-slate-900 shadow-xl shadow-black/25 ring-1 ring-white/10">
