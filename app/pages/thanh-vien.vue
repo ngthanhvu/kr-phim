@@ -59,7 +59,7 @@ const avatarGrid = computed(() => {
     'viet-nam': ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16'],
   }
   const nums = categoryMap[selectedAvatarCategory.value] || []
-  return nums.map(n => `/avatars/${selectedAvatarCategory.value}/${n}.jpg`)
+  return nums.map(n => `/avatars/${selectedAvatarCategory.value}/${n}.webp`)
 })
 
 const sidebarItems = [

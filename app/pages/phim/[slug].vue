@@ -153,7 +153,7 @@ useHead(() => ({
     { name: 'description', content: movie.value ? `Xem ${movie.value.name} online` : 'Xem phim Hàn Quốc online' },
     { property: 'og:title', content: movie.value ? `${movie.value.name} - CineK` : 'CineK' },
     { property: 'og:description', content: movie.value?.content || '' },
-    { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.png' },
+    { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.webp' },
   ],
 }))
 </script>

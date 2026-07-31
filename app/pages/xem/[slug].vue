@@ -401,7 +401,7 @@ watch([movie, activeEpisode], () => { if (hasStarted.value) saveWatchHistory() }
 watch(libraryItem, () => { refreshFavoriteState() })
 useHead(() => ({
   title: movie.value ? `Xem ${movie.value.name} - CineK` : 'Đang tải - CineK',
-  meta: [{ name: 'description', content: movie.value ? `Xem ${movie.value.name} online` : '' }, { property: 'og:title', content: movie.value ? `${movie.value.name} - CineK` : 'CineK' }, { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.png' }],
+  meta: [{ name: 'description', content: movie.value ? `Xem ${movie.value.name} online` : '' }, { property: 'og:title', content: movie.value ? `${movie.value.name} - CineK` : 'CineK' }, { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.webp' }],
 }))
 </script>
 

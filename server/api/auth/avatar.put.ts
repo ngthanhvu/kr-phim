@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const parts = avatar.split('/')
-  const num = parts[2]?.replace('.jpg', '')
+  const num = parts[2]?.replace(/\.(?:jpg|webp)$/, '')
   if (parts.length !== 3 || parts[0] !== 'avatars' || !validCategories.includes(parts[1]) || !validNumbers[parts[1]]?.includes(num)) {
     throw createError({ statusCode: 400, message: 'Avatar không hợp lệ' })
   }
