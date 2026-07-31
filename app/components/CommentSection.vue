@@ -384,9 +384,9 @@ watch(() => props.slug, () => {
 </script>
 
 <template>
-  <div class="mt-10 border-t border-white/10 pt-8">
-    <div class="flex items-center gap-3 mb-6">
-      <AppIcon name="message-square" class="size-5 text-yellow-300" />
+  <div class="mt-10 border-white/10 pt-8">
+    <div class="flex items-center gap-1 mb-6">
+      <AppIcon name="message-square" class="size-10" />
       <h2 class="text-xl font-bold text-white">Bình luận</h2>
       <span class="text-sm text-slate-400">({{ comments.length }})</span>
     </div>
@@ -421,7 +421,8 @@ watch(() => props.slug, () => {
               lộ</span>
           </div>
           <div class="relative">
-            <button type="button" @click="openGifPicker('main')" class="comment-gif-btn flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition">
+            <button type="button" @click="openGifPicker('main')"
+              class="comment-gif-btn flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition">
               <AppIcon name="image" class="size-4" /><span class="text-white/50">GIF</span>
             </button>
           </div>
@@ -449,106 +450,111 @@ watch(() => props.slug, () => {
 
     <div v-if="isCommentsLoading" class="space-y-4">
       <div v-for="i in 2" :key="i" class="flex items-start gap-3 p-4 bg-[#13151f] rounded-xl animate-pulse">
-      <div class="size-10 rounded-full bg-white/5 shrink-0" />
-      <div class="flex-1 space-y-2">
-        <div class="h-3.5 bg-white/5 rounded w-20" />
-        <div class="h-3 bg-white/5 rounded w-full" />
-        <div class="h-3 bg-white/5 rounded w-3/4" />
+        <div class="size-10 rounded-full bg-white/5 shrink-0" />
+        <div class="flex-1 space-y-2">
+          <div class="h-3.5 bg-white/5 rounded w-20" />
+          <div class="h-3 bg-white/5 rounded w-full" />
+          <div class="h-3 bg-white/5 rounded w-3/4" />
+        </div>
       </div>
     </div>
-  </div>
 
-  <TransitionGroup v-else-if="comments.length" name="comment-list" tag="div" class="space-y-1">
-    <div v-for="comment in comments" :key="comment.id" class="mb-2">
-      <div class="transition"
-        :class="comment.pinned ? 'rounded-xl p-4 bg-yellow-500/5 border border-yellow-500/20' : 'py-4 border-b border-white/5'">
-        <div v-if="comment.pinned" class="flex items-center gap-1.5 mb-3 text-xs text-yellow-400/80 font-medium">
-          <AppIcon name="pin" class="size-3" /> Ghim bởi Admin
-        </div>
-        <div class="flex gap-3">
-          <div class="shrink-0 relative">
-            <div class="size-10 rounded-full bg-white/10 flex items-center justify-center"
-              :class="comment.userRole === 'admin' ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-[#0d0f17]' : ''">
-              <img v-if="comment.userAvatar" :src="comment.userAvatar" class="size-10 rounded-full object-cover"
-                alt="" />
-              <AppIcon name="user" v-else class="size-5 text-slate-500" />
-            </div>
-            <div v-if="comment.userRole === 'admin'"
-              class="absolute -top-0.5 -left-0.5 size-3.5 bg-yellow-400 rounded-full flex items-center justify-center ring-2 ring-[#0d0f17]">
-              <svg class="size-2 text-slate-950" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z"/></svg>
-            </div>
+    <TransitionGroup v-else-if="comments.length" name="comment-list" tag="div" class="space-y-1">
+      <div v-for="comment in comments" :key="comment.id" class="mb-2">
+        <div class="transition"
+          :class="comment.pinned ? 'rounded-xl p-4 bg-yellow-500/5 border border-yellow-500/20' : 'py-4 border-b border-white/5'">
+          <div v-if="comment.pinned" class="flex items-center gap-1.5 mb-3 text-xs text-yellow-400/80 font-medium">
+            <AppIcon name="pin" class="size-3" /> Ghim bởi Admin
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <span v-if="comment.pinned"
-                class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-cinek-500/20 text-cinek-400">
-                <AppIcon name="pin" class="size-3" />Đã ghim
-              </span>
-              <span v-if="comment.userRole === 'admin'"
-                class="px-2 py-0.5 rounded text-[10px] font-black bg-yellow-400 text-slate-900 shadow-sm">ADMIN</span>
-              <span class="text-sm font-semibold text-white">{{ comment.userName }}</span>
-              <AppIcon name="venus" v-if="comment.userGender === 'female'" class="size-3.5 text-pink-400" />
-              <AppIcon name="mars" v-if="comment.userGender === 'male'" class="size-3.5 text-blue-400" />
-              <AppIcon name="minus" v-if="comment.userGender === 'other'" class="size-3.5 text-purple-400" />
-              <span class="text-xs text-slate-600">{{ timeAgo(comment.createdAt) }}</span>
+          <div class="flex gap-3">
+            <div class="shrink-0 relative">
+              <div class="size-10 rounded-full bg-white/10 flex items-center justify-center"
+                :class="comment.userRole === 'admin' ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-[#0d0f17]' : ''">
+                <img v-if="comment.userAvatar" :src="comment.userAvatar" class="size-10 rounded-full object-cover"
+                  alt="" />
+                <AppIcon name="user" v-else class="size-5 text-slate-500" />
+              </div>
+              <div v-if="comment.userRole === 'admin'"
+                class="absolute -top-0.5 -left-0.5 size-3.5 bg-yellow-400 rounded-full flex items-center justify-center ring-2 ring-[#0d0f17]">
+                <svg class="size-2 text-slate-950" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z" />
+                </svg>
+              </div>
             </div>
-            <div class="relative">
-              <p class="text-sm text-slate-300 whitespace-pre-wrap wrap-break-word cursor-pointer select-none py-1.5 transition-all duration-200"
-                :class="comment.anonymous && !revealedComments.has(comment.id) ? 'blur-sm opacity-60' : ''"
-                v-html="formatMentions(comment.content)"
-                @click="comment.anonymous && (revealedComments.has(comment.id) ? revealedComments.delete(comment.id) : revealedComments.add(comment.id))">
-              </p>
-            </div>
-            <div class="flex items-center gap-3 mt-2.5">
-              <button type="button" @click="handleVote(comment.id, comment.userVote === 1 ? 0 : 1)"
-                class="flex items-center gap-1 text-xs"
-                :class="comment.userVote === 1 ? 'text-cinek-400' : 'text-slate-500 hover:text-slate-300'">
-                <AppIcon name="thumbs-up" class="size-3.5" /><span v-if="comment.likeCount">{{ comment.likeCount }}</span>
-              </button>
-              <button type="button" @click="handleVote(comment.id, comment.userVote === -1 ? 0 : -1)"
-                class="flex items-center gap-1 text-xs"
-                :class="comment.userVote === -1 ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'">
-                <AppIcon name="thumbs-down" class="size-3.5" /><span v-if="comment.dislikeCount">{{ comment.dislikeCount }}</span>
-              </button>
-              <button type="button" @click="startReply(comment.id)"
-                class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300">
-                <AppIcon name="corner-down-left" class="size-3.5" /><span>Trả lời</span>
-              </button>
-              <button v-if="user && user.role === 'admin'" type="button" @click="handleTogglePin(comment.id)"
-                class="flex items-center gap-1.5 text-xs"
-                :class="comment.pinned ? 'text-cinek-400 hover:text-cinek-300' : 'text-slate-600 hover:text-slate-400'">
-                <AppIcon name="pin" class="size-3.5" /><span>{{ comment.pinned ? 'Bỏ ghim' : 'Ghim' }}</span>
-              </button>
-              <button v-if="user && (user.id === comment.userId || user.role === 'admin')" type="button"
-                @click="handleDeleteComment(comment.id)"
-                class="flex items-center gap-1.5 text-xs text-slate-600 hover:text-red-400">
-                <AppIcon name="trash" class="size-3.5" />
-              </button>
-            </div>
-            <div v-if="isReplyingTo === comment.id" class="mt-4">
-              <div class="rounded-xl border border-white/10 bg-[#13151f] p-4">
-                <textarea v-model="replyContent[comment.id]" rows="2" maxlength="1000"
-                  class="w-full rounded-lg bg-[#0d0f17] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-cinek-500/50 focus:outline-none resize-none transition"
-                  placeholder="Viết trả lời..." />
-                <div class="flex items-center justify-between mt-3">
-                  <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                      <button type="button" @click="isReplyAnonymous[comment.id] = !isReplyAnonymous[comment.id]"
-                        class="relative w-9 h-5 rounded-full transition-colors"
-                        :class="(isReplyAnonymous[comment.id] ?? false) ? 'bg-cinek-500' : 'bg-white/20'">
-                        <span class="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform"
-                          :class="(isReplyAnonymous[comment.id] ?? false) ? 'translate-x-4' : 'translate-x-0'" />
-                      </button>
-                      <span class="text-xs text-slate-500">Tiết lộ</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <span v-if="comment.pinned"
+                  class="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-cinek-500/20 text-cinek-400">
+                  <AppIcon name="pin" class="size-3" />Đã ghim
+                </span>
+                <span v-if="comment.userRole === 'admin'"
+                  class="px-2 py-0.5 rounded text-[10px] font-black bg-yellow-400 text-slate-900 shadow-sm">ADMIN</span>
+                <span class="text-sm font-semibold text-white">{{ comment.userName }}</span>
+                <AppIcon name="venus" v-if="comment.userGender === 'female'" class="size-3.5 text-pink-400" />
+                <AppIcon name="mars" v-if="comment.userGender === 'male'" class="size-3.5 text-blue-400" />
+                <AppIcon name="minus" v-if="comment.userGender === 'other'" class="size-3.5 text-purple-400" />
+                <span class="text-xs text-slate-600">{{ timeAgo(comment.createdAt) }}</span>
+              </div>
+              <div class="relative">
+                <p class="text-sm text-slate-300 whitespace-pre-wrap wrap-break-word cursor-pointer select-none py-1.5 transition-all duration-200"
+                  :class="comment.anonymous && !revealedComments.has(comment.id) ? 'blur-sm opacity-60' : ''"
+                  v-html="formatMentions(comment.content)"
+                  @click="comment.anonymous && (revealedComments.has(comment.id) ? revealedComments.delete(comment.id) : revealedComments.add(comment.id))">
+                </p>
+              </div>
+              <div class="flex items-center gap-3 mt-2.5">
+                <button type="button" @click="handleVote(comment.id, comment.userVote === 1 ? 0 : 1)"
+                  class="flex items-center gap-1 text-xs"
+                  :class="comment.userVote === 1 ? 'text-cinek-400' : 'text-slate-500 hover:text-slate-300'">
+                  <AppIcon name="thumbs-up" class="size-3.5" /><span v-if="comment.likeCount">{{ comment.likeCount
+                    }}</span>
+                </button>
+                <button type="button" @click="handleVote(comment.id, comment.userVote === -1 ? 0 : -1)"
+                  class="flex items-center gap-1 text-xs"
+                  :class="comment.userVote === -1 ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'">
+                  <AppIcon name="thumbs-down" class="size-3.5" /><span v-if="comment.dislikeCount">{{
+                    comment.dislikeCount }}</span>
+                </button>
+                <button type="button" @click="startReply(comment.id)"
+                  class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300">
+                  <AppIcon name="corner-down-left" class="size-3.5" /><span>Trả lời</span>
+                </button>
+                <button v-if="user && user.role === 'admin'" type="button" @click="handleTogglePin(comment.id)"
+                  class="flex items-center gap-1.5 text-xs"
+                  :class="comment.pinned ? 'text-cinek-400 hover:text-cinek-300' : 'text-slate-600 hover:text-slate-400'">
+                  <AppIcon name="pin" class="size-3.5" /><span>{{ comment.pinned ? 'Bỏ ghim' : 'Ghim' }}</span>
+                </button>
+                <button v-if="user && (user.id === comment.userId || user.role === 'admin')" type="button"
+                  @click="handleDeleteComment(comment.id)"
+                  class="flex items-center gap-1.5 text-xs text-slate-600 hover:text-red-400">
+                  <AppIcon name="trash" class="size-3.5" />
+                </button>
+              </div>
+              <div v-if="isReplyingTo === comment.id" class="mt-4">
+                <div class="rounded-xl border border-white/10 bg-[#13151f] p-4">
+                  <textarea v-model="replyContent[comment.id]" rows="2" maxlength="1000"
+                    class="w-full rounded-lg bg-[#0d0f17] border border-white/10 px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-cinek-500/50 focus:outline-none resize-none transition"
+                    placeholder="Viết trả lời..." />
+                  <div class="flex items-center justify-between mt-3">
+                    <div class="flex items-center gap-4">
+                      <div class="flex items-center gap-2">
+                        <button type="button" @click="isReplyAnonymous[comment.id] = !isReplyAnonymous[comment.id]"
+                          class="relative w-9 h-5 rounded-full transition-colors"
+                          :class="(isReplyAnonymous[comment.id] ?? false) ? 'bg-cinek-500' : 'bg-white/20'">
+                          <span
+                            class="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform"
+                            :class="(isReplyAnonymous[comment.id] ?? false) ? 'translate-x-4' : 'translate-x-0'" />
+                        </button>
+                        <span class="text-xs text-slate-500">Tiết lộ</span>
+                      </div>
+                      <div class="relative">
+                        <button type="button" @click="openGifPicker(comment.id)"
+                          class="reply-gif-btn flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition"
+                          :class="'reply-gif-btn-' + comment.id">
+                          <AppIcon name="image" class="size-4" /><span>GIF</span>
+                        </button>
+                      </div>
                     </div>
-                    <div class="relative">
-                      <button type="button" @click="openGifPicker(comment.id)"
-                        class="reply-gif-btn flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition"
-                        :class="'reply-gif-btn-' + comment.id">
-                        <AppIcon name="image" class="size-4" /><span>GIF</span>
-                      </button>
-                    </div>
-                  </div>
                     <div class="flex items-center gap-3">
                       <span class="text-xs text-white/30">{{ (replyContent[comment.id] || '').length }} / 1000</span>
                       <button type="button" @click="cancelReply(comment.id)"
@@ -560,58 +566,58 @@ watch(() => props.slug, () => {
                         <AppIcon name="send" class="size-4" />
                       </button>
                     </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div v-if="comment.replies?.length" class="mt-4">
-              <button @click="toggleExpand(comment.id)"
-                class="flex items-center gap-1.5 text-xs text-cinek-400 hover:text-cinek-300 transition mb-2">
-                <AppIcon name="chevron-up" v-if="expandedComments.has(comment.id)" class="size-3" />
-                <AppIcon name="chevron-down" v-else class="size-3" />
-                <span>{{ expandedComments.has(comment.id) ? 'Ẩn phản hồi' : `Hiển thị
-                  ${countAllReplies(comment.replies)} phản hồi` }}</span>
-              </button>
-              <div class="replies-container pl-3 border-l-2 border-white/10"
-                :class="expandedComments.has(comment.id) ? 'expanded' : 'collapsed'">
-                <div class="space-y-3">
-                  <CommentReplies :replies="comment.replies" :depth="0" :user="user" :parent-id="comment.id"
-                    :is-replying-to="isReplyingTo" :reply-content="replyContent" :is-reply-anonymous="isReplyAnonymous"
-                    :is-submitting-reply="isSubmittingReply" :open-gif-picker="openGifPicker"
-                    @start-reply="startReply" @cancel-reply="cancelReply"
-                    @submit-reply="submitReply" @vote="handleVote" @delete="handleDeleteComment" />
+              <div v-if="comment.replies?.length" class="mt-4">
+                <button @click="toggleExpand(comment.id)"
+                  class="flex items-center gap-1.5 text-xs text-cinek-400 hover:text-cinek-300 transition mb-2">
+                  <AppIcon name="chevron-up" v-if="expandedComments.has(comment.id)" class="size-3" />
+                  <AppIcon name="chevron-down" v-else class="size-3" />
+                  <span>{{ expandedComments.has(comment.id) ? 'Ẩn phản hồi' : `Hiển thị
+                    ${countAllReplies(comment.replies)} phản hồi` }}</span>
+                </button>
+                <div class="replies-container pl-3 border-l-2 border-white/10"
+                  :class="expandedComments.has(comment.id) ? 'expanded' : 'collapsed'">
+                  <div class="space-y-3">
+                    <CommentReplies :replies="comment.replies" :depth="0" :user="user" :parent-id="comment.id"
+                      :is-replying-to="isReplyingTo" :reply-content="replyContent"
+                      :is-reply-anonymous="isReplyAnonymous" :is-submitting-reply="isSubmittingReply"
+                      :open-gif-picker="openGifPicker" @start-reply="startReply" @cancel-reply="cancelReply"
+                      @submit-reply="submitReply" @vote="handleVote" @delete="handleDeleteComment" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </TransitionGroup>
+
+    <!-- Load More Button -->
+    <div v-if="hasMoreComments()" class="flex justify-center mt-6">
+      <button type="button" @click="loadMoreComments"
+        class="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="isCommentsLoadingMore">
+        <AppIcon name="loader" v-if="isCommentsLoadingMore" class="size-4 animate-spin" />
+        <span>{{ isCommentsLoadingMore ? 'Đang tải...' : `Xem thêm bình luận (${comments.length}/${commentTotal})`
+          }}</span>
+      </button>
     </div>
-  </TransitionGroup>
 
-  <!-- Load More Button -->
-  <div v-if="hasMoreComments()" class="flex justify-center mt-6">
-    <button type="button" @click="loadMoreComments"
-      class="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-      :disabled="isCommentsLoadingMore">
-      <AppIcon name="loader" v-if="isCommentsLoadingMore" class="size-4 animate-spin" />
-      <span>{{ isCommentsLoadingMore ? 'Đang tải...' : `Xem thêm bình luận (${comments.length}/${commentTotal})`
-      }}</span>
-    </button>
-  </div>
+    <div v-if="!hasMoreComments() && comments.length && commentTotal > commentLimit" class="text-center mt-4">
+      <span class="text-xs text-slate-600">Đã hiển thị tất cả {{ commentTotal }} bình luận</span>
+    </div>
 
-  <div v-if="!hasMoreComments() && comments.length && commentTotal > commentLimit" class="text-center mt-4">
-    <span class="text-xs text-slate-600">Đã hiển thị tất cả {{ commentTotal }} bình luận</span>
-  </div>
+    <div v-if="!comments.length && !isCommentsLoading"
+      class="flex flex-col items-center justify-center py-12 text-center">
+      <AppIcon name="message-square" class="size-10 text-white/10 mb-3" />
+      <p class="text-slate-400 text-sm">Chưa có bình luận nào.</p>
+    </div>
 
-  <div v-if="!comments.length && !isCommentsLoading"
-    class="flex flex-col items-center justify-center py-12 text-center">
-    <AppIcon name="message-square" class="size-10 text-white/10 mb-3" />
-    <p class="text-slate-400 text-sm">Chưa có bình luận nào.</p>
-  </div>
-
-  <ClientOnly>
-    <GifPicker ref="gifPickerRef" v-model="isGifPickerOpen" @select="insertGif" />
-  </ClientOnly>
+    <ClientOnly>
+      <GifPicker ref="gifPickerRef" v-model="isGifPickerOpen" @select="insertGif" />
+    </ClientOnly>
   </div>
 </template>
 

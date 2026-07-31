@@ -38,14 +38,15 @@ let hlsFallbackTimer: ReturnType<typeof setTimeout> | undefined
 let touchStartX = 0, touchStartY = 0, touchStartAt = 0
 let lastTapAt = 0, lastTapX = 0, holdRestoreRate = 1, ignoreNextTap = false
 let hlsFatalRetryCount = 0, autoOrientationFullscreen = false
+let draftAutoSaveTimer: ReturnType<typeof setTimeout> | undefined
 let hlsPlayer: Hls | undefined
 let progressTimer: ReturnType<typeof setInterval> | undefined
 let lastSavedProgress = 0
 const { loadWatchHistory: fetchWatchHistory, saveWatchHistory: persistWatchHistory } = useWatchHistory()
 const { isFavorite, saveFavorite, removeFavorite, saveWatchLater } = useMovieLibrary()
 
-const { data: movie, pending, error } = useFetch(() => `/api/movies/${route.params.slug}`, {
-  lazy: true, default: () => ({}),
+const { data: movie, pending, error } = await useFetch(() => `/api/movies/${route.params.slug}`, {
+  default: () => null,
 })
 
 const currentMovieSource = computed(() => String(movie.value?.source || ''))
@@ -83,17 +84,13 @@ function formatEpisodeName(name?: string, index = 0) {
 }
 
 function serverLabel(server: any, index: number) {
-  const source = String(server?.source || '').toUpperCase()
-  const name = String(server?.name || '').replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
-  const sameSourceServers = servers.value.filter((item: any) => item.source === server?.source)
-  const sourceServerNumber = sameSourceServers.findIndex((item: any) => item === server) + 1
-  if (source && sameSourceServers.length > 1) return `${source} #${sourceServerNumber || index + 1}`
-  if (source) return source
-  return name || `Server ${index + 1}`
+  const label = String(server?.name || '').replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
+  return label || `Server ${index + 1}`
 }
 
 function subtitleLabel(server: any, index: number) {
-  return String(server?.name || `Vietsub #${index + 1}`).replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
+  const label = String(server?.name || '').replace(/^(ophim|nguonc|kkphim)\s*-\s*/i, '').trim()
+  return label || `Vietsub #${index + 1}`
 }
 
 function episodeLink(index: number) {
@@ -434,7 +431,7 @@ useHead(() => ({
 
     <!-- Watch Page -->
     <template v-else>
-      <section class="mx-auto max-w-350 px-4 pt-16 sm:px-6 lg:px-8 xl:px-10">
+      <section class="mx-auto max-w-350 mt-4 px-4 pt-16 sm:px-6 lg:px-8 xl:px-10">
         <!-- Player -->
         <div class="-mx-4 mb-6 overflow-hidden sm:mx-0 sm:rounded-xl">
           <div ref="playerViewportRef" class="relative aspect-video bg-slate-950">
@@ -600,30 +597,24 @@ useHead(() => ({
         </div>
 
         <!-- Main + Sidebar Grid -->
-        <!-- Main + Sidebar Grid -->
         <div class="mt-4 grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
-
           <!-- Left Column -->
           <div class="min-w-0">
-
             <!-- Movie Info Card -->
             <div class="mb-6 flex items-start gap-6 lg:gap-8">
               <div
                 class="hidden shrink-0 aspect-2/3 w-32 overflow-hidden rounded-xl shadow-2xl sm:block md:w-40 lg:w-37.5">
                 <img :src="movie.thumb || movie.poster" :alt="movie.name" class="h-full w-full object-cover">
               </div>
-
               <div class="flex w-full min-w-0 flex-1 flex-col gap-4 pt-1 text-center sm:text-left">
                 <div>
                   <h1 class="mb-2 text-2xl font-bold leading-tight text-white md:text-[28px]">
                     {{ movie.name }}
                   </h1>
-
                   <h2 class="text-sm font-medium text-cinek-500 opacity-90 md:text-[15px]">
                     {{ movie.originName }}
                   </h2>
                 </div>
-
                 <!-- Badges -->
                 <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <span v-if="movie.rating"
@@ -635,24 +626,20 @@ useHead(() => ({
                       {{ movie.rating.toFixed(1) }}
                     </span>
                   </span>
-
                   <span v-if="movie.quality"
                     class="inline-flex h-5.5 items-center justify-center rounded-sm px-2 text-[11px] font-black"
                     style="background-color:#ffd875;background-image:linear-gradient(220deg, #ffd875 0%, #ffe7a8 45%, #ffffff 100%);color:#141414">
                     {{ movie.quality }}
                   </span>
-
                   <span v-if="movie.year"
                     class="rounded border border-white/20 px-2 py-0.5 text-[11px] font-medium text-white/90">
                     {{ movie.year }}
                   </span>
-
                   <span v-if="episodeDisplay"
                     class="rounded border border-white/20 px-2 py-0.5 text-[11px] font-medium text-white/90">
                     {{ episodeDisplay }}
                   </span>
                 </div>
-
                 <!-- Genres -->
                 <div v-if="movie.categories?.length"
                   class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
@@ -661,7 +648,6 @@ useHead(() => ({
                     {{ cat }}
                   </span>
                 </div>
-
                 <!-- Episode Progress -->
                 <div v-if="episodeProgress?.total"
                   class="mt-2 inline-flex self-center items-center gap-1.5 rounded-full border border-cinek-500/20 bg-cinek-500/10 px-3 py-1.5 text-cinek-500 sm:self-start">
@@ -670,16 +656,13 @@ useHead(() => ({
                     Đã chiếu: {{ episodeProgress.available }} / {{ episodeProgress.total }} tập
                   </span>
                 </div>
-
                 <!-- Description -->
                 <div class="mt-2 text-left">
                   <p class="line-clamp-3 text-[13px] leading-relaxed text-white/70 md:text-sm"
-                    :class="descriptionExpanded ? 'line-clamp-none' : ''">
+                    :class="descriptionExpanded ? 'line-clamp-none' : ''" style="text-align: justify">
                     {{ movie.content || 'Đang cập nhật nội dung phim.' }}
                   </p>
-
-                  <NuxtLink
-                    :to="{ path: `/phim/${route.params.slug}` }"
+                  <NuxtLink :to="{ path: `/phim/${route.params.slug}` }"
                     class="mt-1 inline-flex items-center gap-1 text-[13px] text-cinek-500 hover:underline">
                     Thông tin phim
                     <AppIcon name="chevron-right" class="size-4" />
@@ -690,17 +673,14 @@ useHead(() => ({
 
             <!-- Episode Section -->
             <div id="episodes-section" class="mb-8 scroll-mt-24">
-
               <!-- Header: Season + Server -->
               <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-
                 <!-- Season -->
                 <div class="relative flex min-w-0 items-center gap-1.5 sm:gap-2">
                   <div class="flex shrink-0 items-center gap-1 text-[12px] font-semibold text-white/50">
                     <AppIcon name="layers" class="size-4" />
                     Phần:
                   </div>
-
                   <button type="button"
                     class="flex items-center gap-1.5 rounded-md border border-white/30 bg-white/5 px-3 py-1.5 text-sm font-medium text-white">
                     <span>Phần 1</span>
@@ -710,6 +690,7 @@ useHead(() => ({
                 <!-- Server -->
                 <div class="flex min-w-0 items-center gap-2">
                   <span class="hidden shrink-0 text-[13px] font-medium text-white/60 sm:inline-block">
+                    <AppIcon name="server" class="size-4 inline-block mr-1 align-text-bottom" />
                     Chọn Server:
                   </span>
 
@@ -777,8 +758,7 @@ useHead(() => ({
               </h3>
 
               <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1">
-                <NuxtLink v-for="rel in relatedMovies" :key="rel.slug"
-                  :to="`/phim/${rel.slug}`"
+                <NuxtLink v-for="rel in relatedMovies" :key="rel.slug" :to="`/phim/${rel.slug}`"
                   class="group flex gap-3 rounded-lg bg-[#1A1A24] p-2 transition hover:bg-white/5">
                   <img :src="rel.thumb || rel.poster" :alt="rel.name" class="h-16 w-12 shrink-0 rounded object-cover">
 

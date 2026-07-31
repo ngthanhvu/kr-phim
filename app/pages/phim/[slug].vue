@@ -196,7 +196,8 @@ useHead(() => ({
             <!-- Synopsis (desktop) -->
             <div class="hidden md:block">
               <h3 class="text-[16px] font-semibold text-white mb-3">Nội dung phim</h3>
-              <p class="text-sm text-slate-300 leading-relaxed" :class="contentExpanded ? '' : 'line-clamp-4'">
+              <p class="text-sm text-slate-300 leading-relaxed" :class="contentExpanded ? '' : 'line-clamp-4'"
+                style="text-align: justify;">
                 {{ movie.content || 'Đang cập nhật nội dung phim.' }}
               </p>
               <button v-if="movie.content" type="button"

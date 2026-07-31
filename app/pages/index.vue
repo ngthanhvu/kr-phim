@@ -1,36 +1,18 @@
 <script setup lang="ts">
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
-const { data, pending, error } = useFetch('/api/movies', {
-  query: {
-    page: 1,
-  },
-  lazy: true,
-  default: () => ({
-    items: [],
-    sources: [],
-  }),
+const { data, pending, error } = await useFetch('/api/movies', {
+  query: { page: 1 },
+  default: () => ({ items: [], sources: [] }),
 })
 
-const { data: additionalData } = useFetch('/api/movies', {
-  query: {
-    page: 2,
-  },
-  lazy: true,
-  default: () => ({
-    items: [],
-    sources: [],
-  }),
+const { data: additionalData } = await useFetch('/api/movies', {
+  query: { page: 2 },
+  default: () => ({ items: [], sources: [] }),
 })
 
-const { data: sectionsData } = useFetch('/api/home/sections', {
-  lazy: true,
-  default: () => ({
-    recentComments: [],
-    trending: [],
-    mostRated: [],
-    hotGenres: [],
-  }),
+const { data: sectionsData } = await useFetch('/api/home/sections', {
+  default: () => ({ recentComments: [], trending: [], mostRated: [], hotGenres: [] }),
 })
 
 const movies = computed(() => data.value?.items ?? [])
