@@ -470,7 +470,7 @@ useHead({
           :class="index === heroIndex ? 'border-white/90 opacity-100 scale-100 shadow-md' : 'border-transparent opacity-80 scale-95 hover:scale-100 hover:opacity-100'"
           style="-webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black);"
           :aria-label="`Chuyển đến phim ${index + 1}`" @click="goToSlide(index)">
-          <img :src="slide.thumb || slide.poster" :alt="slide.name"
+          <img :src="slide.poster || slide.thumb" :alt="slide.name"
             class="absolute inset-0 h-full w-full object-cover rounded-full md:rounded-lg pointer-events-none">
         </button>
       </div>
@@ -580,7 +580,7 @@ useHead({
                 <span class="block h-full bg-yellow-400" :style="{ width: `${watchProgressPercent(item)}%` }" />
               </div>
               <span class="absolute left-2 top-2 rounded bg-yellow-400 px-2 py-1 text-xs font-black text-slate-950">
-                {{ item.episodeName || `Tập ${(item.episodeIndex || 0) + 1}` }}
+                {{ item.episodeName || getEpisodeDisplay(String((item.episodeIndex || 0) + 1), '') }}
               </span>
               <span
                 class="absolute bottom-3 right-3 rounded bg-black/70 px-2 py-1 text-[11px] font-black text-white opacity-0 transition group-hover:opacity-100">
@@ -667,9 +667,9 @@ useHead({
                     <!-- Movie Poster -->
                     <div
                       class="h-18 w-12 shrink-0 overflow-hidden rounded-lg shadow-md ring-1 ring-white/10 sm:h-19 sm:w-13">
-                      <img v-if="comment.movie?.poster" :src="comment.movie.poster" :alt="comment.movie?.name"
+                      <img v-if="comment.movie?.thumb" :src="comment.movie.thumb" :alt="comment.movie?.name"
                         class="h-full w-full object-cover">
-                      <img v-else-if="comment.movie?.thumb" :src="comment.movie.thumb" :alt="comment.movie?.name"
+                      <img v-else-if="comment.movie?.poster" :src="comment.movie.poster" :alt="comment.movie?.name"
                         class="h-full w-full object-cover">
                       <div v-else class="h-full w-full bg-slate-700" />
                     </div>
