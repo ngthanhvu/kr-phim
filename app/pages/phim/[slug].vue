@@ -226,7 +226,7 @@ useHead(() => ({
           </div>
 
           <!-- Info Column -->
-          <div class="flex-1 md:pt-12 min-w-0">
+          <div class="w-full lg:w-0 flex-1 min-w-0 md:pt-12">
             <!-- Title -->
             <h1 class="text-[22px] md:text-3xl font-bold text-white mb-1 text-center md:text-left leading-tight">
               {{ movie.name }}

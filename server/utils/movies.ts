@@ -1,3 +1,5 @@
+import { proxyImageUrl } from './proxy-image'
+
 type Source = 'ophim' | 'nguonc' | 'kkphim'
 type SourceFilter = Source | 'all'
 
@@ -304,23 +306,26 @@ function normalizeActor(actor: any): NormalizedActor | undefined {
   const name = text(actor?.name || actor?.actor_name || actor?.title).trim()
   if (!name) return undefined
 
+  const avatarUrl = joinImage('', actor?.avatar || actor?.image || actor?.thumb_url || actor?.poster_url)
   return {
     name,
     originalName: text(actor?.original_name || actor?.origin_name || actor?.real_name) || undefined,
     role: text(actor?.role || actor?.character || actor?.as || actor?.cast_name) || undefined,
-    avatar: joinImage('', actor?.avatar || actor?.image || actor?.thumb_url || actor?.poster_url) || undefined,
+    avatar: proxyImageUrl(avatarUrl),
   }
 }
 
 export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): NormalizedMovie {
+  const thumbUrl = joinOphimImage(pathImage, movie?.thumb_url)
+  const posterUrl = joinOphimImage(pathImage, movie?.poster_url)
   return {
     id: `ophim:${movie?._id ?? movie?.slug}`,
     source: 'ophim',
     name: text(movie?.name, 'Chưa có tên'),
     originName: text(movie?.origin_name),
     slug: text(movie?.slug),
-    thumb: joinOphimImage(pathImage, movie?.thumb_url),
-    poster: joinOphimImage(pathImage, movie?.poster_url),
+    thumb: proxyImageUrl(thumbUrl),
+    poster: proxyImageUrl(posterUrl),
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
@@ -336,14 +341,16 @@ export function normalizeOphimMovie(movie: any, pathImage = OPHIM_IMAGE): Normal
 }
 
 export function normalizeKkphimMovie(movie: any, pathImage = KKPHIM_IMAGE): NormalizedMovie {
+  const thumbUrl = joinKkphimImage(pathImage, movie?.thumb_url)
+  const posterUrl = joinKkphimImage(pathImage, movie?.poster_url)
   return {
     id: `kkphim:${movie?._id ?? movie?.slug}`,
     source: 'kkphim',
-    name: text(movie?.name, 'ChÆ°a cÃ³ tÃªn'),
+    name: text(movie?.name, 'Chưa có tên'),
     originName: text(movie?.origin_name),
     slug: text(movie?.slug),
-    thumb: joinKkphimImage(pathImage, movie?.thumb_url),
-    poster: joinKkphimImage(pathImage, movie?.poster_url),
+    thumb: proxyImageUrl(thumbUrl),
+    poster: proxyImageUrl(posterUrl),
     year: Number(movie?.year) || undefined,
     time: text(movie?.time),
     episode: text(movie?.episode_current),
@@ -360,6 +367,8 @@ export function normalizeKkphimMovie(movie: any, pathImage = KKPHIM_IMAGE): Norm
 
 function normalizeNguoncMovie(movie: any): NormalizedMovie {
   const image = movie?.thumb_url || movie?.poster_url || movie?.image || movie?.thumbnail
+  const thumbUrl = joinImage('', image)
+  const posterUrl = joinImage('', movie?.poster_url)
 
   return {
     id: `nguonc:${movie?._id ?? movie?.slug}`,
@@ -367,8 +376,8 @@ function normalizeNguoncMovie(movie: any): NormalizedMovie {
     name: text(movie?.name || movie?.title, 'Chưa có tên'),
     originName: text(movie?.original_name || movie?.origin_name),
     slug: text(movie?.slug),
-    thumb: joinImage('', image),
-    poster: joinImage('', movie?.poster_url),
+    thumb: proxyImageUrl(thumbUrl),
+    poster: proxyImageUrl(posterUrl),
     year: Number(movie?.year || movie?.release_year) || undefined,
     time: text(movie?.time || movie?.duration),
     episode: text(movie?.episode_current || movie?.current_episode),

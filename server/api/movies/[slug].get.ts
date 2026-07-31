@@ -1,6 +1,7 @@
 import { movies } from '../../database/schema'
 import { eq, and } from 'drizzle-orm'
 import type { MovieDetail, NormalizedServer } from '../../utils/movies'
+import { proxyImageUrl } from '../../utils/proxy-image'
 
 function mapCustomServers(movie: any): NormalizedServer[] {
   let raw = movie.customServers ?? movie.custom_servers
@@ -30,8 +31,8 @@ function mapMovieToDetail(movie: any): MovieDetail {
     name: movie.name,
     originName: movie.originName || '',
     slug: movie.slug,
-    thumb: movie.customThumb || movie.thumb || '',
-    poster: movie.customPoster || movie.poster || '',
+    thumb: movie.customThumb ? proxyImageUrl(movie.customThumb) : proxyImageUrl(movie.thumb || ''),
+    poster: movie.customPoster ? proxyImageUrl(movie.customPoster) : proxyImageUrl(movie.poster || ''),
     year: movie.year || undefined,
     time: movie.time || undefined,
     episode: movie.episode || undefined,

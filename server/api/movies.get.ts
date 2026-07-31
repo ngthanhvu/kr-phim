@@ -1,5 +1,6 @@
 import { movies } from '../database/schema'
 import { desc, like, and, eq, sql } from 'drizzle-orm'
+import { proxyImageUrl } from '../utils/proxy-image'
 
 export default defineEventHandler(async (event) => {
   const db = useDb()
@@ -67,8 +68,8 @@ function mapMovieToResponse(movie: any) {
     slug: movie.slug,
     name: movie.name,
     originName: movie.originName || '',
-    thumb: movie.customThumb || movie.thumb || '',
-    poster: movie.customPoster || movie.poster || '',
+    thumb: movie.customThumb ? proxyImageUrl(movie.customThumb) : proxyImageUrl(movie.thumb || ''),
+    poster: movie.customPoster ? proxyImageUrl(movie.customPoster) : proxyImageUrl(movie.poster || ''),
     year: movie.year || undefined,
     time: movie.time || undefined,
     episode: movie.episode || undefined,

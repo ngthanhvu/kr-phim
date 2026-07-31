@@ -1,5 +1,6 @@
 import { eq, and, isNull, desc, inArray, count } from 'drizzle-orm'
 import { comments, users, movies } from '../../database/schema'
+import { proxyImageUrl } from '../../utils/proxy-image'
 
 export default defineEventHandler(async () => {
   const db = useDb()
@@ -132,8 +133,8 @@ export default defineEventHandler(async () => {
             source: c.source,
             slug: c.slug,
             name: c.movieName || '',
-            thumb: c.movieThumb,
-            poster: c.moviePoster,
+            thumb: proxyImageUrl(c.movieThumb || ''),
+            poster: proxyImageUrl(c.moviePoster || ''),
           }
         : null,
     })),
@@ -142,8 +143,8 @@ export default defineEventHandler(async () => {
       slug: m.slug,
       name: m.name,
       originName: m.originName,
-      thumb: m.thumb,
-      poster: m.poster,
+      thumb: proxyImageUrl(m.thumb || ''),
+      poster: proxyImageUrl(m.poster || ''),
       views: m.views,
       rating: m.rating,
     })),
@@ -152,8 +153,8 @@ export default defineEventHandler(async () => {
       slug: m.slug,
       name: m.name,
       originName: m.originName,
-      thumb: m.thumb,
-      poster: m.poster,
+      thumb: proxyImageUrl(m.thumb || ''),
+      poster: proxyImageUrl(m.poster || ''),
       views: m.views,
       rating: m.rating,
     })),
