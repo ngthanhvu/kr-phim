@@ -353,7 +353,7 @@ function timeAgo(dateStr: string): string {
 
 function formatMentions(content: string) {
   let html = content.replace(/@(\S+)/g, '<span class="text-cinek-400 font-medium">@$1</span>')
-  html = html.replace(/!\[GIF\]\((https?:\/\/[^\s)]+)\)/g, '<img src="$1" alt="GIF" class="max-w-[200px] rounded-lg mt-1" loading="lazy" />')
+  html = html.replace(/!\[GIF\]\((https?:\/\/[^\s)]+)\)/g, '<img src="/api/image-proxy?url=$1" alt="GIF" class="max-w-[200px] rounded-lg mt-1" loading="lazy" />')
   return html
 }
 
@@ -463,7 +463,7 @@ watch(() => props.slug, () => {
       <div v-for="comment in comments" :key="comment.id" class="mb-2">
         <div class="transition"
           :class="comment.pinned ? 'rounded-xl p-4 bg-yellow-500/5 border border-yellow-500/20' : 'py-4 border-b border-white/5'">
-          <div v-if="comment.pinned" class="flex items-center gap-1.5 mb-3 text-xs text-yellow-400/80 font-medium">
+          <div v-if="comment.pinned" class="flex items-center gap-1.5 mb-3 text-xs font-medium text-[#FFD166]">
             <AppIcon name="pin" class="size-3" /> Ghim bởi Admin
           </div>
           <div class="flex gap-3">
@@ -507,7 +507,7 @@ watch(() => props.slug, () => {
                   class="flex items-center gap-1 text-xs"
                   :class="comment.userVote === 1 ? 'text-cinek-400' : 'text-slate-500 hover:text-slate-300'">
                   <AppIcon name="thumbs-up" class="size-3.5" /><span v-if="comment.likeCount">{{ comment.likeCount
-                    }}</span>
+                  }}</span>
                 </button>
                 <button type="button" @click="handleVote(comment.id, comment.userVote === -1 ? 0 : -1)"
                   class="flex items-center gap-1 text-xs"
@@ -597,11 +597,11 @@ watch(() => props.slug, () => {
     <!-- Load More Button -->
     <div v-if="hasMoreComments()" class="flex justify-center mt-6">
       <button type="button" @click="loadMoreComments"
-        class="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm text-white/70 hover:text-white transition-all disabled:opacity-50"
         :disabled="isCommentsLoadingMore">
         <AppIcon name="loader" v-if="isCommentsLoadingMore" class="size-4 animate-spin" />
-        <span>{{ isCommentsLoadingMore ? 'Đang tải...' : `Xem thêm bình luận (${comments.length}/${commentTotal})`
-          }}</span>
+        <AppIcon name="chevron-down" v-else class="size-4" />
+        <span>{{ isCommentsLoadingMore ? 'Đang tải...' : 'Xem thêm bình luận' }}</span>
       </button>
     </div>
 
