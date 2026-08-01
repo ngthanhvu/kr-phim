@@ -30,7 +30,7 @@ function handleVote(replyId: number, vote: number) {
 
 function formatMentions(content: string) {
   let html = content.replace(/@(\S+)/g, '<span class="text-cinek-400 font-medium">@$1</span>')
-  html = html.replace(/!\[GIF\]\((https?:\/\/[^\s)]+)\)/g, '<img src="$1" alt="GIF" class="max-w-[150px] rounded-lg mt-1" loading="lazy" />')
+  html = html.replace(/!\[GIF\]\((https?:\/\/[^\s)]+)\)/g, '<img src="/api/image-proxy?url=$1" alt="GIF" class="max-w-[150px] rounded-lg mt-1" loading="lazy" />')
   return html
 }
 </script>

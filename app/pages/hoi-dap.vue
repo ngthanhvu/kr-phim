@@ -47,7 +47,7 @@ function toggle(category: string, index: number) {
   <main class="min-h-screen bg-[#0f111a] text-white">
     <AppHeader />
 
-    <section class="mx-auto max-w-[800px] px-4 pt-24 pb-16 sm:px-6 lg:px-8 xl:px-10">
+    <section class="mx-auto max-w-200 px-4 pt-24 pb-16 sm:px-6 lg:px-8 xl:px-10">
       <div class="mb-8">
         <h1 class="text-3xl font-black text-white sm:text-4xl">Hỏi & Đáp</h1>
         <p class="mt-2 text-slate-400">
@@ -86,6 +86,7 @@ function toggle(category: string, index: number) {
 .faq-leave-active {
   transition: opacity 0.2s ease, max-height 0.2s ease;
 }
+
 .faq-enter-from,
 .faq-leave-to {
   opacity: 0;

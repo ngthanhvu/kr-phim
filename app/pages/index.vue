@@ -723,7 +723,7 @@ useHead({
                   class="h-12 w-8 shrink-0 rounded object-cover ring-1 ring-white/10">
 
                 <div class="min-w-0 flex-1">
-                  <p class="truncate text-[13px] font-bold text-white group-hover:text-yellow-300">
+                  <p class="truncate text-[13px] text-white group-hover:text-yellow-300">
                     {{ movie.name }}
                   </p>
                 </div>
@@ -767,7 +767,7 @@ useHead({
                   class="h-12 w-8 shrink-0 rounded object-cover ring-1 ring-white/10">
 
                 <div class="min-w-0 flex-1">
-                  <p class="truncate text-[13px] font-bold text-white group-hover:text-yellow-300">
+                  <p class="truncate text-[13px] text-white group-hover:text-yellow-300">
                     {{ movie.name }}
                   </p>
                 </div>
@@ -807,7 +807,8 @@ useHead({
                         : 'text-red-400'" class="size-3.5 shrink-0" />
 
                 <div class="flex h-12 items-center">
-                  <span class="rounded-xl px-4 py-2 text-[10px] font-black text-white" :class="genreTagColor(index)">
+                  <span class="text-[12px] font-semibold px-4 py-1.5 rounded-full bg-amber-500/90 text-white shadow-sm"
+                    :class="genreTagColor(index)">
                     {{ genre.name }}
                   </span>
                 </div>
