@@ -95,7 +95,7 @@ select:disabled {
   }
 
   .admin-input {
-    @apply h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-sm text-white placeholder:text-zinc-500 outline-none transition focus:border-yellow-400/40 focus:bg-white/[0.05] focus:ring-2 focus:ring-yellow-400/15;
+    @apply h-11 w-full rounded-xl border border-white/8 bg-white/3 px-4 text-sm text-white placeholder:text-zinc-500 outline-none transition focus:border-yellow-400/40 focus:bg-white/5 focus:ring-2 focus:ring-yellow-400/15;
   }
 
   .admin-btn {
@@ -107,7 +107,7 @@ select:disabled {
   }
 
   .admin-btn-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-all duration-150 active:scale-[0.98] border border-white/[0.08] bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08];
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-all duration-150 active:scale-[0.98] border border-white/8 bg-white/4 text-zinc-100 hover:bg-white/8;
   }
 
   .admin-btn-danger {
@@ -136,7 +136,7 @@ select:disabled {
 
   /* Compact controls for dense edit rows */
   .admin-input-sm {
-    @apply h-8 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 text-xs text-white placeholder:text-zinc-500 outline-none transition focus:border-yellow-400/40 focus:bg-white/[0.05];
+    @apply h-8 rounded-lg border border-white/8 bg-white/3 px-2.5 text-xs text-white placeholder:text-zinc-500 outline-none transition focus:border-yellow-400/40 focus:bg-white/5;
   }
 
   .admin-btn-sm {
@@ -144,7 +144,7 @@ select:disabled {
   }
 
   .admin-icon-square {
-    @apply grid size-9 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-300;
+    @apply grid size-9 place-items-center rounded-xl border border-white/8 bg-white/3 text-zinc-300;
   }
 }
 

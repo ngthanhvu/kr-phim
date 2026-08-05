@@ -46,14 +46,16 @@ async function handleLogin() {
 
 <template>
   <div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0A0B0E] p-4">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.08),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.05),transparent_40%)]" />
+    <div
+      class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.08),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.05),transparent_40%)]" />
 
     <div class="relative w-full max-w-md">
-      <div class="rounded-3xl border border-white/[0.06] bg-[#131418]/80 p-1 shadow-2xl backdrop-blur-sm">
-        <div class="rounded-[22px] bg-gradient-to-b from-white/[0.08] to-transparent p-6">
+      <div class="rounded-3xl border border-white/6 bg-[#131418]/80 p-1 shadow-2xl backdrop-blur-sm">
+        <div class="rounded-[22px] bg-linear-to-b from-white/8 to-transparent p-6">
           <div class="mb-8 text-center">
             <div class="mb-4 inline-flex items-center gap-3">
-              <div class="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-yellow-400 to-amber-500 shadow-lg shadow-yellow-400/20">
+              <div
+                class="grid size-12 place-items-center rounded-2xl bg-linear-to-br from-yellow-400 to-amber-500 shadow-lg shadow-yellow-400/20">
                 <span class="text-xl font-black text-slate-950">C</span>
               </div>
               <div class="text-left">
@@ -70,8 +72,7 @@ async function handleLogin() {
                 <label class="mb-2 block text-sm font-semibold text-white">Email</label>
                 <div class="relative">
                   <AppIcon name="mail" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                  <input v-model="email" type="email" required placeholder="admin@cinek.vn"
-                    class="admin-input pl-10">
+                  <input v-model="email" type="email" required placeholder="admin@cinek.vn" class="admin-input pl-10">
                 </div>
               </div>
 
@@ -80,8 +81,7 @@ async function handleLogin() {
                 <div class="relative">
                   <AppIcon name="lock" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                   <input v-model="password" :type="showPassword ? 'text' : 'password'" required minlength="6"
-                    placeholder="Nhập mật khẩu"
-                    class="admin-input pl-10 pr-10">
+                    placeholder="Nhập mật khẩu" class="admin-input pl-10 pr-10">
                   <button type="button"
                     class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-white"
                     @click="showPassword = !showPassword">
@@ -92,9 +92,7 @@ async function handleLogin() {
               </div>
             </div>
 
-            <button type="submit"
-              class="admin-btn-primary mt-6 w-full"
-              :disabled="loading">
+            <button type="submit" class="admin-btn-primary mt-6 w-full" :disabled="loading">
               <AppIcon name="log-in" class="size-4" />
               {{ loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
             </button>

@@ -56,7 +56,7 @@ const expandedSources = ref<Record<string, boolean>>({})
 const selectedTargetServer = ref(0)
 const collapsedServers = ref<Record<number, boolean>>({})
 const expandedLinks = ref<Record<string, boolean>>({})
-const activeSection = ref<"info" | "content" | "actors" | "images" | "episodes">("info")
+const activeSection = ref<"info" | "content" | "actors" | "images" | "episodes">("episodes")
 const sections = [
   { key: "info" as const, label: "Thông tin", icon: "info" as const },
   { key: "content" as const, label: "Mô tả", icon: "type" as const },
@@ -132,17 +132,17 @@ function removeServer(serverIndex: number) {
 }
 
 function addServerEpisode(serverIndex: number) {
-  customServers.value[serverIndex].episodes.push({ name: '', linkEmbed: '', linkM3u8: '' })
+  customServers.value[serverIndex]?.episodes?.push({ name: '', linkEmbed: '', linkM3u8: '' })
 }
 
 function removeServerEpisode(serverIndex: number, episodeIndex: number) {
-  customServers.value[serverIndex].episodes.splice(episodeIndex, 1)
+  customServers.value[serverIndex]?.episodes?.splice(episodeIndex, 1)
 }
 
 function applySourceLink(serverIndex: number, episodeIndex: number, key: string) {
   const item = availableEpisodes.value.find((ep) => ep.key === key)
   if (!item) return
-  const ep = customServers.value[serverIndex].episodes[episodeIndex]
+  const ep = customServers.value[serverIndex]?.episodes?.[episodeIndex]
   if (ep) {
     ep.linkEmbed = item.linkEmbed || ''
     ep.linkM3u8 = item.linkM3u8 || ''
@@ -200,7 +200,7 @@ function quickAddEpisode(sourceIndex: number, serverIndex: number, episodeIndex:
   if (!ep) return
   ensureTargetServer()
   const target = customServers.value[selectedTargetServer.value]
-  target.episodes.push({
+  target?.episodes?.push({
     name: ep.name || '',
     linkEmbed: ep.linkEmbed || '',
     linkM3u8: ep.linkM3u8 || '',
@@ -215,7 +215,7 @@ function quickAddAllEpisodes(sourceIndex: number, serverIndex: number) {
   ensureTargetServer()
   const target = customServers.value[selectedTargetServer.value]
   server.episodes.forEach((ep) => {
-    target.episodes.push({
+    target?.episodes?.push({
       name: ep.name || '',
       linkEmbed: ep.linkEmbed || '',
       linkM3u8: ep.linkM3u8 || '',
@@ -292,8 +292,8 @@ function useApiActors() {
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div class="shrink-0">
             <div
-              class="aspect-[16/9] w-full overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] sm:w-44">
-              <img v-if="customPoster || movie.poster" :src="customPoster || movie.poster" :alt="movie.name"
+              class="aspect-video w-full overflow-hidden rounded-xl border border-white/6 bg-white/2 sm:w-44">
+              <img v-if="customPoster || movie.poster" :src="customPoster || movie.poster || undefined" :alt="movie.name"
                 class="h-full w-full object-cover">
               <div v-else class="grid h-full place-items-center text-zinc-600">
                 <AppIcon name="image" class="size-6" />
@@ -310,8 +310,8 @@ function useApiActors() {
                 :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-zinc-400'">
                 {{ movie.active ? 'Đang hiển thị' : 'Ẩn' }}
               </span>
-              <span v-if="movie.quality" class="admin-badge bg-white/[0.06] text-zinc-400">{{ movie.quality }}</span>
-              <span class="admin-badge bg-white/[0.06] text-zinc-400">{{ movie.episode || '—' }} tập</span>
+              <span v-if="movie.quality" class="admin-badge bg-white/6 text-zinc-400">{{ movie.quality }}</span>
+              <span class="admin-badge bg-white/6 text-zinc-400">{{ movie.episodeTotal || '—' }} tập</span>
             </div>
           </div>
         </div>
@@ -325,438 +325,324 @@ function useApiActors() {
         </div>
       </Transition>
 
-      <!-- Sidebar nav + content -->
-      <div class="grid gap-5 lg:grid-cols-12 lg:items-start">
-        <!-- Content -->
-        <div class="space-y-5 lg:col-span-9">
-          <!-- Section: Thông tin -->
-          <div v-if="activeSection === 'info'" class="admin-card p-5">
-            <div class="mb-4 flex items-center gap-3">
-              <div class="admin-icon-square">
-                <AppIcon name="info" class="size-4" />
-              </div>
-              <div>
-                <h2 class="text-sm font-bold text-white">Thông tin chi tiết</h2>
-                <p class="text-xs text-zinc-500">Dữ liệu từ hệ thống</p>
-              </div>
-            </div>
-            <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <div>
-                <dt class="admin-label mb-1">Nguồn</dt>
-                <dd class="font-semibold text-white">{{ movie.source?.toUpperCase() }}</dd>
-              </div>
-              <div>
-                <dt class="admin-label mb-1">Slug</dt>
-                <dd class="truncate text-zinc-200" :title="movie.slug">{{ movie.slug }}</dd>
-              </div>
-              <div>
-                <dt class="admin-label mb-1">Năm phát hành</dt>
-                <dd class="text-zinc-200">{{ movie.year || '—' }}</dd>
-              </div>
-              <div>
-                <dt class="admin-label mb-1">Số tập</dt>
-                <dd class="text-zinc-200">{{ movie.episode || '—' }}</dd>
-              </div>
-              <div>
-                <dt class="admin-label mb-1">Chất lượng</dt>
-                <dd class="text-zinc-200">{{ movie.quality || '—' }}</dd>
-              </div>
-              <div>
-                <dt class="admin-label mb-1">Trạng thái</dt>
-                <dd class="font-semibold" :class="movie.active ? 'text-emerald-400' : 'text-zinc-400'">
-                  {{ movie.active ? 'Đang hiển thị' : 'Ẩn' }}
-                </dd>
-              </div>
-              <div class="col-span-2">
-                <dt class="admin-label mb-1">Đồng bộ gần nhất</dt>
-                <dd class="text-zinc-200">{{ new Date(movie.syncedAt).toLocaleString('vi-VN') }}</dd>
-              </div>
-            </dl>
-            <div v-if="movie.categories?.length" class="mt-4 border-t border-white/[0.06] pt-3">
-              <h4 class="admin-label mb-2">Thể loại</h4>
-              <div class="flex flex-wrap gap-1.5">
-                <span v-for="cat in movie.categories" :key="cat"
-                  class="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-xs font-medium text-zinc-300">{{ cat }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section: Mô tả -->
-          <div v-if="activeSection === 'content'" class="admin-card p-5">
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="admin-icon-square">
-                  <AppIcon name="type" class="size-4" />
-                </div>
-                <div>
-                  <h2 class="text-sm font-bold text-white">Mô tả phim</h2>
-                  <p class="text-xs text-zinc-500">{{ customContent ? 'Tuỳ chỉnh · Đang áp dụng' : 'Mặc định từ API' }}
-                  </p>
-                </div>
-              </div>
-              <button v-if="apiContent && !customContent" type="button"
-                class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20" @click="useApiContent">
-                <AppIcon name="pen" class="size-3" />
-                Dùng mô tả API
-              </button>
-              <button v-else-if="customContent" type="button" class="admin-btn-sm text-red-400 hover:bg-red-400/10"
-                @click="clearField('customContent')">
-                Quay lại mặc định
-              </button>
-            </div>
-            <div v-if="!customContent" class="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-              <span class="admin-badge mb-2 bg-blue-400/10 text-blue-400">Nội dung API</span>
-              <p class="whitespace-pre-line text-sm leading-7 text-zinc-300">
-                {{ apiContent || 'Chưa có mô tả từ nguồn API.' }}
-              </p>
-            </div>
-            <div v-else>
-              <textarea v-model="customContent" :rows="contentRows" placeholder="Nhập mô tả phim..."
-                style="field-sizing: content; min-height: 140px;"
-                class="w-full rounded-xl border border-yellow-400/30 bg-white/[0.03] p-3 text-sm leading-7 text-white outline-none transition placeholder:text-zinc-500 focus:border-yellow-400/50 focus:bg-white/[0.05]" />
-            </div>
-          </div>
-
-          <!-- Section: Diễn viên -->
-          <div v-if="activeSection === 'actors'" class="admin-card p-5">
-            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div class="flex items-center gap-3">
-                <div class="admin-icon-square">
-                  <AppIcon name="users" class="size-4" />
-                </div>
-                <div>
-                  <h2 class="text-sm font-bold text-white">Diễn viên</h2>
-                  <p class="text-xs text-zinc-500">{{ customActors.length }} diễn viên</p>
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <button v-if="apiActors.length" type="button"
-                  class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20" @click="useApiActors">
-                  <AppIcon name="pen" class="size-3" />
-                  Import ({{ apiActors.length }})
-                </button>
-                <button type="button" class="admin-btn-sm bg-white/[0.06] text-zinc-100 hover:bg-white/[0.1]"
-                  @click="addActor">
-                  <AppIcon name="plus" class="size-3" />
-                  Thêm
-                </button>
-              </div>
-            </div>
-            <div v-if="customActors.length" class="max-h-96 space-y-2 overflow-y-auto pr-1">
-              <div v-for="(actor, index) in customActors" :key="index"
-                class="grid grid-cols-12 items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-2">
-                <div class="col-span-1 flex justify-center">
-                  <img v-if="actor.avatar" :src="actor.avatar" :alt="actor.name"
-                    class="size-7 rounded-full object-cover ring-1 ring-white/10">
-                  <div v-else
-                    class="grid size-7 place-items-center rounded-full bg-white/[0.06] text-xs font-bold text-zinc-400">
-                    {{ (actor.name || '?')[0].toUpperCase() }}
-                  </div>
-                </div>
-                <input v-model="actor.name" type="text" placeholder="Tên" class="admin-input-sm col-span-3">
-                <input v-model="actor.originalName" type="text" placeholder="Tên gốc" class="admin-input-sm col-span-3">
-                <input v-model="actor.role" type="text" placeholder="Vai" class="admin-input-sm col-span-2">
-                <input v-model="actor.avatar" type="url" placeholder="Avatar URL" class="admin-input-sm col-span-2">
-                <button type="button"
-                  class="col-span-1 grid size-8 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10"
-                  @click="removeActor(index)">
-                  <AppIcon name="trash" class="size-4" />
-                </button>
-              </div>
-            </div>
-            <div v-else class="rounded-xl border border-dashed border-white/[0.1] p-6 text-center">
-              <p class="text-sm text-zinc-500">Chưa có diễn viên. Bấm "Thêm" hoặc "Import" để bắt đầu.</p>
-            </div>
-          </div>
-
-          <!-- Section: Hình ảnh -->
-          <div v-if="activeSection === 'images'" class="grid gap-5 lg:grid-cols-2">
-            <div class="admin-card p-5">
-              <div class="mb-3 flex items-center justify-between gap-2">
-                <div>
-                  <h3 class="text-sm font-bold text-white">Poster</h3>
-                  <p class="text-xs text-zinc-500">Tỷ lệ 16:9 · ảnh ngang</p>
-                </div>
-                <span v-if="customPoster" class="admin-badge bg-yellow-400/10 text-yellow-400">Tuỳ chỉnh</span>
-                <span v-else-if="movie.poster" class="admin-badge bg-white/[0.06] text-zinc-400">Mặc định</span>
-              </div>
-              <input v-model="customPoster" type="url" placeholder="Dán URL poster..." class="admin-input-sm w-full">
-              <div
-                class="relative mt-3 aspect-[16/9] w-full overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                <img v-if="customPoster || movie.poster" :src="customPoster || movie.poster" :alt="movie.name"
-                  class="h-full w-full object-cover">
-                <div v-else class="grid h-full place-items-center text-zinc-600">
-                  <div class="flex flex-col items-center gap-1.5">
-                    <AppIcon name="image" class="size-8" />
-                    <span class="text-sm font-medium">Chưa có ảnh poster</span>
-                  </div>
-                </div>
-                <button v-if="customPoster" type="button"
-                  class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-lg bg-black/60 px-2.5 py-1 text-xs font-semibold text-red-300 backdrop-blur-sm transition hover:bg-black/80 hover:text-red-200"
-                  @click="clearField('customPoster')">
-                  <AppIcon name="trash" class="size-3" />
-                  Xoá
-                </button>
-              </div>
-            </div>
-            <div class="admin-card p-5">
-              <div class="mb-3 flex items-center justify-between gap-2">
-                <div>
-                  <h3 class="text-sm font-bold text-white">Thumbnail</h3>
-                  <p class="text-xs text-zinc-500">Tỷ lệ 2:3 · ảnh dọc</p>
-                </div>
-                <span v-if="customThumb" class="admin-badge bg-yellow-400/10 text-yellow-400">Tuỳ chỉnh</span>
-                <span v-else-if="movie.thumb" class="admin-badge bg-white/[0.06] text-zinc-400">Mặc định</span>
-              </div>
-              <input v-model="customThumb" type="url" placeholder="Dán URL thumbnail..." class="admin-input-sm w-full">
-              <div
-                class="relative mx-auto mt-3 aspect-[2/3] w-full max-w-[260px] overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                <img v-if="customThumb || movie.thumb" :src="customThumb || movie.thumb" :alt="movie.name"
-                  class="h-full w-full object-cover">
-                <div v-else class="grid h-full place-items-center text-zinc-600">
-                  <div class="flex flex-col items-center gap-1.5">
-                    <AppIcon name="image" class="size-8" />
-                    <span class="text-sm font-medium">Chưa có ảnh</span>
-                  </div>
-                </div>
-                <button v-if="customThumb" type="button"
-                  class="absolute right-3 top-3 inline-flex items-center gap-1 rounded-lg bg-black/60 px-2.5 py-1 text-xs font-semibold text-red-300 backdrop-blur-sm transition hover:bg-black/80 hover:text-red-200"
-                  @click="clearField('customThumb')">
-                  <AppIcon name="trash" class="size-3" />
-                  Xoá
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section: Tập phim -->
-          <div v-if="activeSection === 'episodes'" class="grid gap-5 xl:grid-cols-12 xl:items-start">
-            <!-- Custom Servers -->
-            <div class="space-y-5 xl:col-span-7">
-              <div class="admin-card p-5">
-                <div class="mb-4 flex items-center justify-between gap-3">
-                  <div class="flex items-center gap-3">
-                    <div class="admin-icon-square">
-                      <AppIcon name="server" class="size-4" />
-                    </div>
-                    <div>
-                      <h3 class="text-sm font-bold text-white">Server & tập phim</h3>
-                      <p class="text-xs text-zinc-500">Danh sách server hiển thị trên website</p>
-                    </div>
-                  </div>
-                  <button type="button" class="admin-btn-sm bg-white/[0.06] text-zinc-100 hover:bg-white/[0.1]"
-                    @click="addServer">
-                    <AppIcon name="plus" class="size-3" />
-                    Thêm server
-                  </button>
-                </div>
-                <div v-if="customServers.length" class="space-y-3">
-                  <div v-for="(server, serverIndex) in customServers" :key="serverIndex"
-                    class="rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                    <div class="flex items-center justify-between gap-3 p-3">
-                      <button type="button" class="flex min-w-0 flex-1 items-center gap-2 text-left"
-                        @click="toggleServer(serverIndex)">
-                        <AppIcon name="chevron-down" class="size-4 shrink-0 text-zinc-400 transition"
-                          :class="collapsedServers[serverIndex] ? '-rotate-90' : ''" />
-                        <span class="truncate text-sm font-bold text-white">{{ server.name || `Server ${serverIndex +
-                          1}` }}</span>
-                        <span
-                          class="shrink-0 rounded-full bg-white/[0.08] px-2 py-0.5 text-[10px] font-semibold text-zinc-300">{{
-                          server.episodes.length }} tập</span>
-                      </button>
-                      <button type="button"
-                        class="grid size-7 shrink-0 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10"
-                        @click="removeServer(serverIndex)">
-                        <AppIcon name="trash" class="size-3.5" />
-                      </button>
-                    </div>
-                    <div v-if="!collapsedServers[serverIndex]" class="border-t border-white/[0.06] p-3">
-                      <input v-model="server.name" type="text" placeholder="Tên server (vd: Vietsub, Thuyết minh...)"
-                        class="admin-input-sm mb-3 w-full font-semibold">
-                      <div v-if="server.episodes.length" class="space-y-1.5">
-                        <div v-for="(ep, episodeIndex) in server.episodes" :key="episodeIndex"
-                          class="rounded-lg border border-white/[0.06] bg-white/[0.02]">
-                          <div class="flex items-center gap-2 p-2">
-                            <span class="w-6 shrink-0 text-center text-xs font-bold text-zinc-500">{{ episodeIndex + 1
-                              }}</span>
-                            <input v-model="ep.name" type="text" placeholder="Tên tập"
-                              class="admin-input-sm w-24 shrink-0">
-                            <select class="admin-input-sm min-w-0 flex-1"
-                              @change="handleSourceLinkChange(serverIndex, episodeIndex, $event)">
-                              <option value="" class="bg-[#131418] text-white">Chọn link từ API</option>
-                              <option v-for="item in availableEpisodes" :key="item.key" :value="item.key"
-                                class="bg-[#131418] text-white">{{ item.label }}</option>
-                            </select>
-                            <button type="button"
-                              class="grid size-7 shrink-0 place-items-center rounded-lg text-zinc-400 transition hover:bg-white/[0.06] hover:text-white"
-                              :class="expandedLinks[`${serverIndex}-${episodeIndex}`] ? 'bg-yellow-400/10 text-yellow-400' : ''"
-                              :title="expandedLinks[`${serverIndex}-${episodeIndex}`] ? 'Ẩn link' : 'Sửa link'"
-                              @click="toggleLinks(`${serverIndex}-${episodeIndex}`)">
-                              <AppIcon name="pencil" class="size-3" />
-                            </button>
-                            <button type="button"
-                              class="grid size-7 shrink-0 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10"
-                              @click="removeServerEpisode(serverIndex, episodeIndex)">
-                              <AppIcon name="trash" class="size-3" />
-                            </button>
-                          </div>
-                          <div v-if="expandedLinks[`${serverIndex}-${episodeIndex}`]"
-                            class="border-t border-white/[0.06] p-2">
-                            <div class="grid gap-2 sm:grid-cols-2">
-                              <input v-model="ep.linkEmbed" type="url" placeholder="Link embed (iframe)"
-                                class="admin-input-sm w-full">
-                              <input v-model="ep.linkM3u8" type="url" placeholder="Link HLS (.m3u8)"
-                                class="admin-input-sm w-full">
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <button type="button"
-                        class="mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg border border-dashed border-white/[0.15] px-3 text-xs font-semibold text-zinc-300 transition hover:bg-white/[0.05] hover:text-white"
-                        @click="addServerEpisode(serverIndex)">
-                        <AppIcon name="plus" class="size-3.5" />
-                        Thêm tập
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="rounded-xl border border-dashed border-white/[0.1] p-6 text-center">
-                  <p class="text-sm text-zinc-500">Chưa có server. Bấm "Thêm server" để bắt đầu.</p>
-                </div>
-              </div>
-            </div>
-            <!-- API Sources Panel -->
-            <div class="xl:col-span-5">
-              <div class="admin-card p-5 xl:sticky xl:top-5">
-                <div class="mb-4 flex items-center gap-3">
-                  <div class="admin-icon-square">
-                    <AppIcon name="layers" class="size-4" />
-                  </div>
-                  <div>
-                    <h3 class="text-sm font-bold text-white">Nguồn API có sẵn</h3>
-                    <p class="text-xs text-zinc-500">Thêm nhanh tập từ API</p>
-                  </div>
-                </div>
-                <div v-if="sourceData?.sources?.length" class="space-y-3">
-                  <div class="flex flex-col gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                    <label class="admin-label">Thêm vào server</label>
-                    <select v-model="selectedTargetServer" class="admin-input-sm w-full">
-                      <option v-for="(server, index) in customServers" :key="index" :value="index"
-                        class="bg-[#131418] text-white">
-                        {{ server.name || `Server ${index + 1}` }} ({{ server.episodes.length }} tập)
-                      </option>
-                    </select>
-                    <button v-if="!customServers.length" type="button"
-                      class="admin-btn-sm w-full justify-center bg-white/[0.06] text-zinc-100 hover:bg-white/[0.1]"
-                      @click="addServer">
-                      <AppIcon name="plus" class="size-3" />
-                      Tạo server
-                    </button>
-                  </div>
-                  <div v-for="(source, sourceIndex) in sourceData.sources" :key="source.source"
-                    class="rounded-xl border border-white/[0.06] bg-white/[0.02]">
-                    <button type="button"
-                      class="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-white/[0.03]"
-                      @click="toggleSource(source.source)">
-                      <span class="text-sm font-bold text-white uppercase">{{ source.source }} · {{ source.name
-                        }}</span>
-                      <AppIcon name="chevron-down" class="size-4 text-zinc-400 transition"
-                        :class="expandedSources[source.source] ? 'rotate-180' : ''" />
-                    </button>
-                    <div v-if="expandedSources[source.source]" class="border-t border-white/[0.06] p-4">
-                      <div v-for="(server, serverIndex) in source.servers" :key="serverIndex" class="mb-4 last:mb-0">
-                        <div class="mb-2 flex items-center justify-between gap-2">
-                          <h4 class="admin-label">{{ server.name }}</h4>
-                          <button type="button"
-                            class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20"
-                            @click="quickAddAllEpisodes(sourceIndex, serverIndex)">
-                            <AppIcon name="plus" class="size-3" />
-                            Thêm tất cả
-                          </button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                          <div v-for="(ep, epIndex) in server.episodes" :key="epIndex"
-                            class="group relative rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5">
-                            <p class="truncate text-xs font-semibold text-white">{{ ep.name || `Tập ${epIndex + 1}` }}
-                            </p>
-                            <p v-if="ep.linkM3u8" class="truncate text-[10px] text-zinc-500">{{ ep.linkM3u8 }}</p>
-                            <p v-else-if="ep.linkEmbed" class="truncate text-[10px] text-zinc-500">{{ ep.linkEmbed }}
-                            </p>
-                            <button type="button"
-                              class="absolute right-1 top-1 grid size-6 place-items-center rounded bg-yellow-400/10 text-yellow-400 opacity-0 transition hover:bg-yellow-400/20 group-hover:opacity-100"
-                              :title="`Thêm ${ep.name || `Tập ${epIndex + 1}`} vào server`"
-                              @click="quickAddEpisode(sourceIndex, serverIndex, epIndex)">
-                              <AppIcon name="plus" class="size-3" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div v-else class="rounded-xl border border-dashed border-white/[0.1] p-6 text-center">
-                  <p class="text-sm text-zinc-500">Chưa có nguồn API hoặc chưa đồng bộ tập phim.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-        </div>
-        <!-- Right Sidebar: Navigation + Save -->
-        <aside class="space-y-5 lg:sticky lg:top-5 lg:col-span-3">
-          <!-- Nav -->
-          <div class="admin-card p-2">
-            <nav class="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible no-scrollbar">
-              <button v-for="s in sections" :key="s.key"
-                class="relative flex shrink-0 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition lg:w-full"
-                :class="activeSection === s.key ? 'bg-yellow-400/10 text-yellow-400' : 'text-zinc-400 hover:bg-white/[0.03] hover:text-white'"
-                @click="activeSection = s.key">
-                <span v-if="activeSection === s.key"
-                  class="absolute left-0 top-1/2 hidden h-5 w-1 -translate-y-1/2 rounded-r-full bg-yellow-400 lg:block" />
+      <!-- WordPress-like editor layout -->
+      <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start">
+        <!-- Main editor column -->
+        <div class="min-w-0 space-y-5">
+          <!-- Horizontal tabs -->
+          <div class="admin-card overflow-hidden">
+            <nav class="flex items-center gap-1 overflow-x-auto border-b border-white/6 px-2 pt-2 no-scrollbar">
+              <button v-for="s in sections" :key="s.key" type="button"
+                class="relative flex shrink-0 items-center gap-2 rounded-t-lg px-4 py-3 text-sm font-semibold transition"
+                :class="activeSection === s.key
+                  ? 'bg-white/6 text-yellow-400 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-yellow-400'
+                  : 'text-zinc-400 hover:bg-white/3 hover:text-white'" @click="activeSection = s.key">
                 <AppIcon :name="s.icon" class="size-4" />
-                <span class="flex-1 whitespace-nowrap">{{ s.label }}</span>
+                <span>{{ s.label }}</span>
                 <span v-if="s.key === 'actors' && customActors.length"
-                  class="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-zinc-300">{{
-                  customActors.length }}</span>
+                  class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-zinc-300">{{ customActors.length
+                  }}</span>
                 <span v-else-if="s.key === 'episodes' && customServers.length"
-                  class="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-zinc-300">{{
-                  customServers.length }}</span>
+                  class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-zinc-300">{{customServers.reduce((a,
+                    b) => a + b.episodes.length, 0)}}</span>
               </button>
             </nav>
-          </div>
 
-          <!-- Save button sticky -->
-          <div class="admin-card p-4">
-            <button type="button" class="w-full admin-btn-primary justify-center" :disabled="saving"
-              @click="handleSave">
-              <AppIcon name="save" class="size-4" />
-              {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
-            </button>
-            <Transition name="fade">
-              <div v-if="saved"
-                class="mt-2 flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-400">
-                <AppIcon name="check" class="size-3" />
-                Đã lưu thành công
+            <div class="p-5">
+              <!-- Section: Thông tin -->
+              <div v-if="activeSection === 'info'">
+                <div class="mb-5 flex items-center gap-3">
+                  <div class="admin-icon-square">
+                    <AppIcon name="info" class="size-4" />
+                  </div>
+                  <div>
+                    <h2 class="text-sm font-bold text-white">Thông tin chi tiết</h2>
+                    <p class="text-xs text-zinc-500">Dữ liệu hiện tại của phim</p>
+                  </div>
+                </div>
+                <dl class="grid gap-4 sm:grid-cols-2">
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4">
+                    <dt class="admin-label mb-1">Nguồn</dt>
+                    <dd class="font-semibold text-white">{{ movie.source?.toUpperCase() }}</dd>
+                  </div>
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4">
+                    <dt class="admin-label mb-1">Slug</dt>
+                    <dd class="truncate text-zinc-200" :title="movie.slug">{{ movie.slug }}</dd>
+                  </div>
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4">
+                    <dt class="admin-label mb-1">Năm phát hành</dt>
+                    <dd class="text-zinc-200">{{ movie.year || '—' }}</dd>
+                  </div>
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4">
+                    <dt class="admin-label mb-1">Số tập</dt>
+                    <dd class="text-zinc-200">{{ movie.episodeTotal || '—' }}</dd>
+                  </div>
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4">
+                    <dt class="admin-label mb-1">Chất lượng</dt>
+                    <dd class="text-zinc-200">{{ movie.quality || '—' }}</dd>
+                  </div>
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4">
+                    <dt class="admin-label mb-1">Trạng thái</dt>
+                    <dd class="font-semibold" :class="movie.active ? 'text-emerald-400' : 'text-zinc-400'">{{
+                      movie.active ? 'Đang hiển thị' : 'Ẩn' }}</dd>
+                  </div>
+                </dl>
+                <div v-if="movie.categories?.length" class="mt-5 border-t border-white/6 pt-4">
+                  <h4 class="admin-label mb-2">Thể loại</h4>
+                  <div class="flex flex-wrap gap-2"><span v-for="cat in movie.categories" :key="cat"
+                      class="rounded-full bg-white/6 px-3 py-1 text-xs font-medium text-zinc-300">{{ cat }}</span>
+                  </div>
+                </div>
               </div>
-            </Transition>
+
+              <!-- Section: Mô tả -->
+              <div v-if="activeSection === 'content'">
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="admin-icon-square">
+                      <AppIcon name="type" class="size-4" />
+                    </div>
+                    <div>
+                      <h2 class="text-sm font-bold text-white">Mô tả phim</h2>
+                      <p class="text-xs text-zinc-500">{{ customContent ? 'Nội dung tuỳ chỉnh' : 'Nội dung từ API' }}
+                      </p>
+                    </div>
+                  </div>
+                  <button v-if="apiContent && !customContent" type="button"
+                    class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20"
+                    @click="useApiContent">Dùng mô tả API</button>
+                  <button v-else-if="customContent" type="button" class="admin-btn-sm text-red-400 hover:bg-red-400/10"
+                    @click="clearField('customContent')">Về mặc định</button>
+                </div>
+                <textarea v-model="customContent" :rows="contentRows" :placeholder="apiContent || 'Nhập mô tả phim...'"
+                  style="field-sizing: content; min-height: 320px;"
+                  class="w-full rounded-xl border border-white/8 bg-white/3 p-4 text-sm leading-7 text-white outline-none transition placeholder:text-zinc-500 focus:border-yellow-400/40 focus:bg-white/5" />
+              </div>
+
+              <!-- Section: Diễn viên -->
+              <div v-if="activeSection === 'actors'">
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <div class="admin-icon-square">
+                      <AppIcon name="users" class="size-4" />
+                    </div>
+                    <div>
+                      <h2 class="text-sm font-bold text-white">Diễn viên</h2>
+                      <p class="text-xs text-zinc-500">{{ customActors.length }} diễn viên</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-2"><button v-if="apiActors.length" type="button"
+                      class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20"
+                      @click="useApiActors">Import ({{ apiActors.length }})</button><button type="button"
+                      class="admin-btn-sm bg-white/6 text-zinc-100 hover:bg-white/10" @click="addActor">
+                      <AppIcon name="plus" class="size-3" />Thêm
+                    </button></div>
+                </div>
+                <div v-if="customActors.length" class="space-y-2">
+                  <div v-for="(actor, index) in customActors" :key="index"
+                    class="grid gap-2 rounded-xl border border-white/6 bg-white/2 p-3 md:grid-cols-[44px_1fr_1fr_140px_1fr_36px] md:items-center">
+                    <div class="grid size-10 place-items-center overflow-hidden rounded-full bg-white/6"><img
+                        v-if="actor.avatar" :src="actor.avatar" :alt="actor.name" class="size-full object-cover"><span
+                        v-else class="text-sm font-bold text-zinc-400">{{ (actor.name?.[0] || '?').toUpperCase() }}</span>
+                    </div>
+                    <input v-model="actor.name" type="text" placeholder="Tên" class="admin-input-sm"><input
+                      v-model="actor.originalName" type="text" placeholder="Tên gốc" class="admin-input-sm"><input
+                      v-model="actor.role" type="text" placeholder="Vai" class="admin-input-sm"><input
+                      v-model="actor.avatar" type="url" placeholder="Avatar URL" class="admin-input-sm"><button
+                      type="button" class="grid size-8 place-items-center rounded-lg text-red-400 hover:bg-red-400/10"
+                      @click="removeActor(index)">
+                      <AppIcon name="trash" class="size-4" />
+                    </button>
+                  </div>
+                </div>
+                <div v-else
+                  class="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-zinc-500">Chưa
+                  có diễn viên.</div>
+              </div>
+
+              <!-- Section: Hình ảnh -->
+              <div v-if="activeSection === 'images'" class="space-y-5">
+                <div><label class="admin-label mb-2 block">Ảnh poster ngang (16:9)</label>
+                  <div class="flex gap-2"><input v-model="customPoster" type="url" placeholder="Dán URL poster ngang..."
+                      class="admin-input-sm min-w-0 flex-1"><button v-if="customPoster" type="button"
+                      class="admin-btn-sm text-red-400 hover:bg-red-400/10"
+                      @click="clearField('customPoster')">Xoá</button></div>
+                </div>
+                <div><label class="admin-label mb-2 block">Ảnh poster dọc (2:3)</label>
+                  <div class="flex gap-2"><input v-model="customThumb" type="url" placeholder="Dán URL poster dọc..."
+                      class="admin-input-sm min-w-0 flex-1"><button v-if="customThumb" type="button"
+                      class="admin-btn-sm text-red-400 hover:bg-red-400/10"
+                      @click="clearField('customThumb')">Xoá</button></div>
+                </div>
+                <p class="rounded-xl border border-blue-400/15 bg-blue-400/5 p-4 text-sm leading-6 text-blue-200">
+                  Preview ảnh được ghim ở sidebar bên phải để bạn theo dõi trong lúc nhập URL.</p>
+              </div>
+
+              <!-- Section: Tập phim -->
+              <div v-if="activeSection === 'episodes'" class="grid gap-5 2xl:grid-cols-12 2xl:items-start">
+                <div class="space-y-3 2xl:col-span-7">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 class="text-sm font-bold text-white">Server & tập phim</h3>
+                      <p class="text-xs text-zinc-500">Danh sách hiển thị trên website</p>
+                    </div><button type="button" class="admin-btn-sm bg-white/6 text-zinc-100 hover:bg-white/10"
+                      @click="addServer">
+                      <AppIcon name="plus" class="size-3" />Thêm server
+                    </button>
+                  </div>
+                  <div v-for="(server, serverIndex) in customServers" :key="serverIndex"
+                    class="rounded-xl border border-white/6 bg-white/2">
+                    <div class="flex items-center gap-2 p-3"><button type="button"
+                        class="flex min-w-0 flex-1 items-center gap-2 text-left" @click="toggleServer(serverIndex)">
+                        <AppIcon name="chevron-down" class="size-4 text-zinc-400 transition"
+                          :class="collapsedServers[serverIndex] ? '-rotate-90' : ''" /><span
+                          class="truncate text-sm font-bold text-white">{{ server.name || `Server ${serverIndex + 1}`
+                          }}</span><span class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-zinc-300">{{
+                            server.episodes.length }} tập</span>
+                      </button><button type="button"
+                        class="grid size-8 place-items-center rounded-lg text-red-400 hover:bg-red-400/10"
+                        @click="removeServer(serverIndex)">
+                        <AppIcon name="trash" class="size-4" />
+                      </button></div>
+                    <div v-if="!collapsedServers[serverIndex]" class="space-y-3 border-t border-white/6 p-3"><input
+                        v-model="server.name" type="text" placeholder="Tên server"
+                        class="admin-input-sm w-full font-semibold">
+                      <div v-for="(ep, episodeIndex) in server.episodes" :key="episodeIndex"
+                        class="rounded-lg border border-white/6 bg-black/10 p-2">
+                        <div class="flex gap-2"><input v-model="ep.name" type="text" placeholder="Tên tập"
+                            class="admin-input-sm w-24"><select class="admin-input-sm min-w-0 flex-1"
+                            @change="handleSourceLinkChange(serverIndex, episodeIndex, $event)">
+                            <option value="" class="bg-[#131418]">Chọn link từ API</option>
+                            <option v-for="item in availableEpisodes" :key="item.key" :value="item.key"
+                              class="bg-[#131418]">{{ item.label }}</option>
+                          </select><button type="button"
+                            class="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-white/6"
+                            @click="toggleLinks(`${serverIndex}-${episodeIndex}`)">
+                            <AppIcon name="pencil" class="size-3" />
+                          </button><button type="button"
+                            class="grid size-8 place-items-center rounded-lg text-red-400 hover:bg-red-400/10"
+                            @click="removeServerEpisode(serverIndex, episodeIndex)">
+                            <AppIcon name="trash" class="size-3" />
+                          </button></div>
+                        <div v-if="expandedLinks[`${serverIndex}-${episodeIndex}`]"
+                          class="mt-2 grid gap-2 sm:grid-cols-2"><input v-model="ep.linkEmbed" type="url"
+                            placeholder="Link embed" class="admin-input-sm"><input v-model="ep.linkM3u8" type="url"
+                            placeholder="Link m3u8" class="admin-input-sm"></div>
+                      </div><button type="button"
+                        class="admin-btn-sm border border-dashed border-white/15 text-zinc-300"
+                        @click="addServerEpisode(serverIndex)">
+                        <AppIcon name="plus" class="size-3" />Thêm tập
+                      </button>
+                    </div>
+                  </div>
+                  <div v-if="!customServers.length"
+                    class="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-zinc-500">
+                    Chưa có server.</div>
+                </div>
+                <div class="2xl:col-span-5">
+                  <div class="rounded-xl border border-white/6 bg-white/2 p-4 2xl:sticky 2xl:top-5">
+                    <div class="mb-3">
+                      <h3 class="text-sm font-bold text-white">Nguồn API</h3>
+                      <p class="text-xs text-zinc-500">Thêm nhanh tập vào server</p>
+                    </div>
+                    <select v-model="selectedTargetServer" class="admin-input-sm mb-3 w-full">
+                      <option v-for="(server, index) in customServers" :key="index" :value="index" class="bg-[#131418]">
+                        {{ server.name || `Server ${index + 1}` }}</option>
+                    </select>
+                    <div class="space-y-2">
+                      <div v-for="(source, sourceIndex) in sourceData?.sources || []" :key="source.source"
+                        class="rounded-lg border border-white/6"><button type="button"
+                          class="flex w-full items-center justify-between p-3 text-left"
+                          @click="toggleSource(source.source)"><span class="text-xs font-bold uppercase text-white">{{
+                            source.source }} · {{ source.name }}</span>
+                          <AppIcon name="chevron-down" class="size-4 text-zinc-400" />
+                        </button>
+                        <div v-if="expandedSources[source.source]" class="space-y-3 border-t border-white/6 p-3">
+                          <div v-for="(server, serverIndex) in source.servers" :key="serverIndex">
+                            <div class="mb-2 flex items-center justify-between"><span class="admin-label">{{ server.name
+                                }}</span><button type="button" class="text-xs font-semibold text-yellow-400"
+                                @click="quickAddAllEpisodes(sourceIndex, serverIndex)">Thêm tất cả</button></div>
+                            <div class="flex flex-wrap gap-2"><button v-for="(ep, epIndex) in server.episodes"
+                                :key="epIndex" type="button"
+                                class="rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-yellow-400/10 hover:text-yellow-400"
+                                @click="quickAddEpisode(sourceIndex, serverIndex, epIndex)">{{ ep.name || `Tập ${epIndex
+                                  + 1}` }}</button></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WordPress-like right sidebar -->
+        <aside class="space-y-4 xl:sticky xl:top-5">
+          <div class="admin-card overflow-hidden">
+            <div class="flex items-center justify-between border-b border-white/6 px-4 py-3">
+              <div>
+                <h3 class="text-sm font-bold text-white">Đăng phim</h3>
+                <p class="text-xs text-zinc-500">Lưu và cập nhật nội dung</p>
+              </div><span class="admin-badge"
+                :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-zinc-400'">{{
+                  movie.active ? 'Hiển thị' : 'Đang ẩn' }}</span>
+            </div>
+            <div class="space-y-3 p-4 text-sm">
+              <div class="flex justify-between gap-3"><span class="text-zinc-500">Nguồn</span><strong
+                  class="text-white">{{ movie.source?.toUpperCase() }}</strong></div>
+              <div class="flex justify-between gap-3"><span class="text-zinc-500">Năm</span><span
+                  class="text-zinc-200">{{ movie.year || '—' }}</span></div>
+              <div class="flex justify-between gap-3"><span class="text-zinc-500">Tổng tập</span><span
+                  class="text-zinc-200">{{ movie.episodeTotal || '—' }}</span></div>
+              <div class="flex justify-between gap-3"><span class="text-zinc-500">Đồng bộ</span><span
+                  class="truncate text-right text-zinc-200">{{ new Date(movie.syncedAt).toLocaleString('vi-VN')
+                  }}</span></div>
+            </div>
+            <div class="border-t border-white/6 p-4"><button type="button"
+                class="admin-btn-primary w-full justify-center" :disabled="saving" @click="handleSave">
+                <AppIcon name="save" class="size-4" />{{ saving ? 'Đang lưu...' : 'Cập nhật phim' }}
+              </button>
+              <Transition name="fade">
+                <p v-if="saved" class="mt-2 text-center text-xs font-semibold text-emerald-400">Đã lưu thành công</p>
+              </Transition>
+            </div>
           </div>
 
-          <!-- Quick info -->
-          <div class="admin-card p-4">
-            <h4 class="mb-3 text-xs font-bold uppercase tracking-wider text-zinc-500">Thông tin nhanh</h4>
-            <dl class="grid grid-cols-2 gap-x-2 gap-y-2 text-sm">
-              <dt class="text-zinc-500">Nguồn</dt>
-              <dd class="font-semibold text-white">{{ movie.source?.toUpperCase() }}</dd>
-              <dt class="text-zinc-500">Năm</dt>
-              <dd class="text-zinc-200">{{ movie.year || '—' }}</dd>
-              <dt class="text-zinc-500">Tập</dt>
-              <dd class="text-zinc-200">{{ movie.episode || '—' }}</dd>
-              <dt class="text-zinc-500">Trạng thái</dt>
-              <dd class="font-semibold" :class="movie.active ? 'text-emerald-400' : 'text-zinc-400'">
-                {{ movie.active ? 'Hiển thị' : 'Ẩn' }}
-              </dd>
-            </dl>
+          <div class="admin-card overflow-hidden">
+            <div class="border-b border-white/6 px-4 py-3">
+              <h3 class="text-sm font-bold text-white">Ảnh đại diện ngang</h3>
+              <p class="text-xs text-zinc-500">Poster 16:9</p>
+            </div>
+            <div class="p-4">
+              <div class="aspect-video overflow-hidden rounded-xl border border-white/8 bg-white/2"><img
+                  v-if="customPoster || movie.poster" :src="customPoster || movie.poster || undefined" :alt="movie.name"
+                  class="size-full object-cover">
+                <div v-else class="grid size-full place-items-center text-zinc-600">
+                  <AppIcon name="image" class="size-7" />
+                </div>
+              </div><input v-model="customPoster" type="url" placeholder="URL ảnh ngang..."
+                class="admin-input-sm mt-3 w-full">
+            </div>
+          </div>
+
+          <div class="admin-card overflow-hidden">
+            <div class="border-b border-white/6 px-4 py-3">
+              <h3 class="text-sm font-bold text-white">Ảnh đại diện dọc</h3>
+              <p class="text-xs text-zinc-500">Thumbnail 2:3</p>
+            </div>
+            <div class="p-4">
+              <div
+                class="mx-auto aspect-2/3 w-full max-w-55 overflow-hidden rounded-xl border border-white/8 bg-white/2">
+                <img v-if="customThumb || movie.thumb || movie.poster" :src="customThumb || movie.thumb || movie.poster || undefined"
+                  :alt="movie.name" class="size-full object-cover">
+                <div v-else class="grid size-full place-items-center text-zinc-600">
+                  <AppIcon name="image" class="size-7" />
+                </div>
+              </div><input v-model="customThumb" type="url" placeholder="URL ảnh dọc..."
+                class="admin-input-sm mt-3 w-full">
+            </div>
           </div>
         </aside>
       </div>

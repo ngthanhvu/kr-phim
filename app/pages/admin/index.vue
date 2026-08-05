@@ -112,7 +112,7 @@ const syncSourceOptions = [
               <p class="admin-label">Tổng số phim</p>
               <p class="admin-num mt-3 text-5xl leading-none sm:text-6xl">{{ stats?.total?.toLocaleString() || 0 }}</p>
             </div>
-            <div class="grid size-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-yellow-400">
+            <div class="grid size-10 place-items-center rounded-xl border border-white/8 bg-white/3 text-yellow-400">
               <AppIcon name="film" class="size-5" />
             </div>
           </div>
@@ -123,13 +123,13 @@ const syncSourceOptions = [
               <p class="admin-label">Phân bổ theo nguồn</p>
               <span class="text-xs text-zinc-500">{{ sourceSegments.length }} nguồn</span>
             </div>
-            <div v-if="sourceSegments.length" class="flex h-3 w-full overflow-hidden rounded-full bg-white/[0.04]">
+            <div v-if="sourceSegments.length" class="flex h-3 w-full overflow-hidden rounded-full bg-white/4">
               <div v-for="seg in sourceSegments" :key="seg.key"
                 class="h-full transition-all duration-700"
                 :style="{ width: seg.pct + '%', backgroundColor: seg.color }"
                 :title="`${seg.label}: ${seg.value} (${Math.round(seg.pct)}%)`" />
             </div>
-            <div v-else class="h-3 w-full rounded-full bg-white/[0.04]" />
+            <div v-else class="h-3 w-full rounded-full bg-white/4" />
 
             <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
               <div v-for="seg in sourceSegments" :key="seg.key" class="flex items-center gap-2">
@@ -141,7 +141,7 @@ const syncSourceOptions = [
           </div>
 
           <!-- Footer mini stats -->
-          <div class="mt-auto grid grid-cols-2 gap-4 border-t border-white/[0.06] pt-5">
+          <div class="mt-auto grid grid-cols-2 gap-4 border-t border-white/6 pt-5">
             <div>
               <p class="admin-label">Đang hiển thị</p>
               <p class="mt-1.5 flex items-baseline gap-2">
@@ -215,7 +215,7 @@ const syncSourceOptions = [
       <div class="admin-card p-5">
         <div class="flex items-center justify-between">
           <p class="admin-label">Phân bổ nguồn</p>
-          <span class="admin-badge bg-white/[0.05] text-zinc-400">Nguồn</span>
+          <span class="admin-badge bg-white/5 text-zinc-400">Nguồn</span>
         </div>
         <div class="mt-4 flex items-center justify-center">
           <div class="relative">
@@ -258,7 +258,7 @@ const syncSourceOptions = [
       <div class="admin-card p-5">
         <div class="flex items-center justify-between">
           <p class="admin-label">Bộ vs Lẻ</p>
-          <span class="admin-badge bg-white/[0.05] text-zinc-400">Loại</span>
+          <span class="admin-badge bg-white/5 text-zinc-400">Loại</span>
         </div>
         <div class="mt-4 flex items-center justify-center">
           <div class="relative">
@@ -307,15 +307,15 @@ const syncSourceOptions = [
           <div v-for="(movie, i) in stats?.topMovies || []" :key="movie.slug">
             <div class="mb-1.5 flex items-center justify-between gap-3">
               <div class="flex min-w-0 items-center gap-2.5">
-                <span class="flex size-5 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
-                  :class="i === 0 ? 'bg-yellow-400 text-zinc-950' : 'bg-white/[0.06] text-zinc-400'">
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
+                  :class="i === 0 ? 'bg-yellow-400 text-zinc-950' : 'bg-white/6 text-zinc-400'">
                   {{ i + 1 }}
                 </span>
                 <span class="truncate text-sm text-zinc-100">{{ movie.name }}</span>
               </div>
-              <span class="flex-shrink-0 text-xs font-semibold text-zinc-400 tabular-nums">{{ movie.views?.toLocaleString() }}</span>
+              <span class="shrink-0 text-xs font-semibold text-zinc-400 tabular-nums">{{ movie.views?.toLocaleString() }}</span>
             </div>
-            <div class="h-1.5 overflow-hidden rounded-full bg-white/[0.04]">
+            <div class="h-1.5 overflow-hidden rounded-full bg-white/4">
               <div class="h-full rounded-full transition-all duration-700"
                 :class="i === 0 ? 'bg-yellow-400' : 'bg-zinc-500'"
                 :style="{ width: barWidth(movie.views || 0) + '%' }" />
@@ -330,7 +330,7 @@ const syncSourceOptions = [
     <div class="admin-card p-6">
       <div class="mb-5 flex items-center justify-between">
         <p class="admin-label">Trạng thái hiển thị</p>
-        <span class="admin-badge bg-white/[0.05] text-zinc-400">{{ stats?.total?.toLocaleString() || 0 }} phim</span>
+        <span class="admin-badge bg-white/5 text-zinc-400">{{ stats?.total?.toLocaleString() || 0 }} phim</span>
       </div>
       <div class="grid gap-6 md:grid-cols-2">
         <div>
@@ -338,8 +338,8 @@ const syncSourceOptions = [
             <span class="text-zinc-400">Đang hiển thị</span>
             <span class="font-semibold text-emerald-400 tabular-nums">{{ stats?.active?.toLocaleString() || 0 }} · {{ percentOf(stats?.active || 0, stats?.total || 0) }}%</span>
           </div>
-          <div class="h-2.5 overflow-hidden rounded-full bg-white/[0.04]">
-            <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700" :style="{ width: percentOf(stats?.active || 0, stats?.total || 0) + '%' }" />
+          <div class="h-2.5 overflow-hidden rounded-full bg-white/4">
+            <div class="h-full rounded-full bg-linear-to-r from-emerald-500 to-emerald-400 transition-all duration-700" :style="{ width: percentOf(stats?.active || 0, stats?.total || 0) + '%' }" />
           </div>
         </div>
         <div>
@@ -347,7 +347,7 @@ const syncSourceOptions = [
             <span class="text-zinc-400">Chưa hiển thị</span>
             <span class="font-semibold text-zinc-400 tabular-nums">{{ stats?.inactive?.toLocaleString() || 0 }} · {{ percentOf(stats?.inactive || 0, stats?.total || 0) }}%</span>
           </div>
-          <div class="h-2.5 overflow-hidden rounded-full bg-white/[0.04]">
+          <div class="h-2.5 overflow-hidden rounded-full bg-white/4">
             <div class="h-full rounded-full bg-zinc-600 transition-all duration-700" :style="{ width: percentOf(stats?.inactive || 0, stats?.total || 0) + '%' }" />
           </div>
         </div>
@@ -359,9 +359,9 @@ const syncSourceOptions = [
       <Transition name="modal-fade">
         <div v-if="syncOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="syncOpen = false" />
-          <div class="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#131418] p-6 shadow-2xl">
+          <div class="relative w-full max-w-md rounded-2xl border border-white/8 bg-[#131418] p-6 shadow-2xl">
             <button type="button"
-              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
+              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-zinc-400 transition hover:bg-white/5 hover:text-white"
               @click="syncOpen = false">
               <AppIcon name="x" class="size-5" />
             </button>
@@ -373,7 +373,7 @@ const syncSourceOptions = [
 
             <div class="space-y-3">
               <label v-for="source in syncSourceOptions" :key="source.key"
-                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.12] hover:bg-white/[0.05]">
+                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/6 bg-white/3 p-4 transition hover:border-white/12 hover:bg-white/5">
                 <div>
                   <p class="text-sm font-semibold text-white">{{ source.label }}</p>
                   <p class="text-xs text-zinc-500">{{ source.domain }}</p>

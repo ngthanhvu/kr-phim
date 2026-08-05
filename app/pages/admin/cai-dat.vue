@@ -42,7 +42,7 @@ const allowRegistration = ref(true)
             <div>
               <label class="mb-2 block text-sm font-semibold text-white">Mô tả website</label>
               <textarea v-model="siteDescription" rows="3"
-                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-yellow-400/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-yellow-400/20"></textarea>
+                class="w-full rounded-xl border border-white/8 bg-white/3 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-yellow-400/50 focus:bg-white/5 focus:ring-2 focus:ring-yellow-400/20"></textarea>
             </div>
           </div>
         </div>
@@ -51,7 +51,7 @@ const allowRegistration = ref(true)
           <h2 class="mb-5 text-lg font-black text-white">Tùy chọn hệ thống</h2>
 
           <div class="space-y-3">
-            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.1] hover:bg-white/[0.05]">
+            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/6 bg-white/3 p-4 transition hover:border-white/10 hover:bg-white/5">
               <div>
                 <p class="text-sm font-bold text-white">Chế độ bảo trì</p>
                 <p class="mt-1 text-xs text-slate-400">Tạm thời tắt website để bảo trì</p>
@@ -59,7 +59,7 @@ const allowRegistration = ref(true)
               <AdminToggle v-model="maintenanceMode" />
             </label>
 
-            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.1] hover:bg-white/[0.05]">
+            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/6 bg-white/3 p-4 transition hover:border-white/10 hover:bg-white/5">
               <div>
                 <p class="text-sm font-bold text-white">Cho phép đăng ký</p>
                 <p class="mt-1 text-xs text-slate-400">Cho phép người dùng mới đăng ký tài khoản</p>
