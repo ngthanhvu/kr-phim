@@ -40,7 +40,7 @@ function percentOf(value: number, total: number) {
 }
 
 // Donut chart helpers
-function donutSegment(value: number, total: number, startAngle: number, radius = 40) {
+function donutSegment(value: number, total: number, startAngle: number, radius = 38) {
   if (!total || !value) return ''
   const angle = (value / total) * 360
   const startRad = ((startAngle - 90) * Math.PI) / 180
@@ -53,6 +53,20 @@ function donutSegment(value: number, total: number, startAngle: number, radius =
   return `M 50 50 L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`
 }
 
+// Stacked source bar segments
+const sourceSegments = computed(() => {
+  const total = stats.value?.total || 0
+  const ophim = stats.value?.ophim || 0
+  const nguonc = stats.value?.nguonc || 0
+  const kkphim = stats.value?.kkphim || 0
+  if (!total) return []
+  return [
+    { key: 'ophim', label: 'OPhim', value: ophim, pct: (ophim / total) * 100, color: '#facc15' },
+    { key: 'nguonc', label: 'NguonC', value: nguonc, pct: (nguonc / total) * 100, color: '#34d399' },
+    { key: 'kkphim', label: 'KKPhim', value: kkphim, pct: (kkphim / total) * 100, color: '#60a5fa' },
+  ].filter(s => s.value > 0)
+})
+
 // Bar chart max value
 const maxViews = computed(() => {
   const movies = stats.value?.topMovies || []
@@ -61,245 +75,281 @@ const maxViews = computed(() => {
 
 function barWidth(views: number) {
   if (!maxViews.value) return 0
-  return Math.max((views / maxViews.value) * 100, 4)
+  return Math.max((views / maxViews.value) * 100, 3)
 }
+
+const syncSourceOptions = [
+  { key: 'ophim', label: 'OPhim', domain: 'ophim1.com' },
+  { key: 'nguonc', label: 'NguonC', domain: 'phim.nguonc.com' },
+  { key: 'kkphim', label: 'KKPhim', domain: 'phimapi.com' },
+] as const
 </script>
 
 <template>
-  <div>
-    <div class="mb-6 flex items-center justify-between">
+  <div class="space-y-5">
+    <!-- Header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-black text-white">Dashboard</h1>
-        <p class="mt-1 text-sm text-slate-400">Tổng quan hệ thống CineK</p>
+        <h1 class="admin-section-title">Dashboard</h1>
+        <p class="admin-section-subtitle mt-1">Tổng quan hệ thống CineK</p>
       </div>
-      <button type="button"
-        class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-4 text-sm font-black text-slate-950 transition hover:bg-yellow-300"
-        @click="syncOpen = true">
+      <button type="button" class="admin-btn-primary" @click="syncOpen = true">
         <AppIcon name="refresh" class="size-4" />
         Đồng bộ phim
       </button>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5 transition hover:border-white/20">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-semibold text-slate-400">Tổng phim</p>
-            <p class="mt-2 text-3xl font-black text-white">{{ stats?.total?.toLocaleString() || 0 }}</p>
+    <!-- Bento: KPI grid -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
+      <!-- Hero: Total movies (col-span-2, row-span-2) -->
+      <div class="admin-card-gradient relative overflow-hidden p-6 sm:col-span-2 lg:row-span-2">
+        <!-- subtle accent glow -->
+        <div class="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-yellow-400/10 blur-3xl" />
+
+        <div class="relative flex h-full flex-col">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="admin-label">Tổng số phim</p>
+              <p class="admin-num mt-3 text-5xl leading-none sm:text-6xl">{{ stats?.total?.toLocaleString() || 0 }}</p>
+            </div>
+            <div class="grid size-10 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-yellow-400">
+              <AppIcon name="film" class="size-5" />
+            </div>
           </div>
-          <div class="grid size-11 place-items-center rounded-xl bg-yellow-400/10 text-yellow-400">
-            <AppIcon name="film" class="size-5" />
+
+          <!-- Stacked source distribution bar -->
+          <div class="mt-8">
+            <div class="mb-2 flex items-center justify-between">
+              <p class="admin-label">Phân bổ theo nguồn</p>
+              <span class="text-xs text-zinc-500">{{ sourceSegments.length }} nguồn</span>
+            </div>
+            <div v-if="sourceSegments.length" class="flex h-3 w-full overflow-hidden rounded-full bg-white/[0.04]">
+              <div v-for="seg in sourceSegments" :key="seg.key"
+                class="h-full transition-all duration-700"
+                :style="{ width: seg.pct + '%', backgroundColor: seg.color }"
+                :title="`${seg.label}: ${seg.value} (${Math.round(seg.pct)}%)`" />
+            </div>
+            <div v-else class="h-3 w-full rounded-full bg-white/[0.04]" />
+
+            <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
+              <div v-for="seg in sourceSegments" :key="seg.key" class="flex items-center gap-2">
+                <span class="size-2 rounded-full" :style="{ backgroundColor: seg.color }" />
+                <span class="text-xs text-zinc-400">{{ seg.label }}</span>
+                <span class="text-xs font-semibold text-zinc-200">{{ seg.value.toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer mini stats -->
+          <div class="mt-auto grid grid-cols-2 gap-4 border-t border-white/[0.06] pt-5">
+            <div>
+              <p class="admin-label">Đang hiển thị</p>
+              <p class="mt-1.5 flex items-baseline gap-2">
+                <span class="admin-num text-xl">{{ stats?.active?.toLocaleString() || 0 }}</span>
+                <span class="text-xs font-medium text-emerald-400">{{ percentOf(stats?.active || 0, stats?.total || 0) }}%</span>
+              </p>
+            </div>
+            <div>
+              <p class="admin-label">Chưa hiển thị</p>
+              <p class="mt-1.5 flex items-baseline gap-2">
+                <span class="admin-num text-xl text-zinc-300">{{ stats?.inactive?.toLocaleString() || 0 }}</span>
+                <span class="text-xs font-medium text-zinc-500">{{ percentOf(stats?.inactive || 0, stats?.total || 0) }}%</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5 transition hover:border-white/20">
+      <!-- KPI: Đang hiển thị -->
+      <div class="admin-card p-5">
         <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-semibold text-slate-400">Đang hiển thị</p>
-            <p class="mt-2 text-3xl font-black text-green-400">{{ stats?.active?.toLocaleString() || 0 }}</p>
-          </div>
-          <div class="grid size-11 place-items-center rounded-xl bg-green-400/10 text-green-400">
-            <AppIcon name="trending-up" class="size-5" />
+          <p class="admin-label">Đang hiển thị</p>
+          <div class="grid size-8 place-items-center rounded-lg bg-emerald-400/10 text-emerald-400">
+            <AppIcon name="trending-up" class="size-4" />
           </div>
         </div>
+        <p class="admin-num mt-4 text-3xl">{{ stats?.active?.toLocaleString() || 0 }}</p>
+        <p class="mt-1 text-xs text-zinc-500">{{ percentOf(stats?.active || 0, stats?.total || 0) }}% tổng phim</p>
       </div>
 
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5 transition hover:border-white/20">
+      <!-- KPI: Phim bộ -->
+      <div class="admin-card p-5">
         <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-semibold text-slate-400">Phim bộ</p>
-            <p class="mt-2 text-3xl font-black text-blue-400">{{ stats?.series?.toLocaleString() || 0 }}</p>
-          </div>
-          <div class="grid size-11 place-items-center rounded-xl bg-blue-400/10 text-blue-400">
-            <AppIcon name="tv" class="size-5" />
+          <p class="admin-label">Phim bộ</p>
+          <div class="grid size-8 place-items-center rounded-lg bg-blue-400/10 text-blue-400">
+            <AppIcon name="tv" class="size-4" />
           </div>
         </div>
+        <p class="admin-num mt-4 text-3xl">{{ stats?.series?.toLocaleString() || 0 }}</p>
+        <p class="mt-1 text-xs text-zinc-500">{{ percentOf(stats?.series || 0, stats?.total || 0) }}% tổng phim</p>
       </div>
 
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5 transition hover:border-white/20">
+      <!-- KPI: Phim lẻ -->
+      <div class="admin-card p-5">
         <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-semibold text-slate-400">Phim lẻ</p>
-            <p class="mt-2 text-3xl font-black text-purple-400">{{ stats?.single?.toLocaleString() || 0 }}</p>
-          </div>
-          <div class="grid size-11 place-items-center rounded-xl bg-purple-400/10 text-purple-400">
-            <AppIcon name="play" class="size-5" />
+          <p class="admin-label">Phim lẻ</p>
+          <div class="grid size-8 place-items-center rounded-lg bg-purple-400/10 text-purple-400">
+            <AppIcon name="play" class="size-4" />
           </div>
         </div>
+        <p class="admin-num mt-4 text-3xl">{{ stats?.single?.toLocaleString() || 0 }}</p>
+        <p class="mt-1 text-xs text-zinc-500">{{ percentOf(stats?.single || 0, stats?.total || 0) }}% tổng phim</p>
+      </div>
+
+      <!-- KPI: Tổng lượt xem -->
+      <div class="admin-card p-5">
+        <div class="flex items-start justify-between">
+          <p class="admin-label">Tổng lượt xem</p>
+          <div class="grid size-8 place-items-center rounded-lg bg-yellow-400/10 text-yellow-400">
+            <AppIcon name="bar-chart" class="size-4" />
+          </div>
+        </div>
+        <p class="admin-num mt-4 text-3xl">{{ stats?.totalViews?.toLocaleString() || 0 }}</p>
+        <p class="mt-1 text-xs text-zinc-500">trên {{ stats?.total?.toLocaleString() || 0 }} phim</p>
       </div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="mb-6 grid gap-4 lg:grid-cols-3">
-      <!-- Donut Chart: Source Distribution -->
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
-        <p class="text-sm font-semibold text-slate-400">Phân bổ nguồn phim</p>
+    <!-- Bento: Charts row -->
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <!-- Donut: Source distribution -->
+      <div class="admin-card p-5">
+        <div class="flex items-center justify-between">
+          <p class="admin-label">Phân bổ nguồn</p>
+          <span class="admin-badge bg-white/[0.05] text-zinc-400">Nguồn</span>
+        </div>
         <div class="mt-4 flex items-center justify-center">
           <div class="relative">
-            <svg viewBox="0 0 100 100" class="size-44">
-              <!-- OPhim segment -->
+            <svg viewBox="0 0 100 100" class="size-40">
               <template v-if="stats?.ophim">
                 <path :d="donutSegment(stats.ophim, stats.total, 0)" fill="#facc15" />
               </template>
-              <!-- NguonC segment -->
               <template v-if="stats?.nguonc">
-                <path :d="donutSegment(stats.nguonc, stats.total, (stats.ophim || 0) / (stats.total || 1) * 360)" fill="#4ade80" />
+                <path :d="donutSegment(stats.nguonc, stats.total, (stats.ophim || 0) / (stats.total || 1) * 360)" fill="#34d399" />
               </template>
-              <!-- KKPhim segment -->
               <template v-if="stats?.kkphim">
                 <path :d="donutSegment(stats.kkphim, stats.total, ((stats.ophim || 0) + (stats.nguonc || 0)) / (stats.total || 1) * 360)" fill="#60a5fa" />
               </template>
-              <!-- Inner circle for donut effect -->
-              <circle cx="50" cy="50" r="24" fill="#0f172a" />
+              <circle cx="50" cy="50" r="22" fill="#131418" />
             </svg>
             <div class="absolute inset-0 grid place-items-center">
               <div class="text-center">
-                <p class="text-2xl font-black text-white">{{ stats?.total?.toLocaleString() || 0 }}</p>
-                <p class="text-[10px] text-slate-400">total</p>
+                <p class="admin-num text-xl">{{ stats?.total?.toLocaleString() || 0 }}</p>
+                <p class="text-[10px] uppercase tracking-widest text-zinc-500">phim</p>
               </div>
             </div>
           </div>
         </div>
-        <div class="mt-4 space-y-2">
-          <div class="flex items-center justify-between text-sm">
+        <div class="mt-4 space-y-1.5">
+          <div v-for="s in [
+            { key: 'ophim', label: 'OPhim', color: 'bg-yellow-400' },
+            { key: 'nguonc', label: 'NguonC', color: 'bg-emerald-400' },
+            { key: 'kkphim', label: 'KKPhim', color: 'bg-blue-400' },
+          ]" :key="s.key" class="flex items-center justify-between text-sm">
             <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-yellow-400" />
-              <span class="text-slate-300">OPhim</span>
+              <span class="size-2 rounded-full" :class="s.color" />
+              <span class="text-zinc-400">{{ s.label }}</span>
             </div>
-            <span class="font-semibold text-white">{{ stats?.ophim || 0 }} <span class="text-slate-500">({{ percentOf(stats?.ophim || 0, stats?.total || 0) }}%)</span></span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-green-400" />
-              <span class="text-slate-300">NguonC</span>
-            </div>
-            <span class="font-semibold text-white">{{ stats?.nguonc || 0 }} <span class="text-slate-500">({{ percentOf(stats?.nguonc || 0, stats?.total || 0) }}%)</span></span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-blue-400" />
-              <span class="text-slate-300">KKPhim</span>
-            </div>
-            <span class="font-semibold text-white">{{ stats?.kkphim || 0 }} <span class="text-slate-500">({{ percentOf(stats?.kkphim || 0, stats?.total || 0) }}%)</span></span>
+            <span class="font-semibold text-zinc-200">{{ stats?.[s.key] || 0 }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Donut Chart: Series vs Single -->
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
-        <p class="text-sm font-semibold text-slate-400">Phim bộ vs Phim lẻ</p>
+      <!-- Donut: Series vs Single -->
+      <div class="admin-card p-5">
+        <div class="flex items-center justify-between">
+          <p class="admin-label">Bộ vs Lẻ</p>
+          <span class="admin-badge bg-white/[0.05] text-zinc-400">Loại</span>
+        </div>
         <div class="mt-4 flex items-center justify-center">
           <div class="relative">
-            <svg viewBox="0 0 100 100" class="size-44">
+            <svg viewBox="0 0 100 100" class="size-40">
               <template v-if="stats?.series">
                 <path :d="donutSegment(stats.series, stats.total, 0)" fill="#3b82f6" />
               </template>
               <template v-if="stats?.single">
                 <path :d="donutSegment(stats.single, stats.total, (stats.series || 0) / (stats.total || 1) * 360)" fill="#a855f7" />
               </template>
-              <circle cx="50" cy="50" r="24" fill="#0f172a" />
+              <circle cx="50" cy="50" r="22" fill="#131418" />
             </svg>
             <div class="absolute inset-0 grid place-items-center">
               <div class="text-center">
-                <p class="text-2xl font-black text-white">{{ stats?.total?.toLocaleString() || 0 }}</p>
-                <p class="text-[10px] text-slate-400">total</p>
+                <p class="admin-num text-xl">{{ stats?.total?.toLocaleString() || 0 }}</p>
+                <p class="text-[10px] uppercase tracking-widest text-zinc-500">phim</p>
               </div>
             </div>
           </div>
         </div>
-        <div class="mt-4 space-y-2">
+        <div class="mt-4 space-y-1.5">
           <div class="flex items-center justify-between text-sm">
             <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-blue-500" />
-              <span class="text-slate-300">Phim bộ</span>
+              <span class="size-2 rounded-full bg-blue-500" />
+              <span class="text-zinc-400">Phim bộ</span>
             </div>
-            <span class="font-semibold text-white">{{ stats?.series || 0 }} <span class="text-slate-500">({{ percentOf(stats?.series || 0, stats?.total || 0) }}%)</span></span>
+            <span class="font-semibold text-zinc-200">{{ stats?.series || 0 }}</span>
           </div>
           <div class="flex items-center justify-between text-sm">
             <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-purple-500" />
-              <span class="text-slate-300">Phim lẻ</span>
+              <span class="size-2 rounded-full bg-purple-500" />
+              <span class="text-zinc-400">Phim lẻ</span>
             </div>
-            <span class="font-semibold text-white">{{ stats?.single || 0 }} <span class="text-slate-500">({{ percentOf(stats?.single || 0, stats?.total || 0) }}%)</span></span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-green-400" />
-              <span class="text-slate-300">Đang hiển thị</span>
-            </div>
-            <span class="font-semibold text-green-400">{{ stats?.active || 0 }}</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-slate-500" />
-              <span class="text-slate-300">Chưa hiển thị</span>
-            </div>
-            <span class="font-semibold text-slate-400">{{ stats?.inactive || 0 }}</span>
+            <span class="font-semibold text-zinc-200">{{ stats?.single || 0 }}</span>
           </div>
         </div>
       </div>
 
-      <!-- Bar Chart: Top Movies by Views -->
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
-        <p class="text-sm font-semibold text-slate-400">Top 5 phim nhiều lượt xem</p>
-        <div class="mt-4 space-y-3">
+      <!-- Top movies (col-span-2) -->
+      <div class="admin-card p-5 sm:col-span-2 lg:col-span-2">
+        <div class="flex items-center justify-between">
+          <p class="admin-label">Top phim xem nhiều</p>
+          <span class="admin-badge bg-yellow-400/10 text-yellow-400">Top 5</span>
+        </div>
+        <div class="mt-4 space-y-3.5">
           <div v-for="(movie, i) in stats?.topMovies || []" :key="movie.slug">
-            <div class="mb-1 flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="w-5 text-center text-xs font-black" :class="i === 0 ? 'text-yellow-400' : i === 1 ? 'text-slate-300' : i === 2 ? 'text-amber-600' : 'text-slate-500'">{{ i + 1 }}</span>
-                <span class="truncate text-xs text-white">{{ movie.name }}</span>
+            <div class="mb-1.5 flex items-center justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2.5">
+                <span class="flex size-5 flex-shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
+                  :class="i === 0 ? 'bg-yellow-400 text-zinc-950' : 'bg-white/[0.06] text-zinc-400'">
+                  {{ i + 1 }}
+                </span>
+                <span class="truncate text-sm text-zinc-100">{{ movie.name }}</span>
               </div>
-              <span class="text-xs font-semibold text-slate-400">{{ movie.views?.toLocaleString() }}</span>
+              <span class="flex-shrink-0 text-xs font-semibold text-zinc-400 tabular-nums">{{ movie.views?.toLocaleString() }}</span>
             </div>
-            <div class="h-2 overflow-hidden rounded-full bg-white/10">
-              <div class="h-full rounded-full transition-all duration-500"
-                :class="i === 0 ? 'bg-yellow-400' : i === 1 ? 'bg-slate-300' : i === 2 ? 'bg-amber-500' : 'bg-slate-500'"
+            <div class="h-1.5 overflow-hidden rounded-full bg-white/[0.04]">
+              <div class="h-full rounded-full transition-all duration-700"
+                :class="i === 0 ? 'bg-yellow-400' : 'bg-zinc-500'"
                 :style="{ width: barWidth(movie.views || 0) + '%' }" />
             </div>
           </div>
-          <p v-if="!stats?.topMovies?.length" class="text-center text-xs text-slate-500">Chưa có dữ liệu</p>
-        </div>
-
-        <div class="mt-5 border-t border-white/10 pt-4">
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-slate-400">Tổng lượt xem</span>
-            <span class="text-lg font-black text-white">{{ stats?.totalViews?.toLocaleString() || 0 }}</span>
-          </div>
+          <p v-if="!stats?.topMovies?.length" class="py-6 text-center text-sm text-zinc-500">Chưa có dữ liệu</p>
         </div>
       </div>
     </div>
 
-    <!-- Active vs Inactive Comparison Bar -->
-    <div class="mb-6 rounded-xl border border-white/10 bg-slate-900/50 p-5">
-      <p class="text-sm font-semibold text-slate-400">Trạng thái hiển thị</p>
-      <div class="mt-4 flex gap-6">
-        <div class="flex-1">
+    <!-- Status comparison (full width) -->
+    <div class="admin-card p-6">
+      <div class="mb-5 flex items-center justify-between">
+        <p class="admin-label">Trạng thái hiển thị</p>
+        <span class="admin-badge bg-white/[0.05] text-zinc-400">{{ stats?.total?.toLocaleString() || 0 }} phim</span>
+      </div>
+      <div class="grid gap-6 md:grid-cols-2">
+        <div>
           <div class="mb-2 flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-green-400" />
-              <span class="text-white">Đang hiển thị</span>
-            </div>
-            <span class="font-semibold text-green-400">{{ stats?.active?.toLocaleString() || 0 }}</span>
+            <span class="text-zinc-400">Đang hiển thị</span>
+            <span class="font-semibold text-emerald-400 tabular-nums">{{ stats?.active?.toLocaleString() || 0 }} · {{ percentOf(stats?.active || 0, stats?.total || 0) }}%</span>
           </div>
-          <div class="h-4 overflow-hidden rounded-full bg-white/10">
-            <div class="h-full rounded-full bg-green-400 transition-all duration-500" :style="{ width: percentOf(stats?.active || 0, stats?.total || 0) + '%' }" />
+          <div class="h-2.5 overflow-hidden rounded-full bg-white/[0.04]">
+            <div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700" :style="{ width: percentOf(stats?.active || 0, stats?.total || 0) + '%' }" />
           </div>
-          <p class="mt-1 text-right text-xs text-slate-500">{{ percentOf(stats?.active || 0, stats?.total || 0) }}%</p>
         </div>
-        <div class="flex-1">
+        <div>
           <div class="mb-2 flex items-center justify-between text-sm">
-            <div class="flex items-center gap-2">
-              <span class="size-3 rounded-full bg-slate-500" />
-              <span class="text-white">Chưa hiển thị</span>
-            </div>
-            <span class="font-semibold text-slate-400">{{ stats?.inactive?.toLocaleString() || 0 }}</span>
+            <span class="text-zinc-400">Chưa hiển thị</span>
+            <span class="font-semibold text-zinc-400 tabular-nums">{{ stats?.inactive?.toLocaleString() || 0 }} · {{ percentOf(stats?.inactive || 0, stats?.total || 0) }}%</span>
           </div>
-          <div class="h-4 overflow-hidden rounded-full bg-white/10">
-            <div class="h-full rounded-full bg-slate-500 transition-all duration-500" :style="{ width: percentOf(stats?.inactive || 0, stats?.total || 0) + '%' }" />
+          <div class="h-2.5 overflow-hidden rounded-full bg-white/[0.04]">
+            <div class="h-full rounded-full bg-zinc-600 transition-all duration-700" :style="{ width: percentOf(stats?.inactive || 0, stats?.total || 0) + '%' }" />
           </div>
-          <p class="mt-1 text-right text-xs text-slate-500">{{ percentOf(stats?.inactive || 0, stats?.total || 0) }}%</p>
         </div>
       </div>
     </div>
@@ -309,50 +359,32 @@ function barWidth(views: number) {
       <Transition name="modal-fade">
         <div v-if="syncOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="syncOpen = false" />
-          <div class="relative w-full max-w-md rounded-xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+          <div class="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#131418] p-6 shadow-2xl">
             <button type="button"
-              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-white transition hover:bg-white/10"
+              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
               @click="syncOpen = false">
               <AppIcon name="x" class="size-5" />
             </button>
 
-            <h2 class="text-xl font-black text-white">Đồng bộ phim</h2>
-            <p class="mt-1 text-sm text-slate-400">Chọn nguồn để đồng bộ phim vào hệ thống</p>
+            <div class="mb-5">
+              <h2 class="text-lg font-bold text-white">Đồng bộ phim</h2>
+              <p class="mt-1 text-sm text-zinc-500">Chọn nguồn để đồng bộ phim vào hệ thống</p>
+            </div>
 
-            <div class="mt-5 space-y-3">
-              <label class="flex cursor-pointer items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4 transition hover:border-white/20">
+            <div class="space-y-3">
+              <label v-for="source in syncSourceOptions" :key="source.key"
+                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.12] hover:bg-white/[0.05]">
                 <div>
-                  <p class="text-sm font-semibold text-white">OPhim</p>
-                  <p class="text-xs text-slate-400">ophim1.com</p>
+                  <p class="text-sm font-semibold text-white">{{ source.label }}</p>
+                  <p class="text-xs text-zinc-500">{{ source.domain }}</p>
                 </div>
-                <AdminToggle v-model="syncSources.ophim" />
-              </label>
-
-              <label class="flex cursor-pointer items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4 transition hover:border-white/20">
-                <div>
-                  <p class="text-sm font-semibold text-white">NguonC</p>
-                  <p class="text-xs text-slate-400">phim.nguonc.com</p>
-                </div>
-                <AdminToggle v-model="syncSources.nguonc" />
-              </label>
-
-              <label class="flex cursor-pointer items-center justify-between rounded-lg border border-white/10 bg-white/5 p-4 transition hover:border-white/20">
-                <div>
-                  <p class="text-sm font-semibold text-white">KKPhim</p>
-                  <p class="text-xs text-slate-400">phimapi.com</p>
-                </div>
-                <AdminToggle v-model="syncSources.kkphim" />
+                <AdminToggle v-model="syncSources[source.key]" />
               </label>
             </div>
 
             <div class="mt-6 flex justify-end gap-3">
-              <button type="button"
-                class="h-10 rounded-lg border border-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/10"
-                @click="syncOpen = false">
-                Huỷ
-              </button>
-              <button type="button"
-                class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-300 disabled:opacity-50"
+              <button type="button" class="admin-btn-secondary" @click="syncOpen = false">Huỷ</button>
+              <button type="button" class="admin-btn-primary"
                 :disabled="syncing || !Object.values(syncSources).some(Boolean)"
                 @click="handleSync">
                 <AppIcon name="refresh" class="size-4" :class="syncing ? 'animate-spin' : ''" />
@@ -365,15 +397,3 @@ function barWidth(views: number) {
     </Teleport>
   </div>
 </template>
-
-<style scoped>
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity 0.18s ease;
-}
-
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
-}
-</style>

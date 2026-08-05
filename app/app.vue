@@ -7,7 +7,7 @@ const isAdmin = computed(() => route.path.startsWith('/admin'))
   <NuxtRouteAnnouncer />
   <NuxtLoadingIndicator color="#facc15" :height="2" />
   <NuxtLayout>
-    <NuxtPage />
+    <NuxtPage :key="$route.fullPath" />
   </NuxtLayout>
   <AppFooter v-if="!isAdmin" />
   <ScrollToTop v-if="!isAdmin" />

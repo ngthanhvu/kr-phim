@@ -3,7 +3,7 @@ const route = useRoute()
 const selectedServer = ref(0)
 const movieInfoOpen = ref(false)
 const contentExpanded = ref(false)
-const activeTab = ref<'episodes' | 'actors'>('episodes')
+const activeTab = ref<'episodes' | 'actors' | 'suggestions'>('episodes')
 const isFavoriteMovie = ref(false)
 const actionMessage = ref('')
 const actionBusy = ref(false)
@@ -19,6 +19,17 @@ const { data: movie, pending, error } = await useFetch(() => `/api/movies/${rout
 const activeServer = computed(() => servers.value[selectedServer.value])
 const actors = computed(() => movie.value?.actors ?? [])
 const actorSummary = computed(() => actors.value.map((actor: any) => actor.name).filter(Boolean).slice(0, 6).join(', '))
+
+// Suggestions
+const currentCategories = computed(() => movie.value?.categories ?? [])
+const { data: allMoviesData } = await useFetch('/api/movies', { query: computed(() => ({ page: 1 })) })
+const suggestedMovies = computed(() => {
+  const items = (allMoviesData.value?.items ?? []) as any[]
+  const currentSlug = route.params.slug
+  const cats = currentCategories.value
+  if (!cats.length) return []
+  return items.filter((m: any) => m.slug !== currentSlug && m.categories?.some((c: string) => cats.includes(c))).slice(0, 8)
+})
 const episodeCount = computed(() => {
   const total = servers.value.reduce((t: number, s: any) => t + (s.episodes?.length || 0), 0)
   return total || undefined
@@ -405,6 +416,14 @@ useHead(() => ({
                   <span v-if="activeTab === 'actors'"
                     class="absolute bottom-0 left-0 w-full h-0.5 bg-[#F5C518] rounded-t-md" />
                 </button>
+                <button type="button"
+                  class="pb-3 text-[13px] md:text-[15px] font-semibold transition-colors relative whitespace-nowrap"
+                  :class="activeTab === 'suggestions' ? 'text-[#F5C518]' : 'text-slate-400 hover:text-white'"
+                  @click="activeTab = 'suggestions'">
+                  Đề xuất
+                  <span v-if="activeTab === 'suggestions'"
+                    class="absolute bottom-0 left-0 w-full h-0.5 bg-[#F5C518] rounded-t-md" />
+                </button>
               </div>
 
               <!-- Episodes Tab -->
@@ -417,11 +436,11 @@ useHead(() => ({
                   </div>
                   <button v-for="(server, index) in servers" :key="index" type="button"
                     class="group flex items-center gap-1.5 text-[13px] transition-colors rounded-md px-3.5 py-2 border font-medium"
-                    :class="selectedServer === index
-                      ? 'border-white/30 text-white bg-white/5'
-                      : 'border-transparent text-white/60 hover:text-white'" @click="selectedServer = index">
+                    :class="selectedServer === index ? 'border-white/30 text-white bg-white/5' : 'border-transparent text-white/60 bg-white/5 hover:text-white hover:bg-white/8'"
+                    @click="selectedServer = index">
+                    <AppIcon name="captions" class="size-3.5 opacity-60" />
                     <span>{{ serverLabel(server, index) }}</span>
-                    <span class="w-5 h-5 rounded-full font-bold text-[10px]"
+                    <span class="w-5 h-5 rounded-full font-bold text-[10px] flex items-center justify-center"
                       :class="selectedServer === index ? 'bg-white text-black' : 'bg-white/20 text-white'">
                       {{ server.episodes?.length || 0 }}
                     </span>
@@ -467,6 +486,19 @@ useHead(() => ({
                 <p v-else
                   class="mt-4 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
                   Chưa có thông tin diễn viên.
+                </p>
+              </div>
+
+              <!-- Suggestions Tab -->
+              <div v-if="activeTab === 'suggestions'">
+                <h3 class="text-xl md:text-2xl font-bold text-text-primary mb-6">Có thể bạn sẽ thích</h3>
+                <div
+                  class="flex snap-x gap-3 overflow-x-auto pb-3 [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent">
+                  <HomeMovieCard v-for="m in suggestedMovies" :key="m.slug" :movie="m" />
+                </div>
+                <p v-if="!suggestedMovies.length"
+                  class="mt-4 rounded-lg border border-white/10 bg-[#191b24] p-6 text-center text-sm text-slate-400">
+                  Không có phim đề xuất phù hợp.
                 </p>
               </div>
             </div>

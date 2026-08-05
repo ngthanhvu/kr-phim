@@ -59,75 +59,73 @@ const members = computed(() => data.value?.items || [])
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-2xl font-black text-white">Quản lý thành viên</h1>
-      <p class="mt-1 text-sm text-slate-400">Quản lý tài khoản thành viên CineK ({{ data?.total || 0 }} thành viên)</p>
+      <h1 class="admin-section-title">Quản lý thành viên</h1>
+      <p class="admin-section-subtitle mt-1">Quản lý tài khoản thành viên CineK ({{ data?.total || 0 }} thành viên)</p>
     </div>
 
-    <div class="rounded-xl border border-white/10 bg-slate-900/50">
-      <div class="flex items-center gap-3 border-b border-white/10 p-4">
+    <div class="admin-card overflow-hidden">
+      <div class="flex items-center gap-3 border-b border-white/[0.06] p-4">
         <div class="relative flex-1">
-          <AppIcon name="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <AppIcon name="search" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
           <input v-model="searchInput" type="search" placeholder="Tìm kiếm thành viên..."
-            class="h-10 w-full rounded-lg border border-white/10 bg-white/5 pl-10 pr-4 text-sm text-white placeholder:text-slate-400 outline-none focus:border-yellow-400/50">
+            class="admin-input pl-10">
         </div>
       </div>
 
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto admin-scrollbar">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-white/10 text-center text-xs font-semibold uppercase text-slate-400">
-              <th class="w-12 px-4 py-3 text-center">STT</th>
-              <th class="px-4 py-3 text-center">Thành viên</th>
-              <th class="px-4 py-3 text-center">Vai trò</th>
-              <th class="px-4 py-3 text-center">Trạng thái</th>
-              <th class="px-4 py-3 text-center">Tham gia</th>
-              <th class="px-4 py-3 text-center">Thao tác</th>
+            <tr class="border-b border-white/[0.06] text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+              <th class="w-14 px-5 py-3">STT</th>
+              <th class="px-5 py-3">Thành viên</th>
+              <th class="px-5 py-3">Vai trò</th>
+              <th class="px-5 py-3">Trạng thái</th>
+              <th class="px-5 py-3">Tham gia</th>
+              <th class="px-5 py-3 text-right">Thao tác</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5">
-            <tr v-for="member in members" :key="member.id" class="transition hover:bg-white/5">
-              <td class="px-4 py-3 text-center text-sm text-slate-400">{{ members.indexOf(member) + 1 }}</td>
-              <td class="px-4 py-3 text-center">
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-semibold text-white">{{ member.name || '—' }}</p>
-                  <p class="truncate text-xs text-slate-400">{{ member.email }}</p>
+          <tbody class="divide-y divide-white/[0.04]">
+            <tr v-for="member in members" :key="member.id" class="transition hover:bg-white/[0.02]">
+              <td class="px-5 py-3.5 text-sm font-semibold text-slate-500">{{ members.indexOf(member) + 1 }}</td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  <div class="grid size-9 place-items-center rounded-full bg-gradient-to-br from-slate-700 to-slate-800 text-sm font-bold text-slate-300">
+                    {{ (member.name || member.email || '?').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-white">{{ member.name || 'Chưa có tên' }}</p>
+                    <p class="truncate text-xs text-slate-400">{{ member.email }}</p>
+                  </div>
                 </div>
               </td>
-              <td class="px-4 py-3 text-center">
+              <td class="px-5 py-3.5">
                 <select :value="member.role"
-                  class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white outline-none"
-                  :class="{
-                    'text-red-400': member.role === 'admin',
-                    'text-blue-400': member.role === 'moderator',
-                    'text-slate-400': member.role === 'user',
-                  }"
+                  class="h-8 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 text-xs font-bold text-white outline-none transition hover:bg-white/[0.05] focus:border-yellow-400/50"
                   @change="changeRole(member, ($event.target as HTMLSelectElement).value)">
-                  <option value="user" class="bg-slate-900">User</option>
-                  <option value="moderator" class="bg-slate-900">Moderator</option>
-                  <option value="admin" class="bg-slate-900">Admin</option>
+                  <option value="user" class="bg-[#131418]">User</option>
+                  <option value="moderator" class="bg-[#131418]">Moderator</option>
+                  <option value="admin" class="bg-[#131418]">Admin</option>
                 </select>
               </td>
-              <td class="px-4 py-3 text-center">
+              <td class="px-5 py-3.5">
                 <AdminToggle :model-value="member.active"
                   @update:model-value="(val: boolean) => { member.active = val; toggleActive(member) }" />
               </td>
-              <td class="px-4 py-3 text-center text-sm text-slate-400">
+              <td class="px-5 py-3.5 text-sm text-slate-400">
                 {{ new Date(member.createdAt).toLocaleDateString('vi-VN') }}
               </td>
-              <td class="px-4 py-3 text-center">
-                <div class="flex items-center justify-center gap-1">
-                  <button type="button"
-                    class="grid size-8 place-items-center rounded-lg text-red-400 transition hover:bg-red-400/10"
-                    :disabled="currentUser?.id === member.id"
-                    :title="currentUser?.id === member.id ? 'Không thể xoá chính mình' : 'Xoá thành viên'"
-                    @click="deleteMember(member)">
-                    <AppIcon name="trash" class="size-4" />
-                  </button>
-                </div>
+              <td class="px-5 py-3.5 text-right">
+                <button type="button"
+                  class="grid size-8 place-items-center rounded-lg text-red-400 transition hover:bg-red-500/10"
+                  :disabled="currentUser?.id === member.id"
+                  :title="currentUser?.id === member.id ? 'Không thể xoá chính mình' : 'Xoá thành viên'"
+                  @click="deleteMember(member)">
+                  <AppIcon name="trash" class="size-4" />
+                </button>
               </td>
             </tr>
             <tr v-if="!members.length">
-              <td colspan="6" class="px-4 py-12 text-center text-sm text-slate-400">
+              <td colspan="6" class="px-5 py-12 text-center text-sm text-slate-400">
                 {{ debouncedKeyword ? 'Không tìm thấy thành viên nào.' : 'Chưa có thành viên nào.' }}
               </td>
             </tr>
@@ -135,7 +133,7 @@ const members = computed(() => data.value?.items || [])
         </table>
       </div>
 
-      <div class="flex items-center justify-between border-t border-white/10 p-4">
+      <div class="flex items-center justify-between border-t border-white/[0.06] p-4">
         <p class="text-sm text-slate-400">Hiển thị {{ members.length }} / {{ data?.total || 0 }} thành viên</p>
       </div>
     </div>

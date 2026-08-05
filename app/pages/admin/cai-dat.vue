@@ -16,65 +16,74 @@ const allowRegistration = ref(true)
 <template>
   <div>
     <div class="mb-6">
-      <h1 class="text-2xl font-black text-white">Cài đặt</h1>
-      <p class="mt-1 text-sm text-slate-400">Quản lý cài đặt hệ thống CineK</p>
+      <h1 class="admin-section-title">Cài đặt</h1>
+      <p class="admin-section-subtitle mt-1">Quản lý cài đặt hệ thống CineK</p>
     </div>
 
-    <div class="space-y-6">
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
-        <div class="mb-5 flex items-center gap-3">
-          <div class="grid size-10 place-items-center rounded-lg bg-yellow-400/10">
-            <AppIcon name="settings" class="size-4 text-yellow-400" />
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="space-y-6 lg:col-span-2">
+        <div class="admin-card p-5">
+          <div class="mb-5 flex items-center gap-3">
+            <div class="grid size-11 place-items-center rounded-xl bg-yellow-400/10">
+              <AppIcon name="settings" class="size-5 text-yellow-400" />
+            </div>
+            <div>
+              <h2 class="text-lg font-black text-white">Cài đặt chung</h2>
+              <p class="text-sm text-slate-400">Thông tin cơ bản về website</p>
+            </div>
           </div>
-          <div>
-            <h2 class="text-lg font-black text-white">Cài đặt chung</h2>
-            <p class="text-sm text-slate-400">Thông tin cơ bản về website</p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-white">Tên website</label>
+              <input v-model="siteName" type="text" class="admin-input">
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold text-white">Mô tả website</label>
+              <textarea v-model="siteDescription" rows="3"
+                class="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-yellow-400/50 focus:bg-white/[0.05] focus:ring-2 focus:ring-yellow-400/20"></textarea>
+            </div>
           </div>
         </div>
 
-        <div class="space-y-4">
-          <div>
-            <label class="mb-2 block text-sm font-semibold text-white">Tên website</label>
-            <input v-model="siteName" type="text"
-              class="h-10 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-sm text-white outline-none focus:border-yellow-400/50">
-          </div>
+        <div class="admin-card p-5">
+          <h2 class="mb-5 text-lg font-black text-white">Tùy chọn hệ thống</h2>
 
-          <div>
-            <label class="mb-2 block text-sm font-semibold text-white">Mô tả website</label>
-            <textarea v-model="siteDescription" rows="3"
-              class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-400/50"></textarea>
+          <div class="space-y-3">
+            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.1] hover:bg-white/[0.05]">
+              <div>
+                <p class="text-sm font-bold text-white">Chế độ bảo trì</p>
+                <p class="mt-1 text-xs text-slate-400">Tạm thời tắt website để bảo trì</p>
+              </div>
+              <AdminToggle v-model="maintenanceMode" />
+            </label>
+
+            <label class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.1] hover:bg-white/[0.05]">
+              <div>
+                <p class="text-sm font-bold text-white">Cho phép đăng ký</p>
+                <p class="mt-1 text-xs text-slate-400">Cho phép người dùng mới đăng ký tài khoản</p>
+              </div>
+              <AdminToggle v-model="allowRegistration" />
+            </label>
           </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" class="admin-btn-primary">
+            <AppIcon name="save" class="size-4" />
+            Lưu thay đổi
+          </button>
         </div>
       </div>
 
-      <div class="rounded-xl border border-white/10 bg-slate-900/50 p-5">
-        <h2 class="mb-5 text-lg font-black text-white">Tùy chọn hệ thống</h2>
-
-        <div class="space-y-4">
-          <label class="flex cursor-pointer items-center justify-between rounded-lg border border-white/5 bg-white/5 p-4 transition hover:border-white/10">
-            <div>
-              <p class="text-sm font-semibold text-white">Chế độ bảo trì</p>
-              <p class="mt-1 text-xs text-slate-400">Tạm thời tắt website để bảo trì</p>
-            </div>
-            <AdminToggle v-model="maintenanceMode" />
-          </label>
-
-          <label class="flex cursor-pointer items-center justify-between rounded-lg border border-white/5 bg-white/5 p-4 transition hover:border-white/10">
-            <div>
-              <p class="text-sm font-semibold text-white">Cho phép đăng ký</p>
-              <p class="mt-1 text-xs text-slate-400">Cho phép người dùng mới đăng ký tài khoản</p>
-            </div>
-            <AdminToggle v-model="allowRegistration" />
-          </label>
+      <div class="space-y-6">
+        <div class="admin-card-gradient p-5">
+          <h3 class="mb-2 text-lg font-black text-white">Cần giúp đỡ?</h3>
+          <p class="text-sm leading-relaxed text-slate-400">
+            Các cài đặt này ảnh hưởng đến toàn bộ hệ thống. Hãy cẩn thận khi thay đổi chế độ bảo trì.
+          </p>
         </div>
-      </div>
-
-      <div class="flex justify-end">
-        <button type="button"
-          class="inline-flex h-10 items-center gap-2 rounded-lg bg-yellow-400 px-5 text-sm font-black text-slate-950 transition hover:bg-yellow-300">
-          <AppIcon name="save" class="size-4" />
-          Lưu thay đổi
-        </button>
       </div>
     </div>
   </div>
