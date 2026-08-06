@@ -2,44 +2,14 @@
 definePageMeta({
   layout: 'admin',
 })
-
 useHead({
   title: 'Dashboard - CineK Admin',
 })
-
 const { data: stats, refresh } = await useFetch('/api/admin/stats')
-const syncing = ref(false)
-const syncOpen = ref(false)
-const syncSources = ref({ ophim: true, nguonc: true, kkphim: true })
-
-async function handleSync() {
-  const sources = Object.entries(syncSources.value)
-    .filter(([, enabled]) => enabled)
-    .map(([name]) => name)
-
-  if (!sources.length) return
-
-  syncing.value = true
-  try {
-    await $fetch('/api/admin/sync', {
-      method: 'POST',
-      body: { sources },
-    })
-    syncOpen.value = false
-    await refresh()
-  } catch (err) {
-    console.error('Sync failed:', err)
-  } finally {
-    syncing.value = false
-  }
-}
-
 function percentOf(value: number, total: number) {
   if (!total) return 0
   return Math.round((value / total) * 100)
 }
-
-// Donut chart helpers
 function donutSegment(value: number, total: number, startAngle: number, radius = 38) {
   if (!total || !value) return ''
   const angle = (value / total) * 360
@@ -52,7 +22,6 @@ function donutSegment(value: number, total: number, startAngle: number, radius =
   const largeArc = angle > 180 ? 1 : 0
   return `M 50 50 L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`
 }
-
 // Stacked source bar segments
 const sourceSegments = computed(() => {
   const total = stats.value?.total || 0
@@ -66,25 +35,15 @@ const sourceSegments = computed(() => {
     { key: 'kkphim', label: 'KKPhim', value: kkphim, pct: (kkphim / total) * 100, color: '#60a5fa' },
   ].filter(s => s.value > 0)
 })
-
-// Bar chart max value
 const maxViews = computed(() => {
   const movies = stats.value?.topMovies || []
   return Math.max(...movies.map(m => m.views || 0), 1)
 })
-
 function barWidth(views: number) {
   if (!maxViews.value) return 0
   return Math.max((views / maxViews.value) * 100, 3)
 }
-
-const syncSourceOptions = [
-  { key: 'ophim', label: 'OPhim', domain: 'ophim1.com' },
-  { key: 'nguonc', label: 'NguonC', domain: 'phim.nguonc.com' },
-  { key: 'kkphim', label: 'KKPhim', domain: 'phimapi.com' },
-] as const
 </script>
-
 <template>
   <div class="space-y-5">
     <!-- Header -->
@@ -93,19 +52,13 @@ const syncSourceOptions = [
         <h1 class="admin-section-title">Dashboard</h1>
         <p class="admin-section-subtitle mt-1">Tổng quan hệ thống CineK</p>
       </div>
-      <button type="button" class="admin-btn-primary" @click="syncOpen = true">
-        <AppIcon name="refresh" class="size-4" />
-        Đồng bộ phim
-      </button>
     </div>
-
     <!-- Bento: KPI grid -->
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
       <!-- Hero: Total movies (col-span-2, row-span-2) -->
       <div class="admin-card-gradient relative overflow-hidden p-6 sm:col-span-2 lg:row-span-2">
         <!-- subtle accent glow -->
         <div class="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full bg-yellow-400/10 blur-3xl" />
-
         <div class="relative flex h-full flex-col">
           <div class="flex items-start justify-between">
             <div>
@@ -116,7 +69,6 @@ const syncSourceOptions = [
               <AppIcon name="film" class="size-5" />
             </div>
           </div>
-
           <!-- Stacked source distribution bar -->
           <div class="mt-8">
             <div class="mb-2 flex items-center justify-between">
@@ -124,13 +76,11 @@ const syncSourceOptions = [
               <span class="text-xs text-zinc-500">{{ sourceSegments.length }} nguồn</span>
             </div>
             <div v-if="sourceSegments.length" class="flex h-3 w-full overflow-hidden rounded-full bg-white/4">
-              <div v-for="seg in sourceSegments" :key="seg.key"
-                class="h-full transition-all duration-700"
+              <div v-for="seg in sourceSegments" :key="seg.key" class="h-full transition-all duration-700"
                 :style="{ width: seg.pct + '%', backgroundColor: seg.color }"
                 :title="`${seg.label}: ${seg.value} (${Math.round(seg.pct)}%)`" />
             </div>
             <div v-else class="h-3 w-full rounded-full bg-white/4" />
-
             <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
               <div v-for="seg in sourceSegments" :key="seg.key" class="flex items-center gap-2">
                 <span class="size-2 rounded-full" :style="{ backgroundColor: seg.color }" />
@@ -139,27 +89,27 @@ const syncSourceOptions = [
               </div>
             </div>
           </div>
-
           <!-- Footer mini stats -->
           <div class="mt-auto grid grid-cols-2 gap-4 border-t border-white/6 pt-5">
             <div>
               <p class="admin-label">Đang hiển thị</p>
               <p class="mt-1.5 flex items-baseline gap-2">
                 <span class="admin-num text-xl">{{ stats?.active?.toLocaleString() || 0 }}</span>
-                <span class="text-xs font-medium text-emerald-400">{{ percentOf(stats?.active || 0, stats?.total || 0) }}%</span>
+                <span class="text-xs font-medium text-emerald-400">{{ percentOf(stats?.active || 0, stats?.total || 0)
+                }}%</span>
               </p>
             </div>
             <div>
               <p class="admin-label">Chưa hiển thị</p>
               <p class="mt-1.5 flex items-baseline gap-2">
                 <span class="admin-num text-xl text-zinc-300">{{ stats?.inactive?.toLocaleString() || 0 }}</span>
-                <span class="text-xs font-medium text-zinc-500">{{ percentOf(stats?.inactive || 0, stats?.total || 0) }}%</span>
+                <span class="text-xs font-medium text-zinc-500">{{ percentOf(stats?.inactive || 0, stats?.total || 0)
+                }}%</span>
               </p>
             </div>
           </div>
         </div>
       </div>
-
       <!-- KPI: Đang hiển thị -->
       <div class="admin-card p-5">
         <div class="flex items-start justify-between">
@@ -171,7 +121,6 @@ const syncSourceOptions = [
         <p class="admin-num mt-4 text-3xl">{{ stats?.active?.toLocaleString() || 0 }}</p>
         <p class="mt-1 text-xs text-zinc-500">{{ percentOf(stats?.active || 0, stats?.total || 0) }}% tổng phim</p>
       </div>
-
       <!-- KPI: Phim bộ -->
       <div class="admin-card p-5">
         <div class="flex items-start justify-between">
@@ -183,7 +132,6 @@ const syncSourceOptions = [
         <p class="admin-num mt-4 text-3xl">{{ stats?.series?.toLocaleString() || 0 }}</p>
         <p class="mt-1 text-xs text-zinc-500">{{ percentOf(stats?.series || 0, stats?.total || 0) }}% tổng phim</p>
       </div>
-
       <!-- KPI: Phim lẻ -->
       <div class="admin-card p-5">
         <div class="flex items-start justify-between">
@@ -195,7 +143,6 @@ const syncSourceOptions = [
         <p class="admin-num mt-4 text-3xl">{{ stats?.single?.toLocaleString() || 0 }}</p>
         <p class="mt-1 text-xs text-zinc-500">{{ percentOf(stats?.single || 0, stats?.total || 0) }}% tổng phim</p>
       </div>
-
       <!-- KPI: Tổng lượt xem -->
       <div class="admin-card p-5">
         <div class="flex items-start justify-between">
@@ -208,7 +155,6 @@ const syncSourceOptions = [
         <p class="mt-1 text-xs text-zinc-500">trên {{ stats?.total?.toLocaleString() || 0 }} phim</p>
       </div>
     </div>
-
     <!-- Bento: Charts row -->
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-4">
       <!-- Donut: Source distribution -->
@@ -224,10 +170,13 @@ const syncSourceOptions = [
                 <path :d="donutSegment(stats.ophim, stats.total, 0)" fill="#facc15" />
               </template>
               <template v-if="stats?.nguonc">
-                <path :d="donutSegment(stats.nguonc, stats.total, (stats.ophim || 0) / (stats.total || 1) * 360)" fill="#34d399" />
+                <path :d="donutSegment(stats.nguonc, stats.total, (stats.ophim || 0) / (stats.total || 1) * 360)"
+                  fill="#34d399" />
               </template>
               <template v-if="stats?.kkphim">
-                <path :d="donutSegment(stats.kkphim, stats.total, ((stats.ophim || 0) + (stats.nguonc || 0)) / (stats.total || 1) * 360)" fill="#60a5fa" />
+                <path
+                  :d="donutSegment(stats.kkphim, stats.total, ((stats.ophim || 0) + (stats.nguonc || 0)) / (stats.total || 1) * 360)"
+                  fill="#60a5fa" />
               </template>
               <circle cx="50" cy="50" r="22" fill="#131418" />
             </svg>
@@ -253,7 +202,6 @@ const syncSourceOptions = [
           </div>
         </div>
       </div>
-
       <!-- Donut: Series vs Single -->
       <div class="admin-card p-5">
         <div class="flex items-center justify-between">
@@ -267,7 +215,8 @@ const syncSourceOptions = [
                 <path :d="donutSegment(stats.series, stats.total, 0)" fill="#3b82f6" />
               </template>
               <template v-if="stats?.single">
-                <path :d="donutSegment(stats.single, stats.total, (stats.series || 0) / (stats.total || 1) * 360)" fill="#a855f7" />
+                <path :d="donutSegment(stats.single, stats.total, (stats.series || 0) / (stats.total || 1) * 360)"
+                  fill="#a855f7" />
               </template>
               <circle cx="50" cy="50" r="22" fill="#131418" />
             </svg>
@@ -296,7 +245,6 @@ const syncSourceOptions = [
           </div>
         </div>
       </div>
-
       <!-- Top movies (col-span-2) -->
       <div class="admin-card p-5 sm:col-span-2 lg:col-span-2">
         <div class="flex items-center justify-between">
@@ -313,7 +261,8 @@ const syncSourceOptions = [
                 </span>
                 <span class="truncate text-sm text-zinc-100">{{ movie.name }}</span>
               </div>
-              <span class="shrink-0 text-xs font-semibold text-zinc-400 tabular-nums">{{ movie.views?.toLocaleString() }}</span>
+              <span class="shrink-0 text-xs font-semibold text-zinc-400 tabular-nums">{{ movie.views?.toLocaleString()
+              }}</span>
             </div>
             <div class="h-1.5 overflow-hidden rounded-full bg-white/4">
               <div class="h-full rounded-full transition-all duration-700"
@@ -325,7 +274,6 @@ const syncSourceOptions = [
         </div>
       </div>
     </div>
-
     <!-- Status comparison (full width) -->
     <div class="admin-card p-6">
       <div class="mb-5 flex items-center justify-between">
@@ -336,64 +284,26 @@ const syncSourceOptions = [
         <div>
           <div class="mb-2 flex items-center justify-between text-sm">
             <span class="text-zinc-400">Đang hiển thị</span>
-            <span class="font-semibold text-emerald-400 tabular-nums">{{ stats?.active?.toLocaleString() || 0 }} · {{ percentOf(stats?.active || 0, stats?.total || 0) }}%</span>
+            <span class="font-semibold text-emerald-400 tabular-nums">{{ stats?.active?.toLocaleString() || 0 }} · {{
+              percentOf(stats?.active || 0, stats?.total || 0) }}%</span>
           </div>
           <div class="h-2.5 overflow-hidden rounded-full bg-white/4">
-            <div class="h-full rounded-full bg-linear-to-r from-emerald-500 to-emerald-400 transition-all duration-700" :style="{ width: percentOf(stats?.active || 0, stats?.total || 0) + '%' }" />
+            <div class="h-full rounded-full bg-linear-to-r from-emerald-500 to-emerald-400 transition-all duration-700"
+              :style="{ width: percentOf(stats?.active || 0, stats?.total || 0) + '%' }" />
           </div>
         </div>
         <div>
           <div class="mb-2 flex items-center justify-between text-sm">
             <span class="text-zinc-400">Chưa hiển thị</span>
-            <span class="font-semibold text-zinc-400 tabular-nums">{{ stats?.inactive?.toLocaleString() || 0 }} · {{ percentOf(stats?.inactive || 0, stats?.total || 0) }}%</span>
+            <span class="font-semibold text-zinc-400 tabular-nums">{{ stats?.inactive?.toLocaleString() || 0 }} · {{
+              percentOf(stats?.inactive || 0, stats?.total || 0) }}%</span>
           </div>
           <div class="h-2.5 overflow-hidden rounded-full bg-white/4">
-            <div class="h-full rounded-full bg-zinc-600 transition-all duration-700" :style="{ width: percentOf(stats?.inactive || 0, stats?.total || 0) + '%' }" />
+            <div class="h-full rounded-full bg-zinc-600 transition-all duration-700"
+              :style="{ width: percentOf(stats?.inactive || 0, stats?.total || 0) + '%' }" />
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Sync Modal -->
-    <Teleport to="body">
-      <Transition name="modal-fade">
-        <div v-if="syncOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
-          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="syncOpen = false" />
-          <div class="relative w-full max-w-md rounded-2xl border border-white/8 bg-[#131418] p-6 shadow-2xl">
-            <button type="button"
-              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-zinc-400 transition hover:bg-white/5 hover:text-white"
-              @click="syncOpen = false">
-              <AppIcon name="x" class="size-5" />
-            </button>
-
-            <div class="mb-5">
-              <h2 class="text-lg font-bold text-white">Đồng bộ phim</h2>
-              <p class="mt-1 text-sm text-zinc-500">Chọn nguồn để đồng bộ phim vào hệ thống</p>
-            </div>
-
-            <div class="space-y-3">
-              <label v-for="source in syncSourceOptions" :key="source.key"
-                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/6 bg-white/3 p-4 transition hover:border-white/12 hover:bg-white/5">
-                <div>
-                  <p class="text-sm font-semibold text-white">{{ source.label }}</p>
-                  <p class="text-xs text-zinc-500">{{ source.domain }}</p>
-                </div>
-                <AdminToggle v-model="syncSources[source.key]" />
-              </label>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3">
-              <button type="button" class="admin-btn-secondary" @click="syncOpen = false">Huỷ</button>
-              <button type="button" class="admin-btn-primary"
-                :disabled="syncing || !Object.values(syncSources).some(Boolean)"
-                @click="handleSync">
-                <AppIcon name="refresh" class="size-4" :class="syncing ? 'animate-spin' : ''" />
-                {{ syncing ? 'Đang đồng bộ...' : 'Đồng bộ' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
   </div>
 </template>
