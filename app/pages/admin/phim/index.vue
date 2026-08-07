@@ -22,6 +22,10 @@ const deleteConfirmOpen = ref(false)
 const syncSources = ref({ ophim: true, nguonc: true, kkphim: true })
 const syncResult = ref<{ total: number, created: number, updated: number, sourceStats: Record<string, { fetched: number, error?: string }> } | null>(null)
 
+// 3-dot menu state
+const menuOpen = ref<number | null>(null)
+const selectedMovie = ref<any>(null)
+
 const { bust } = useCacheBust()
 
 let searchTimeout: ReturnType<typeof setTimeout> | undefined
@@ -198,8 +202,8 @@ function formatRelativeTime(dateValue?: string | number | Date | null) {
   return 'Vừa xong'
 }
 
-function sortIcon(column: string): string {
-  if (sortBy.value !== column) return 'chevron-down'
+function sortIcon(column: string): import('~/lib/icons').IconName {
+  if (sortBy.value !== column) return 'chevron-down' as const
   return sortOrder.value === 'asc' ? 'chevron-up' : 'chevron-down'
 }
 
@@ -218,7 +222,7 @@ const syncSourceOptions = [
         <p class="admin-section-subtitle mt-1">Quản lý phim hiển thị trên CineK ({{ data?.total || 0 }} phim)</p>
       </div>
       <div class="flex items-center gap-2">
-        <button type="button" class="admin-btn-danger" @click="deleteConfirmOpen = true">
+        <button type="button" class="admin-btn-danger border" @click="deleteConfirmOpen = true">
           <AppIcon name="trash" class="size-4" />
           Xoá tất cả
         </button>
@@ -230,23 +234,32 @@ const syncSourceOptions = [
     </div>
 
     <div class="admin-card overflow-hidden">
-      <div class="flex flex-col gap-3 border-b border-white/[0.06] p-4 sm:flex-row sm:items-center">
-        <div class="relative flex-1">
-          <AppIcon name="search" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          <input v-model="searchInput" type="search" placeholder="Tìm kiếm phim..." class="admin-input pl-10">
+      <div class="grid grid-cols-1 gap-3 border-b border-white/6 p-4
+         md:grid-cols-2
+         xl:grid-cols-[minmax(280px,1fr)_180px_160px_150px]
+         xl:items-center">
+        <div class="relative min-w-0 w-full">
+          <AppIcon name="search"
+            class="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-slate-400" />
+
+          <input v-model="searchInput" type="text" placeholder="Tìm kiếm phim..."
+            class="admin-input h-10 w-full pl-10! pr-3">
         </div>
-        <select v-model="statusFilter" class="admin-input w-full sm:w-auto">
+
+        <select v-model="statusFilter" class="admin-input h-10 w-full min-w-0 px-3">
           <option value="" class="bg-[#131418]">Tất cả trạng thái</option>
           <option value="active" class="bg-[#131418]">Đang hiển thị</option>
           <option value="inactive" class="bg-[#131418]">Chưa hiển thị</option>
         </select>
-        <select v-model="sourceFilter" class="admin-input w-full sm:w-auto">
+
+        <select v-model="sourceFilter" class="admin-input h-10 w-full min-w-0 px-3">
           <option value="" class="bg-[#131418]">Tất cả nguồn</option>
           <option value="ophim" class="bg-[#131418]">OPhim</option>
           <option value="nguonc" class="bg-[#131418]">NguonC</option>
           <option value="kkphim" class="bg-[#131418]">KKPhim</option>
         </select>
-        <select v-model="typeFilter" class="admin-input w-full sm:w-auto">
+
+        <select v-model="typeFilter" class="admin-input h-10 w-full min-w-0 px-3">
           <option value="" class="bg-[#131418]">Tất cả loại</option>
           <option value="series" class="bg-[#131418]">Phim bộ</option>
           <option value="single" class="bg-[#131418]">Phim lẻ</option>
@@ -254,124 +267,190 @@ const syncSourceOptions = [
       </div>
 
       <div class="overflow-x-auto admin-scrollbar">
-        <table class="w-full">
+        <table class="w-full" style="border-collapse: collapse; border-spacing: 0;">
           <thead>
-            <tr class="border-b border-white/[0.06] text-left text-xs font-bold uppercase tracking-wide text-slate-400">
-              <th class="w-14 px-5 py-3">STT</th>
-              <th class="cursor-pointer select-none px-5 py-3 transition hover:text-white" @click="toggleSort('name')">
-                <div class="flex items-center gap-1">
+            <tr class="text-xs font-bold uppercase tracking-wide text-slate-400">
+              <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">STT</th>
+              <th style="border-bottom: 3px solid #eeee;"
+                class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-[#333]"
+                @click="toggleSort('name')">
+                <div class="flex items-center justify-center gap-1">
                   Phim
-                  <AppIcon :name="sortIcon('name')" class="size-3" :class="sortBy === 'name' ? 'text-yellow-400' : 'opacity-50'" />
+                  <AppIcon :name="sortIcon('name')" class="size-3"
+                    :class="sortBy === 'name' ? 'text-yellow-400' : 'opacity-50'" />
                 </div>
               </th>
-              <th class="px-5 py-3">Nguồn</th>
-              <th class="px-5 py-3">Tập</th>
-              <th class="cursor-pointer select-none px-5 py-3 transition hover:text-white" @click="toggleSort('views')">
-                <div class="flex items-center gap-1">
+              <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Nguồn</th>
+              <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Tập</th>
+              <th style="border-bottom: 3px solid #eeee;"
+                class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white"
+                @click="toggleSort('views')">
+                <div class="flex items-center justify-center gap-1">
                   Lượt xem
-                  <AppIcon :name="sortIcon('views')" class="size-3" :class="sortBy === 'views' ? 'text-yellow-400' : 'opacity-50'" />
+                  <AppIcon :name="sortIcon('views')" class="size-3"
+                    :class="sortBy === 'views' ? 'text-yellow-400' : 'opacity-50'" />
                 </div>
               </th>
-              <th class="cursor-pointer select-none px-5 py-3 transition hover:text-white" @click="toggleSort('apiUpdatedAt')">
-                <div class="flex items-center gap-1">
+              <th style="border-bottom: 3px solid #eeee;"
+                class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white"
+                @click="toggleSort('apiUpdatedAt')">
+                <div class="flex items-center justify-center gap-1">
                   Cập nhật API
-                  <AppIcon :name="sortIcon('apiUpdatedAt')" class="size-3" :class="sortBy === 'apiUpdatedAt' ? 'text-yellow-400' : 'opacity-50'" />
+                  <AppIcon :name="sortIcon('apiUpdatedAt')" class="size-3"
+                    :class="sortBy === 'apiUpdatedAt' ? 'text-yellow-400' : 'opacity-50'" />
                 </div>
               </th>
-              <th class="cursor-pointer select-none px-5 py-3 transition hover:text-white" @click="toggleSort('active')">
-                <div class="flex items-center gap-1">
+              <th style="border-bottom: 3px solid #eeee;"
+                class="cursor-pointer select-none px-4 py-3 text-center transition hover:text-white"
+                @click="toggleSort('active')">
+                <div class="flex items-center justify-center gap-1">
                   Trạng thái
-                  <AppIcon :name="sortIcon('active')" class="size-3" :class="sortBy === 'active' ? 'text-yellow-400' : 'opacity-50'" />
+                  <AppIcon :name="sortIcon('active')" class="size-3"
+                    :class="sortBy === 'active' ? 'text-yellow-400' : 'opacity-50'" />
                 </div>
               </th>
-              <th class="px-5 py-3">Tuỳ chỉnh</th>
-              <th class="px-5 py-3 text-right">Thao tác</th>
+              <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Tuỳ chỉnh</th>
+              <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Hiển thị</th>
+              <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Hành động</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/[0.04]">
-            <tr v-for="movie in movies" :key="movie.id" class="transition hover:bg-white/[0.02]">
-              <td class="px-5 py-3.5 text-sm font-semibold text-slate-500">
+          <tbody class="divide-y divide-[#eeee]">
+            <tr v-for="movie in movies" :key="movie.id" class="transition hover:bg-white/2">
+              <td class="px-4 py-3.5 text-center text-sm font-semibold text-slate-500">
                 {{ (currentPage - 1) * 20 + movies.indexOf(movie) + 1 }}
               </td>
-              <td class="px-5 py-3.5">
+              <td class="px-4 py-3.5">
                 <div class="min-w-0">
                   <p class="truncate text-sm font-bold text-white">{{ movie.name }}</p>
                   <p class="truncate text-xs text-slate-400">{{ movie.originName || movie.slug }}</p>
                 </div>
               </td>
-              <td class="px-5 py-3.5">
-                <span class="admin-badge bg-blue-400/10 text-blue-400">{{ (movie.sources || []).length }} nguồn</span>
+              <td class="px-4 py-3.5 text-center">
+                <span class="admin-badge bg-blue-400/10 text-blue-400">
+                  {{ (movie.sources || []).length }} nguồn
+                </span>
               </td>
-              <td class="px-5 py-3.5 text-sm">
-                <span class="font-bold text-yellow-300"
-                  :title="(movie.sources || []).map((s: any) => `${s.source.toUpperCase()}: ${s.episode || s.episodeTotal || '?'}`).join('\n')">
+              <td class="px-4 py-3.5 text-center text-sm">
+                <span class="font-bold text-yellow-500" :title="(movie.sources || []).map(
+                  (s: any) =>
+                    `${s.source.toUpperCase()}: ${s.episode || s.episodeTotal || '?'}`
+                ).join('\n')">
                   {{ formatEpisode(movie) }}
                 </span>
               </td>
-              <td class="px-5 py-3.5 text-sm text-slate-300">{{ (movie.views || 0).toLocaleString() }}</td>
-              <td class="px-5 py-3.5 text-sm text-slate-300">
+              <td class="px-4 py-3.5 text-center text-sm text-slate-500">
+                {{ (movie.views || 0).toLocaleString() }}
+              </td>
+              <td class="px-4 py-3.5 text-center text-sm text-slate-500">
                 <span :title="formatDate(movie.apiUpdatedAt || movie.syncedAt)">
                   {{ formatRelativeTime(movie.apiUpdatedAt || movie.syncedAt) }}
                 </span>
               </td>
-              <td class="px-5 py-3.5">
-                <span class="admin-badge" :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-slate-400/10 text-slate-400'">
+              <td class="px-4 py-3.5 text-center">
+                <span class="admin-badge" :class="movie.active
+                  ? 'bg-emerald-400/10 text-emerald-400'
+                  : 'bg-slate-400/10 text-slate-400'
+                  ">
                   {{ movie.active ? 'Hiển thị' : 'Ẩn' }}
                 </span>
               </td>
-              <td class="px-5 py-3.5">
-                <div class="flex flex-wrap items-center gap-1">
-                  <span v-if="movie.customContent" class="admin-badge bg-blue-400/10 text-blue-400">Mô tả</span>
-                  <span v-if="movie.customPoster" class="admin-badge bg-purple-400/10 text-purple-400">Poster</span>
-                  <span v-if="movie.customThumb" class="admin-badge bg-pink-400/10 text-pink-400">Thumb</span>
-                  <span v-if="movie.customServers?.length" class="admin-badge bg-emerald-400/10 text-emerald-400">
-                    {{ movie.customServers.length }} server · {{ movie.customServers.reduce((t: number, s: any) => t + (s.episodes?.length || 0), 0) }} tập
+              <td class="px-4 py-3.5">
+                <div class="flex flex-wrap items-center justify-center gap-1">
+                  <span v-if="movie.customContent" class="admin-badge bg-blue-400/10 text-blue-400">
+                    Mô tả
                   </span>
-                  <span v-if="!movie.customContent && !movie.customPoster && !movie.customThumb && !movie.customServers?.length" class="text-xs text-slate-500">Mặc định</span>
+                  <span v-if="movie.customPoster" class="admin-badge bg-purple-400/10 text-purple-400">
+                    Poster
+                  </span>
+                  <span v-if="movie.customThumb" class="admin-badge bg-pink-400/10 text-pink-400">
+                    Thumb
+                  </span>
+                  <span v-if="movie.customServers?.length" class="admin-badge bg-emerald-400/10 text-emerald-400">
+                    {{ movie.customServers.length }} server ·
+                    {{
+                      movie.customServers.reduce(
+                        (t: number, s: any) => t + (s.episodes?.length || 0),
+                        0
+                      )
+                    }} tập
+                  </span>
+                  <span v-if="
+                    !movie.customContent &&
+                    !movie.customPoster &&
+                    !movie.customThumb &&
+                    !movie.customServers?.length
+                  " class="text-xs text-slate-500">
+                    Mặc định
+                  </span>
                 </div>
               </td>
-              <td class="px-5 py-3.5">
-                <div class="flex items-center justify-end gap-2">
-                  <NuxtLink :to="`/admin/phim/${movie.id}`"
-                    class="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
-                    title="Chỉnh sửa">
-                    <AppIcon name="pencil" class="size-4" />
-                  </NuxtLink>
+              <td class="px-4 py-3.5">
+                <div class="flex items-center justify-center">
                   <AdminToggle :model-value="movie.active"
                     @update:model-value="(val: boolean) => { movie.active = val; toggleActive(movie) }" />
                 </div>
               </td>
+              <td class="px-4 py-3.5 text-center">
+                <div class="relative inline-flex">
+                  <button type="button" class="grid size-9 place-items-center rounded-lg
+                     text-zinc-500 transition
+                     hover:bg-white/5 hover:text-zinc-300" title="Thao tác"
+                    @click="menuOpen = menuOpen === movie.id ? null : movie.id">
+                    <AppIcon name="ellipsis-vertical" class="size-5 stroke-[2.5]" />
+                  </button>
+                  <Transition name="dropdown-fade">
+                    <div v-if="menuOpen === movie.id" class="absolute right-0 top-full z-50 mt-1 min-w-40
+               rounded-lg border border-white/8
+               bg-[#131418] py-1 shadow-xl">
+                      <NuxtLink :to="`/admin/phim/${movie.id}`" class="flex w-full items-center gap-2 px-3 py-2
+                  text-sm text-slate-300 transition
+                  hover:bg-white/5 hover:text-white" @click="menuOpen = null">
+                        <AppIcon name="pencil" class="size-4" />
+                        Chỉnh sửa
+                      </NuxtLink>
+                      <button type="button" class="flex w-full items-center gap-2 px-3 py-2
+                  text-sm text-red-400 transition hover:bg-white/5" @click="
+                    menuOpen = null;
+                  selectedMovie = movie;
+                  deleteConfirmOpen = true
+                    ">
+                        <AppIcon name="trash" class="size-4" />
+                        Xoá phim
+                      </button>
+                    </div>
+                  </Transition>
+                </div>
+              </td>
             </tr>
             <tr v-if="!movies.length">
-              <td colspan="9" class="px-5 py-12 text-center text-sm text-slate-400">
-                {{ debouncedKeyword ? 'Không tìm thấy phim nào.' : 'Chưa có phim nào. Bấm "Đồng bộ từ API" để lấy phim.' }}
+              <td colspan="10" class="px-5 py-12 text-center text-sm text-slate-400">
+                {{ debouncedKeyword ? 'Không tìm thấy phim nào.' : 'Chưa có phim nào. Bấm "Đồng bộ từ API" để lấy phim.'
+                }}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="flex items-center justify-between border-t border-white/[0.06] p-4">
+      <div v-if="totalPages > 1" class="flex items-center justify-between border-t border-white/6 p-4">
         <p class="text-sm text-slate-400">Trang {{ currentPage }} / {{ totalPages }}</p>
         <div class="flex items-center gap-2">
           <button type="button"
-            class="grid size-9 place-items-center rounded-lg border border-white/[0.08] text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
+            class="grid size-9 place-items-center rounded-lg border border-white/8 text-slate-400 transition hover:bg-white/5 hover:text-white disabled:opacity-30"
             :disabled="currentPage <= 1" @click="currentPage--">
             <AppIcon name="chevron-left" class="size-4" />
           </button>
           <template v-for="(page, index) in visiblePages" :key="index">
             <span v-if="page === 'ellipsis'" class="grid size-9 place-items-center text-sm text-slate-500">...</span>
             <button v-else type="button"
-              class="grid size-9 place-items-center rounded-lg border text-sm font-semibold transition"
-              :class="page === currentPage
+              class="grid size-9 place-items-center rounded-lg border text-sm font-semibold transition" :class="page === currentPage
                 ? 'border-yellow-400 bg-yellow-400 text-slate-950'
-                : 'border-white/[0.08] text-slate-400 hover:bg-white/[0.05] hover:text-white'"
-              @click="currentPage = page">
+                : 'border-white/8 text-slate-400 hover:bg-white/5 hover:text-white'" @click="currentPage = page">
               {{ page }}
             </button>
           </template>
           <button type="button"
-            class="grid size-9 place-items-center rounded-lg border border-white/[0.08] text-slate-400 transition hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
+            class="grid size-9 place-items-center rounded-lg border border-white/8 text-slate-400 transition hover:bg-white/5 hover:text-white disabled:opacity-30"
             :disabled="currentPage >= totalPages" @click="currentPage++">
             <AppIcon name="chevron-right" class="size-4" />
           </button>
@@ -383,9 +462,9 @@ const syncSourceOptions = [
       <Transition name="modal-fade">
         <div v-if="syncOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="syncOpen = false" />
-          <div class="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#131418] p-6 shadow-2xl">
+          <div class="relative w-full max-w-md rounded-2xl border border-white/8 bg-[#131418] p-6 shadow-2xl">
             <button type="button"
-              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-slate-400 transition hover:bg-white/5 hover:text-white"
               @click="syncOpen = false">
               <AppIcon name="x" class="size-5" />
             </button>
@@ -397,7 +476,7 @@ const syncSourceOptions = [
 
             <div class="space-y-3">
               <label v-for="source in syncSourceOptions" :key="source.key"
-                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:border-white/[0.1] hover:bg-white/[0.05]">
+                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/6 bg-white/3 p-4 transition hover:border-white/10 hover:bg-white/5">
                 <div>
                   <p class="text-sm font-bold text-white">{{ source.label }}</p>
                   <p class="text-xs text-slate-400">{{ source.domain }}</p>
@@ -406,7 +485,7 @@ const syncSourceOptions = [
               </label>
             </div>
 
-            <div v-if="syncResult" class="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+            <div v-if="syncResult" class="mt-4 rounded-xl border border-white/6 bg-white/3 p-4">
               <p class="text-sm font-bold text-white">Kết quả đồng bộ</p>
               <div class="mt-2 space-y-1 text-xs text-slate-400">
                 <p>Tổng phim lấy được: <span class="font-bold text-white">{{ syncResult.total }}</span></p>
@@ -439,18 +518,19 @@ const syncSourceOptions = [
       <Transition name="modal-fade">
         <div v-if="deleteConfirmOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="deleteConfirmOpen = false" />
-          <div class="relative w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#131418] p-6 shadow-2xl">
+          <div class="relative w-full max-w-sm rounded-2xl border border-white/8 bg-[#131418] p-6 shadow-2xl">
             <div class="mb-4 grid size-12 place-items-center rounded-full bg-red-500/10">
               <AppIcon name="trash" class="size-6 text-red-400" />
             </div>
             <h2 class="text-xl font-black text-white">Xoá tất cả phim?</h2>
             <p class="mt-2 text-sm leading-6 text-slate-400">
-              Hành động này sẽ xoá toàn bộ {{ data?.total || 0 }} phim trong hệ thống, bao gồm cả các tuỳ chỉnh. Không thể hoàn tác.
+              Hành động này sẽ xoá toàn bộ {{ data?.total || 0 }} phim trong hệ thống, bao gồm cả các tuỳ chỉnh. Không
+              thể
+              hoàn tác.
             </p>
             <div class="mt-6 flex justify-end gap-3">
               <button type="button" class="admin-btn-secondary" @click="deleteConfirmOpen = false">Huỷ</button>
-              <button type="button"
-                class="admin-btn bg-red-500 text-white hover:bg-red-400 disabled:opacity-50"
+              <button type="button" class="admin-btn bg-red-500 text-white hover:bg-red-400 disabled:opacity-50"
                 :disabled="deleting" @click="handleDeleteAll">
                 <AppIcon name="trash" class="size-4" />
                 {{ deleting ? 'Đang xoá...' : 'Xoá tất cả' }}

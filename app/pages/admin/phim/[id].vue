@@ -277,13 +277,13 @@ function useApiActors() {
 <template>
   <div class="space-y-5">
     <NuxtLink to="/admin/phim"
-      class="inline-flex items-center gap-2 text-sm font-medium text-zinc-400 transition hover:text-white">
+      class="inline-flex items-center gap-2 text-sm font-medium text-slate-400 transition hover:text-white">
       <AppIcon name="arrow-left" class="size-4" />
       Quay lại danh sách phim
     </NuxtLink>
 
     <div v-if="!movie" class="admin-card p-12 text-center">
-      <p class="text-sm text-zinc-500">Đang tải...</p>
+      <p class="text-sm text-slate-500">Đang tải...</p>
     </div>
 
     <div v-else class="space-y-5">
@@ -295,7 +295,7 @@ function useApiActors() {
               class="aspect-video w-full overflow-hidden rounded-xl border border-white/6 bg-white/2 sm:w-44">
               <img v-if="customPoster || movie.poster" :src="customPoster || movie.poster || undefined" :alt="movie.name"
                 class="h-full w-full object-cover">
-              <div v-else class="grid h-full place-items-center text-zinc-600">
+              <div v-else class="grid h-full place-items-center text-slate-600">
                 <AppIcon name="image" class="size-6" />
               </div>
             </div>
@@ -307,11 +307,11 @@ function useApiActors() {
             </p>
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <span class="admin-badge"
-                :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-zinc-400'">
+                :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-slate-400'">
                 {{ movie.active ? 'Đang hiển thị' : 'Ẩn' }}
               </span>
-              <span v-if="movie.quality" class="admin-badge bg-white/6 text-zinc-400">{{ movie.quality }}</span>
-              <span class="admin-badge bg-white/6 text-zinc-400">{{ movie.episodeTotal || '—' }} tập</span>
+              <span v-if="movie.quality" class="admin-badge bg-slate-200/50 text-slate-400">{{ movie.quality }}</span>
+              <span class="admin-badge bg-slate-200/50 text-slate-400">{{ movie.episodeTotal || '—' }} tập</span>
             </div>
           </div>
         </div>
@@ -335,15 +335,15 @@ function useApiActors() {
               <button v-for="s in sections" :key="s.key" type="button"
                 class="relative flex shrink-0 items-center gap-2 rounded-t-lg px-4 py-3 text-sm font-semibold transition"
                 :class="activeSection === s.key
-                  ? 'bg-white/6 text-yellow-400 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-yellow-400'
-                  : 'text-zinc-400 hover:bg-white/3 hover:text-white'" @click="activeSection = s.key">
+                  ? 'bg-slate-100/60 text-sky-600 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-sky-500'
+                  : 'text-slate-500 hover:bg-slate-100 hover:text-white'" @click="activeSection = s.key">
                 <AppIcon :name="s.icon" class="size-4" />
                 <span>{{ s.label }}</span>
                 <span v-if="s.key === 'actors' && customActors.length"
-                  class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-zinc-300">{{ customActors.length
+                  class="rounded-full bg-slate-200/50 px-2 py-0.5 text-[10px] text-slate-600">{{ customActors.length
                   }}</span>
                 <span v-else-if="s.key === 'episodes' && customServers.length"
-                  class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-zinc-300">{{customServers.reduce((a,
+                  class="rounded-full bg-slate-200/50 px-2 py-0.5 text-[10px] text-slate-600">{{customServers.reduce((a,
                     b) => a + b.episodes.length, 0)}}</span>
               </button>
             </nav>
@@ -356,41 +356,41 @@ function useApiActors() {
                     <AppIcon name="info" class="size-4" />
                   </div>
                   <div>
-                    <h2 class="text-sm font-bold text-white">Thông tin chi tiết</h2>
-                    <p class="text-xs text-zinc-500">Dữ liệu hiện tại của phim</p>
+                    <h2 class="text-sm font-bold text-slate-900">Thông tin chi tiết</h2>
+                    <p class="text-xs text-slate-500">Dữ liệu hiện tại của phim</p>
                   </div>
                 </div>
                 <dl class="grid gap-4 sm:grid-cols-2">
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4">
                     <dt class="admin-label mb-1">Nguồn</dt>
-                    <dd class="font-semibold text-white">{{ movie.source?.toUpperCase() }}</dd>
+                    <dd class="font-semibold text-slate-900">{{ movie.source?.toUpperCase() }}</dd>
                   </div>
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4">
                     <dt class="admin-label mb-1">Slug</dt>
-                    <dd class="truncate text-zinc-200" :title="movie.slug">{{ movie.slug }}</dd>
+                    <dd class="truncate text-slate-700" :title="movie.slug">{{ movie.slug }}</dd>
                   </div>
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4">
                     <dt class="admin-label mb-1">Năm phát hành</dt>
-                    <dd class="text-zinc-200">{{ movie.year || '—' }}</dd>
+                    <dd class="text-slate-700">{{ movie.year || '—' }}</dd>
                   </div>
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4">
                     <dt class="admin-label mb-1">Số tập</dt>
-                    <dd class="text-zinc-200">{{ movie.episodeTotal || '—' }}</dd>
+                    <dd class="text-slate-700">{{ movie.episodeTotal || '—' }}</dd>
                   </div>
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4">
                     <dt class="admin-label mb-1">Chất lượng</dt>
-                    <dd class="text-zinc-200">{{ movie.quality || '—' }}</dd>
+                    <dd class="text-slate-700">{{ movie.quality || '—' }}</dd>
                   </div>
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4">
                     <dt class="admin-label mb-1">Trạng thái</dt>
-                    <dd class="font-semibold" :class="movie.active ? 'text-emerald-400' : 'text-zinc-400'">{{
+                    <dd class="font-semibold" :class="movie.active ? 'text-emerald-400' : 'text-slate-500'">{{
                       movie.active ? 'Đang hiển thị' : 'Ẩn' }}</dd>
                   </div>
                 </dl>
                 <div v-if="movie.categories?.length" class="mt-5 border-t border-white/6 pt-4">
                   <h4 class="admin-label mb-2">Thể loại</h4>
                   <div class="flex flex-wrap gap-2"><span v-for="cat in movie.categories" :key="cat"
-                      class="rounded-full bg-white/6 px-3 py-1 text-xs font-medium text-zinc-300">{{ cat }}</span>
+                      class="rounded-full bg-slate-200/50 px-3 py-1 text-xs font-medium text-slate-600">{{ cat }}</span>
                   </div>
                 </div>
               </div>
@@ -403,20 +403,20 @@ function useApiActors() {
                       <AppIcon name="type" class="size-4" />
                     </div>
                     <div>
-                      <h2 class="text-sm font-bold text-white">Mô tả phim</h2>
-                      <p class="text-xs text-zinc-500">{{ customContent ? 'Nội dung tuỳ chỉnh' : 'Nội dung từ API' }}
+                      <h2 class="text-sm font-bold text-slate-900">Mô tả phim</h2>
+                      <p class="text-xs text-slate-500">{{ customContent ? 'Nội dung tuỳ chỉnh' : 'Nội dung từ API' }}
                       </p>
                     </div>
                   </div>
                   <button v-if="apiContent && !customContent" type="button"
-                    class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20"
+                    class="admin-btn-sm bg-sky-50 text-sky-600 hover:bg-sky-500/20"
                     @click="useApiContent">Dùng mô tả API</button>
                   <button v-else-if="customContent" type="button" class="admin-btn-sm text-red-400 hover:bg-red-400/10"
                     @click="clearField('customContent')">Về mặc định</button>
                 </div>
                 <textarea v-model="customContent" :rows="contentRows" :placeholder="apiContent || 'Nhập mô tả phim...'"
                   style="field-sizing: content; min-height: 320px;"
-                  class="w-full rounded-xl border border-white/8 bg-white/3 p-4 text-sm leading-7 text-white outline-none transition placeholder:text-zinc-500 focus:border-yellow-400/40 focus:bg-white/5" />
+                  class="w-full rounded-xl border border-slate-200 bg-slate-100 p-4 text-sm leading-7 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:bg-slate-100/60" />
               </div>
 
               <!-- Section: Diễn viên -->
@@ -427,23 +427,23 @@ function useApiActors() {
                       <AppIcon name="users" class="size-4" />
                     </div>
                     <div>
-                      <h2 class="text-sm font-bold text-white">Diễn viên</h2>
-                      <p class="text-xs text-zinc-500">{{ customActors.length }} diễn viên</p>
+                      <h2 class="text-sm font-bold text-slate-900">Diễn viên</h2>
+                      <p class="text-xs text-slate-500">{{ customActors.length }} diễn viên</p>
                     </div>
                   </div>
                   <div class="flex gap-2"><button v-if="apiActors.length" type="button"
-                      class="admin-btn-sm bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20"
+                      class="admin-btn-sm bg-sky-50 text-sky-600 hover:bg-sky-500/20"
                       @click="useApiActors">Import ({{ apiActors.length }})</button><button type="button"
-                      class="admin-btn-sm bg-white/6 text-zinc-100 hover:bg-white/10" @click="addActor">
+                      class="admin-btn-sm bg-slate-200/50 text-slate-800 hover:bg-white/10" @click="addActor">
                       <AppIcon name="plus" class="size-3" />Thêm
                     </button></div>
                 </div>
                 <div v-if="customActors.length" class="space-y-2">
                   <div v-for="(actor, index) in customActors" :key="index"
                     class="grid gap-2 rounded-xl border border-white/6 bg-white/2 p-3 md:grid-cols-[44px_1fr_1fr_140px_1fr_36px] md:items-center">
-                    <div class="grid size-10 place-items-center overflow-hidden rounded-full bg-white/6"><img
+                    <div class="grid size-10 place-items-center overflow-hidden rounded-full bg-slate-200/50"><img
                         v-if="actor.avatar" :src="actor.avatar" :alt="actor.name" class="size-full object-cover"><span
-                        v-else class="text-sm font-bold text-zinc-400">{{ (actor.name?.[0] || '?').toUpperCase() }}</span>
+                        v-else class="text-sm font-bold text-slate-400">{{ (actor.name?.[0] || '?').toUpperCase() }}</span>
                     </div>
                     <input v-model="actor.name" type="text" placeholder="Tên" class="admin-input-sm"><input
                       v-model="actor.originalName" type="text" placeholder="Tên gốc" class="admin-input-sm"><input
@@ -456,7 +456,7 @@ function useApiActors() {
                   </div>
                 </div>
                 <div v-else
-                  class="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-zinc-500">Chưa
+                  class="rounded-xl border border-dashed border-white/10 p-10 text-center text-sm text-slate-500">Chưa
                   có diễn viên.</div>
               </div>
 
@@ -483,9 +483,9 @@ function useApiActors() {
                 <div class="space-y-3 2xl:col-span-7">
                   <div class="flex items-center justify-between gap-3">
                     <div>
-                      <h3 class="text-sm font-bold text-white">Server & tập phim</h3>
-                      <p class="text-xs text-zinc-500">Danh sách hiển thị trên website</p>
-                    </div><button type="button" class="admin-btn-sm bg-white/6 text-zinc-100 hover:bg-white/10"
+                      <h3 class="text-sm font-bold text-slate-900">Server & tập phim</h3>
+                      <p class="text-xs text-slate-500">Danh sách hiển thị trên website</p>
+                    </div><button type="button" class="admin-btn-sm bg-slate-200/50 text-slate-800 hover:bg-white/10"
                       @click="addServer">
                       <AppIcon name="plus" class="size-3" />Thêm server
                     </button>
@@ -494,10 +494,10 @@ function useApiActors() {
                     class="rounded-xl border border-white/6 bg-white/2">
                     <div class="flex items-center gap-2 p-3"><button type="button"
                         class="flex min-w-0 flex-1 items-center gap-2 text-left" @click="toggleServer(serverIndex)">
-                        <AppIcon name="chevron-down" class="size-4 text-zinc-400 transition"
+                        <AppIcon name="chevron-down" class="size-4 text-slate-400 transition"
                           :class="collapsedServers[serverIndex] ? '-rotate-90' : ''" /><span
-                          class="truncate text-sm font-bold text-white">{{ server.name || `Server ${serverIndex + 1}`
-                          }}</span><span class="rounded-full bg-white/8 px-2 py-0.5 text-[10px] text-zinc-300">{{
+                          class="truncate text-sm font-bold text-slate-900">{{ server.name || `Server ${serverIndex + 1}`
+                          }}</span><span class="rounded-full bg-slate-200/50 px-2 py-0.5 text-[10px] text-slate-600">{{
                             server.episodes.length }} tập</span>
                       </button><button type="button"
                         class="grid size-8 place-items-center rounded-lg text-red-400 hover:bg-red-400/10"
@@ -512,11 +512,11 @@ function useApiActors() {
                         <div class="flex gap-2"><input v-model="ep.name" type="text" placeholder="Tên tập"
                             class="admin-input-sm w-24"><select class="admin-input-sm min-w-0 flex-1"
                             @change="handleSourceLinkChange(serverIndex, episodeIndex, $event)">
-                            <option value="" class="bg-[#131418]">Chọn link từ API</option>
+                            <option value="" class="bg-white">Chọn link từ API</option>
                             <option v-for="item in availableEpisodes" :key="item.key" :value="item.key"
-                              class="bg-[#131418]">{{ item.label }}</option>
+                              class="bg-white">{{ item.label }}</option>
                           </select><button type="button"
-                            class="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-white/6"
+                            class="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100/60"
                             @click="toggleLinks(`${serverIndex}-${episodeIndex}`)">
                             <AppIcon name="pencil" class="size-3" />
                           </button><button type="button"
@@ -529,42 +529,42 @@ function useApiActors() {
                             placeholder="Link embed" class="admin-input-sm"><input v-model="ep.linkM3u8" type="url"
                             placeholder="Link m3u8" class="admin-input-sm"></div>
                       </div><button type="button"
-                        class="admin-btn-sm border border-dashed border-white/15 text-zinc-300"
+                        class="admin-btn-sm border border-dashed border-white/15 text-slate-600"
                         @click="addServerEpisode(serverIndex)">
                         <AppIcon name="plus" class="size-3" />Thêm tập
                       </button>
                     </div>
                   </div>
                   <div v-if="!customServers.length"
-                    class="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-zinc-500">
+                    class="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-slate-500">
                     Chưa có server.</div>
                 </div>
                 <div class="2xl:col-span-5">
                   <div class="rounded-xl border border-white/6 bg-white/2 p-4 2xl:sticky 2xl:top-5">
                     <div class="mb-3">
-                      <h3 class="text-sm font-bold text-white">Nguồn API</h3>
-                      <p class="text-xs text-zinc-500">Thêm nhanh tập vào server</p>
+                      <h3 class="text-sm font-bold text-slate-900">Nguồn API</h3>
+                      <p class="text-xs text-slate-500">Thêm nhanh tập vào server</p>
                     </div>
                     <select v-model="selectedTargetServer" class="admin-input-sm mb-3 w-full">
-                      <option v-for="(server, index) in customServers" :key="index" :value="index" class="bg-[#131418]">
+                      <option v-for="(server, index) in customServers" :key="index" :value="index" class="bg-white">
                         {{ server.name || `Server ${index + 1}` }}</option>
                     </select>
                     <div class="space-y-2">
                       <div v-for="(source, sourceIndex) in sourceData?.sources || []" :key="source.source"
                         class="rounded-lg border border-white/6"><button type="button"
                           class="flex w-full items-center justify-between p-3 text-left"
-                          @click="toggleSource(source.source)"><span class="text-xs font-bold uppercase text-white">{{
+                          @click="toggleSource(source.source)"><span class="text-xs font-bold uppercase text-slate-900">{{
                             source.source }} · {{ source.name }}</span>
-                          <AppIcon name="chevron-down" class="size-4 text-zinc-400" />
+                          <AppIcon name="chevron-down" class="size-4 text-slate-400" />
                         </button>
                         <div v-if="expandedSources[source.source]" class="space-y-3 border-t border-white/6 p-3">
                           <div v-for="(server, serverIndex) in source.servers" :key="serverIndex">
                             <div class="mb-2 flex items-center justify-between"><span class="admin-label">{{ server.name
-                                }}</span><button type="button" class="text-xs font-semibold text-yellow-400"
+                                }}</span><button type="button" class="text-xs font-semibold text-sky-600"
                                 @click="quickAddAllEpisodes(sourceIndex, serverIndex)">Thêm tất cả</button></div>
                             <div class="flex flex-wrap gap-2"><button v-for="(ep, epIndex) in server.episodes"
                                 :key="epIndex" type="button"
-                                class="rounded-lg bg-white/5 px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-yellow-400/10 hover:text-yellow-400"
+                                class="rounded-lg bg-slate-200/50 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-sky-500/10 hover:text-sky-600"
                                 @click="quickAddEpisode(sourceIndex, serverIndex, epIndex)">{{ ep.name || `Tập ${epIndex
                                   + 1}` }}</button></div>
                           </div>
@@ -583,21 +583,21 @@ function useApiActors() {
           <div class="admin-card overflow-hidden">
             <div class="flex items-center justify-between border-b border-white/6 px-4 py-3">
               <div>
-                <h3 class="text-sm font-bold text-white">Đăng phim</h3>
-                <p class="text-xs text-zinc-500">Lưu và cập nhật nội dung</p>
+                <h3 class="text-sm font-bold text-slate-900">Đăng phim</h3>
+                <p class="text-xs text-slate-500">Lưu và cập nhật nội dung</p>
               </div><span class="admin-badge"
-                :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-zinc-400'">{{
+                :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-slate-400'">{{
                   movie.active ? 'Hiển thị' : 'Đang ẩn' }}</span>
             </div>
             <div class="space-y-3 p-4 text-sm">
-              <div class="flex justify-between gap-3"><span class="text-zinc-500">Nguồn</span><strong
+              <div class="flex justify-between gap-3"><span class="text-slate-9000">Nguồn</span><strong
                   class="text-white">{{ movie.source?.toUpperCase() }}</strong></div>
-              <div class="flex justify-between gap-3"><span class="text-zinc-500">Năm</span><span
-                  class="text-zinc-200">{{ movie.year || '—' }}</span></div>
-              <div class="flex justify-between gap-3"><span class="text-zinc-500">Tổng tập</span><span
-                  class="text-zinc-200">{{ movie.episodeTotal || '—' }}</span></div>
-              <div class="flex justify-between gap-3"><span class="text-zinc-500">Đồng bộ</span><span
-                  class="truncate text-right text-zinc-200">{{ new Date(movie.syncedAt).toLocaleString('vi-VN')
+              <div class="flex justify-between gap-3"><span class="text-slate-9000">Năm</span><span
+                  class="text-slate-700">{{ movie.year || '—' }}</span></div>
+              <div class="flex justify-between gap-3"><span class="text-slate-9000">Tổng tập</span><span
+                  class="text-slate-700">{{ movie.episodeTotal || '—' }}</span></div>
+              <div class="flex justify-between gap-3"><span class="text-slate-9000">Đồng bộ</span><span
+                  class="truncate text-right text-slate-700">{{ new Date(movie.syncedAt).toLocaleString('vi-VN')
                   }}</span></div>
             </div>
             <div class="border-t border-white/6 p-4"><button type="button"
@@ -612,14 +612,14 @@ function useApiActors() {
 
           <div class="admin-card overflow-hidden">
             <div class="border-b border-white/6 px-4 py-3">
-              <h3 class="text-sm font-bold text-white">Ảnh đại diện ngang</h3>
-              <p class="text-xs text-zinc-500">Poster 16:9</p>
+              <h3 class="text-sm font-bold text-slate-900">Ảnh đại diện ngang</h3>
+              <p class="text-xs text-slate-500">Poster 16:9</p>
             </div>
             <div class="p-4">
-              <div class="aspect-video overflow-hidden rounded-xl border border-white/8 bg-white/2"><img
+              <div class="aspect-video overflow-hidden rounded-xl border border-slate-200 bg-white/2"><img
                   v-if="customPoster || movie.poster" :src="customPoster || movie.poster || undefined" :alt="movie.name"
                   class="size-full object-cover">
-                <div v-else class="grid size-full place-items-center text-zinc-600">
+                <div v-else class="grid size-full place-items-center text-slate-600">
                   <AppIcon name="image" class="size-7" />
                 </div>
               </div><input v-model="customPoster" type="url" placeholder="URL ảnh ngang..."
@@ -629,15 +629,15 @@ function useApiActors() {
 
           <div class="admin-card overflow-hidden">
             <div class="border-b border-white/6 px-4 py-3">
-              <h3 class="text-sm font-bold text-white">Ảnh đại diện dọc</h3>
-              <p class="text-xs text-zinc-500">Thumbnail 2:3</p>
+              <h3 class="text-sm font-bold text-slate-900">Ảnh đại diện dọc</h3>
+              <p class="text-xs text-slate-500">Thumbnail 2:3</p>
             </div>
             <div class="p-4">
               <div
-                class="mx-auto aspect-2/3 w-full max-w-55 overflow-hidden rounded-xl border border-white/8 bg-white/2">
+                class="mx-auto aspect-2/3 w-full max-w-55 overflow-hidden rounded-xl border border-slate-200 bg-white/2">
                 <img v-if="customThumb || movie.thumb || movie.poster" :src="customThumb || movie.thumb || movie.poster || undefined"
                   :alt="movie.name" class="size-full object-cover">
-                <div v-else class="grid size-full place-items-center text-zinc-600">
+                <div v-else class="grid size-full place-items-center text-slate-600">
                   <AppIcon name="image" class="size-7" />
                 </div>
               </div><input v-model="customThumb" type="url" placeholder="URL ảnh dọc..."

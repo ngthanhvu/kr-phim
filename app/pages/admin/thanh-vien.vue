@@ -65,10 +65,12 @@ const members = computed(() => data.value?.items || [])
 
     <div class="admin-card overflow-hidden">
       <div class="flex items-center gap-3 border-b border-white/6 p-4">
-        <div class="relative flex-1">
-          <AppIcon name="search" class="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          <input v-model="searchInput" type="search" placeholder="Tìm kiếm thành viên..."
-            class="admin-input pl-10">
+        <div class="relative flex-1 min-w-0">
+          <AppIcon name="search"
+            class="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-slate-400" />
+
+          <input v-model="searchInput" type="text" placeholder="Tìm kiếm thành viên..."
+            class="admin-input h-10 w-full pl-10! pr-3">
         </div>
       </div>
 
@@ -89,22 +91,23 @@ const members = computed(() => data.value?.items || [])
               <td class="px-5 py-3.5 text-sm font-semibold text-slate-500">{{ members.indexOf(member) + 1 }}</td>
               <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
-                  <div class="grid size-9 place-items-center rounded-full bg-linear-to-br from-slate-700 to-slate-800 text-sm font-bold text-slate-300">
+                  <div
+                    class="grid size-9 place-items-center rounded-full bg-linear-to-br from-slate-700 to-slate-800 text-sm font-bold text-slate-300">
                     {{ (member.name || member.email || '?').charAt(0).toUpperCase() }}
                   </div>
                   <div class="min-w-0">
-                    <p class="truncate text-sm font-bold text-white">{{ member.name || 'Chưa có tên' }}</p>
+                    <p class="truncate text-sm font-bold text-slate-900">{{ member.name || 'Chưa có tên' }}</p>
                     <p class="truncate text-xs text-slate-400">{{ member.email }}</p>
                   </div>
                 </div>
               </td>
               <td class="px-5 py-3.5">
                 <select :value="member.role"
-                  class="h-8 rounded-full border border-white/8 bg-white/3 px-3 text-xs font-bold text-white outline-none transition hover:bg-white/5 focus:border-yellow-400/50"
+                  class="h-8 rounded-full border border-slate-200 bg-slate-100 px-3 text-xs font-bold text-slate-900 outline-none transition hover:bg-slate-100/60 focus:border-sky-500"
                   @change="changeRole(member, ($event.target as HTMLSelectElement).value)">
-                  <option value="user" class="bg-[#131418]">User</option>
-                  <option value="moderator" class="bg-[#131418]">Moderator</option>
-                  <option value="admin" class="bg-[#131418]">Admin</option>
+                  <option value="user" class="bg-white">User</option>
+                  <option value="moderator" class="bg-white">Moderator</option>
+                  <option value="admin" class="bg-white">Admin</option>
                 </select>
               </td>
               <td class="px-5 py-3.5">

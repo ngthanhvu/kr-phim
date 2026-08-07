@@ -87,6 +87,7 @@ import {
   faCommentSlash,
   faRotate,
   faPenToSquare,
+  faEllipsisVertical,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -180,6 +181,7 @@ library.add(
   faCommentSlash,
   faRotate,
   faPenToSquare,
+  faEllipsisVertical,
 )
 
 export type IconName =
@@ -204,6 +206,7 @@ export type IconName =
   | 'corner-down-left'
   | 'crown'
   | 'edit'
+  | 'ellipsis-vertical'
   | 'eye'
   | 'eye-off'
   | 'fast-forward'
@@ -287,6 +290,7 @@ const iconMap: Record<IconName, [string, string]> = {
   'corner-down-left': ['fas', 'arrow-turn-down'],
   'crown': ['fas', 'crown'],
   'edit': ['fas', 'pen-to-square'],
+  'ellipsis-vertical': ['fas', 'ellipsis-vertical'],
   'eye': ['fas', 'eye'],
   'eye-off': ['fas', 'eye-slash'],
   'fast-forward': ['fas', 'forward-fast'],

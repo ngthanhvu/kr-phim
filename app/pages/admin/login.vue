@@ -50,12 +50,12 @@ async function handleLogin() {
       class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(250,204,21,0.08),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.05),transparent_40%)]" />
 
     <div class="relative w-full max-w-md">
-      <div class="rounded-3xl border border-white/6 bg-[#131418]/80 p-1 shadow-2xl backdrop-blur-sm">
+      <div class="rounded-3xl border border-slate-200 bg-white/90 p-1 shadow-2xl backdrop-blur-sm">
         <div class="rounded-[22px] bg-linear-to-b from-white/8 to-transparent p-6">
           <div class="mb-8 text-center">
             <div class="mb-4 inline-flex items-center gap-3">
               <div
-                class="grid size-12 place-items-center rounded-2xl bg-linear-to-br from-yellow-400 to-amber-500 shadow-lg shadow-yellow-400/20">
+                class="grid size-12 place-items-center rounded-2xl bg-linear-to-br from-sky-400 to-cyan-600 shadow-lg shadow-sky-500/20">
                 <span class="text-xl font-black text-slate-950">C</span>
               </div>
               <div class="text-left">

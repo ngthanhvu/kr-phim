@@ -1,0 +1,166 @@
+/* Admin Light Mode Overrides — only applies inside .admin-light */
+.admin-light .admin-page {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+}
+
+.admin-light .admin-card {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-light .admin-card:hover {
+  border-color: #cbd5e1 !important;
+}
+
+.admin-light .admin-card-gradient {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-light .admin-input {
+  border-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+}
+
+.admin-light .admin-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.admin-light .admin-input:focus {
+  border-color: #095DF1 !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12) !important;
+}
+
+.admin-light .admin-btn-primary {
+  background-color: #095DF1 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 6px rgba(14, 165, 233, 0.2) !important;
+}
+
+.admin-light .admin-btn-primary:hover {
+  background-color: #095DF1 !important;
+}
+
+.admin-light .admin-btn-secondary {
+  border-color: #e2e8f0 !important;
+  background-color: #fff !important;
+  color: #475569 !important;
+}
+
+.admin-light .admin-btn-secondary:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.admin-light .admin-btn-danger {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
+.admin-light .admin-btn-danger:hover {
+  background-color: #fee2e2 !important;
+}
+
+.admin-light .admin-label {
+  color: #64748b !important;
+}
+
+.admin-light .admin-section-title {
+  color: #0f172a !important;
+}
+
+.admin-light .admin-section-subtitle {
+  color: #64748b !important;
+}
+
+.admin-light .admin-num {
+  color: #0f172a !important;
+}
+
+.admin-light .admin-icon-square {
+  border-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
+}
+
+.admin-light .admin-input-sm {
+  border-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+}
+
+.admin-light .admin-input-sm::placeholder {
+  color: #94a3b8 !important;
+}
+
+.admin-light .admin-input-sm:focus {
+  border-color: #095DF1 !important;
+  background-color: #fff !important;
+}
+
+/* Override badge colors for light mode */
+.admin-light .admin-badge {
+  background-color: rgba(241, 245, 249, 0.8) !important;
+  color: #475569 !important;
+}
+
+.admin-light .admin-badge.bg-yellow-400,
+.admin-light [class*="bg-yellow-400"] {
+  background-color: rgba(14, 165, 233, 0.1) !important;
+  color: #0284c7 !important;
+}
+
+.admin-light .admin-badge.bg-emerald-400 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  color: #059669 !important;
+}
+
+.admin-light .admin-badge.bg-slate-400 {
+  background-color: rgba(148, 163, 184, 0.1) !important;
+  color: #64748b !important;
+}
+
+.admin-light .admin-badge.bg-blue-400 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #2563eb !important;
+}
+
+.admin-light .admin-badge.bg-purple-400 {
+  background-color: rgba(168, 85, 247, 0.1) !important;
+  color: #9333ea !important;
+}
+
+.admin-light .admin-badge.bg-pink-400 {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+  color: #db2777 !important;
+}
+
+/* Override dark scrollbar */
+.admin-light .admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(14, 165, 233, 0.45) !important;
+}
+
+.admin-light .admin-scrollbar::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5) !important;
+}
+
+/* Fix Font Awesome SVG icons drooping below text baseline */
+.admin-light .fa-solid,
+.admin-light .fa-regular,
+.admin-light .fa-light,
+.admin-light .fa-thin,
+.admin-light .fa-duotone,
+.admin-light svg[class*="fa"] {
+  vertical-align: middle !important;
+}
+
+/* Modal dark overlay fix inside admin */
+.admin-light .modal-fade-enter-from,
+.admin-light .modal-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}

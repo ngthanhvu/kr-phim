@@ -12,5 +12,5 @@ const icon = computed(() => getIcon(props.name))
 </script>
 
 <template>
-  <FontAwesomeIcon :icon="icon" :class="props.class" />
+  <FontAwesomeIcon :icon="icon" :class="props.class" :style="{ verticalAlign: 'middle' }" />
 </template>
