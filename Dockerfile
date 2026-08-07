@@ -1,8 +1,8 @@
 FROM node:22-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package*.json ./
-RUN apk add --no-cache libc6-compat 2>/dev/null || true
-RUN npm ci --ignore-scripts || npm ci
+RUN npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
@@ -12,15 +12,8 @@ COPY . .
 RUN npm run build
 
 FROM node:22-alpine AS runner
-WORKDIR /app
+WORKDIR /workspace
 ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3002
-ENV NITRO_HOST=0.0.0.0
-ENV NITRO_PORT=3002
-
 COPY --from=builder /app/.output ./.output
-COPY --from=builder /app/public ./public
-
 EXPOSE 3002
 CMD ["node", ".output/server/index.mjs"]
