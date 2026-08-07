@@ -25,7 +25,7 @@ services:
   cinek:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: cinek
     restart: unless-stopped
     environment:
