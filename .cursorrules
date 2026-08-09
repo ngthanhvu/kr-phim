@@ -1,0 +1,35 @@
+# CineK (kr-phim) Project Rules and Agent Guidelines
+
+Welcome, Agent. You are assisting in developing the **CineK (kr-phim)** project. This is a high-performance Nuxt 4 + Vue 3 application using Tailwind CSS v4 and Drizzle ORM (MySQL).
+
+To perform your task correctly, you MUST read and follow the specific rule files stored in the `.agents/` directory:
+
+1. **Frontend Design & Styling Guidelines**: [`.agents/frontend-design.md`](./.agents/frontend-design.md)
+   - Read this before building or modifying any UI.
+   - Defines the design philosophy (rich aesthetics, modern typography, animations).
+   - Lists the custom Utility Class Design System configured in `app/assets/css/main.css` (e.g., `.admin-card`, `.admin-btn-primary`).
+
+2. **Nuxt & Vue Coding Standards**: [`.agents/nuxt-vue-standards.md`](./.agents/nuxt-vue-standards.md)
+   - Read this before writing component, page, or layout logic.
+   - Defines syntax guidelines (Composition API, `<script setup lang="ts">`, auto-imports, reactive APIs).
+
+3. **Database & API Standards**: [`.agents/drizzle-database.md`](./.agents/drizzle-database.md)
+   - Read this before writing server endpoints or interacting with Drizzle ORM.
+
+4. **Distinctive UI Aesthetics (Official Claude Code Skill)**: [`.agents/distinctive-frontend.md`](./.agents/distinctive-frontend.md)
+   - Details advanced typography, color/theme systems (Cyberpunk, Brutalist, Vaporwave, Nordic Minimalism), orchestrated loading animations, and layered backgrounds.
+
+5. **Docker Development Skill**: [`.agents/docker-development.md`](./.agents/docker-development.md)
+   - Enforces package installations and running scripts strictly inside Docker containers (not on the host machine).
+   - Contains dev server status checks, logs analysis, and shell command integrations.
+
+6. **Docker Compose Creator**: [`.agents/docker-compose-creator.md`](./.agents/docker-compose-creator.md)
+   - Standardizes the generation of Docker Compose files and Docker files with best practices.
+
+## High-Level Directives
+
+- **Respect the Design System**: Do not use ad-hoc Tailwind classes if utility classes exist in `main.css` (like `.admin-card`, `.admin-btn-primary`, `.admin-input`). Keep styles clean, centralized, and consistent.
+- **Aesthetic Excellence**: All UI components must look professional, polished, and premium (proper light/dark mode support, smooth hover transitions, rounded corners).
+- **Nuxt 4 Structure**: The project codebase is located inside the `/app` folder (e.g. `/app/components`, `/app/pages`). Do not write root components.
+- **No Scopes/Overrides unless needed**: Be careful with Tailwind overrides in scoped styles, as Tailwind v4 layers work differently. Follow patterns in `layouts/admin.vue` when overriding.
+- **TypeScript First**: Ensure all components and APIs are fully typed. Never use `any`.
