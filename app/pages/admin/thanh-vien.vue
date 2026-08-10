@@ -99,9 +99,6 @@ const visiblePages = computed(() => {
 
   return pages
 })
-
-// 3-dot menu state
-const menuOpen = ref<number | null>(null)
 </script>
 
 <template>
@@ -112,7 +109,7 @@ const menuOpen = ref<number | null>(null)
     </div>
 
     <div class="admin-card overflow-hidden">
-      <div class="grid grid-cols-1 gap-3 border-b border-slate-200 p-4
+      <div class="grid grid-cols-1 gap-3 border-b border-white/6 p-4
          md:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_180px_160px] xl:items-center">
         <div class="relative min-w-0 w-full">
           <AppIcon name="search"
@@ -152,9 +149,17 @@ const menuOpen = ref<number | null>(null)
             <tr v-for="member in members" :key="member.id" class="transition hover:bg-white/2">
               <td class="px-4 py-3.5 text-center text-sm font-semibold text-slate-500">{{ members.indexOf(member) + 1 }}
               </td>
-              <td class="px-4 py-3.5 text-center">
-                <p class="truncate text-sm font-bold text-white">{{ member.name || 'Chưa có tên' }}</p>
-                <p class="truncate text-xs text-slate-400">{{ member.email }}</p>
+              <td class="min-w-0 px-4 py-3.5 text-center">
+                <div class="flex items-center gap-3 justify-center">
+                  <div
+                    class="grid size-9 place-items-center rounded-full bg-linear-to-br from-slate-700 to-slate-800 text-sm font-bold text-slate-300 shrink-0">
+                    {{ (member.name || member.email || '?').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-white">{{ member.name || 'Chưa có tên' }}</p>
+                    <p class="truncate text-xs text-slate-400">{{ member.email }}</p>
+                  </div>
+                </div>
               </td>
               <td class="px-4 py-3.5 text-center">
                 <select :value="member.role"
@@ -173,30 +178,13 @@ const menuOpen = ref<number | null>(null)
                 {{ new Date(member.createdAt).toLocaleDateString('vi-VN') }}
               </td>
               <td class="px-4 py-3.5 text-center">
-                <div class="relative inline-flex">
-                  <button type="button"
-                    class="grid size-9 place-items-center rounded-lg text-zinc-500 transition
-                       hover:bg-slate-100 hover:text-zinc-700" title="Thao tác"
-                    @click="menuOpen = menuOpen === member.id ? null : member.id">
-                    <AppIcon name="ellipsis-vertical" class="size-5 stroke-[2.5]" />
-                  </button>
-                  <Transition name="dropdown-fade">
-                    <div v-if="menuOpen === member.id" class="absolute right-0 top-full z-50 mt-1 min-w-40
-                       rounded-lg border border-slate-200
-                       bg-white py-1 shadow-xl">
-                      <button type="button"
-                        v-if="currentUser?.id !== member.id"
-                        class="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 transition hover:bg-red-50"
-                        @click="menuOpen = null; deleteMember(member)">
-                        <AppIcon name="trash" class="size-4" />
-                        Xoá thành viên
-                      </button>
-                      <div v-else class="px-3 py-2 text-xs text-slate-400">
-                        Không thể xoá chính mình
-                      </div>
-                    </div>
-                  </Transition>
-                </div>
+                <button type="button"
+                  class="grid size-8 place-items-center rounded-lg text-red-400 transition hover:bg-red-500/10"
+                  :disabled="currentUser?.id === member.id"
+                  :title="currentUser?.id === member.id ? 'Không thể xoá chính mình' : 'Xoá thành viên'"
+                  @click="deleteMember(member)">
+                  <AppIcon name="trash" class="size-4" />
+                </button>
               </td>
             </tr>
             <tr v-if="!members.length">
@@ -208,11 +196,11 @@ const menuOpen = ref<number | null>(null)
         </table>
       </div>
 
-      <div v-if="totalPages > 1" class="flex items-center justify-between border-t border-slate-200 p-4">
+      <div v-if="totalPages > 1" class="flex items-center justify-between border-t border-white/6 p-4">
         <p class="text-sm text-slate-500">Trang {{ currentPage }} / {{ totalPages }}</p>
         <div class="flex items-center gap-2">
           <button type="button"
-            class="grid size-9 place-items-center rounded-lg border border-slate-300 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30"
+            class="grid size-9 place-items-center rounded-lg border border-white/8 text-slate-500 transition hover:bg-white/5 hover:text-white disabled:opacity-30"
             :disabled="currentPage <= 1" @click="currentPage--">
             <AppIcon name="chevron-left" class="size-4" />
           </button>
@@ -221,12 +209,12 @@ const menuOpen = ref<number | null>(null)
             <button v-else type="button"
               class="grid size-9 place-items-center rounded-lg border text-sm font-semibold transition" :class="page === currentPage
                 ? 'border-[#095DF2] bg-[#095DF2] text-white'
-                : 'border-slate-300 text-slate-600 hover:bg-slate-100 hover:text-slate-800'" @click="currentPage = page">
+                : 'border-white/8 text-slate-500 hover:bg-white/5 hover:text-white'" @click="currentPage = page">
               {{ page }}
             </button>
           </template>
           <button type="button"
-            class="grid size-9 place-items-center rounded-lg border border-slate-300 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-30"
+            class="grid size-9 place-items-center rounded-lg border border-white/8 text-slate-500 transition hover:bg-white/5 hover:text-white disabled:opacity-30"
             :disabled="currentPage >= totalPages" @click="currentPage++">
             <AppIcon name="chevron-right" class="size-4" />
           </button>
