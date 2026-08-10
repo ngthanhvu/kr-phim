@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
-const router = useRouter()
 const sidebarOpen = ref(false)
+const sidebarCollapsed = ref(false)
 
 const { data: user } = await useFetch('/api/auth/me', {
   headers: useRequestHeaders(['cookie']),
@@ -19,7 +19,12 @@ function isActive(to: string) {
   return route.path.startsWith(to)
 }
 
-function closeSidebar() {
+// Desktop: collapse/expand | Mobile: open/close drawer
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+function closeMobileDrawer() {
   sidebarOpen.value = false
 }
 
@@ -33,53 +38,90 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 </script>
 
 <template>
-  <div class="admin-light min-h-screen bg-white">
-    <aside
-      class="fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-200 bg-white transition-transform lg:translate-x-0 border-l-4 border-l-blue-700">
-      <div class="flex h-16 items-center justify-between border-white/20 px-5">
-        <NuxtLink to="/admin" class="flex items-center gap-3">
-          <AppIcon name="film" class="size-5 text-[#095DF2]" />
+  <div class="admin-layout admin-light min-h-screen bg-white">
+    <!-- Sidebar -->
+    <aside :class="[
+      sidebarCollapsed ? 'lg:w-20' : 'lg:w-64',
+      sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+    ]" class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col
+         border-r border-slate-200 bg-white
+         transition-[width,transform] duration-300 ease-in-out
+         lg:translate-x-0
+         border-l-4 border-l-blue-700">
+      <!-- Header row -->
+      <div class="flex h-16 items-center justify-between border-b border-slate-200 px-4">
+        <!-- Logo -->
+        <NuxtLink to="/admin"
+          class="flex items-center gap-3 overflow-hidden whitespace-nowrap transition-opacity duration-300"
+          :class="sidebarCollapsed && !sidebarOpen ? 'opacity-0 pointer-events-none w-0' : ''">
+          <AppIcon name="film" class="size-5 shrink-0 text-[#095DF2]" />
           <span class="text-lg font-black text-slate-900 tracking-tight">Admin Management</span>
         </NuxtLink>
-        <button type="button"
-          class="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 lg:hidden"
-          @click="closeSidebar">
+
+        <!-- Close on mobile only -->
+        <button v-if="sidebarOpen" type="button"
+          class="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+          @click="closeMobileDrawer">
           <AppIcon name="x" class="size-5" />
         </button>
       </div>
 
+      <!-- Nav links -->
       <nav class="flex flex-col gap-1 p-3">
         <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to"
-          class="group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition" :class="isActive(item.to)
-            ? 'bg-[#095DF2]/10 text-[#095DF2] font-semibold'
-            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'">
-          <AppIcon :name="item.icon" class="size-5 transition group-hover:scale-110" />
-          {{ item.label }}
+          class="group flex h-11 items-center rounded-xl text-sm font-semibold transition" :class="[
+            isActive(item.to)
+              ? 'bg-[#095DF2]/10 text-[#095DF2]'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+
+            sidebarCollapsed
+              ? 'justify-center'
+              : 'px-4'
+          ]">
+          <AppIcon :name="item.icon" class="size-5 shrink-0" />
+
+          <span v-if="!sidebarCollapsed" class="ml-3 whitespace-nowrap">
+            {{ item.label }}
+          </span>
         </NuxtLink>
       </nav>
 
-      <div class="absolute inset-x-0 bottom-0 space-y-1 border-t border-slate-200 p-3">
+      <!-- Bottom section -->
+      <div class="mt-auto space-y-1 border-t border-slate-200 p-3">
         <NuxtLink to="/"
-          class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">
-          <AppIcon name="home" class="size-5" />
-          Về trang chủ
+          class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+          :class="sidebarCollapsed ? 'justify-center px-2' : ''">
+          <AppIcon name="home" class="size-5 shrink-0" />
+          <span class="overflow-hidden whitespace-nowrap transition-opacity duration-300"
+            :class="sidebarCollapsed ? 'opacity-0 pointer-events-none w-0' : ''">Về trang chủ</span>
         </NuxtLink>
         <button type="button"
           class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 hover:text-red-600"
-          @click="handleLogout">
-          <AppIcon name="log-out" class="size-5" />
-          Đăng xuất
+          :class="sidebarCollapsed ? 'justify-center px-2' : ''" @click="handleLogout">
+          <AppIcon name="log-out" class="size-5 shrink-0" />
+          <span class="overflow-hidden whitespace-nowrap transition-opacity duration-300"
+            :class="sidebarCollapsed ? 'opacity-0 pointer-events-none w-0' : ''">Đăng xuất</span>
         </button>
       </div>
     </aside>
 
-    <div class="lg:pl-64">
+    <!-- Main content wrapper -->
+    <div class="transition-all duration-300 ease-in-out" :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'">
       <header
-        class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl lg:px-6 shadow-sm">
+        class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-xl lg:px-6">
+        <!-- Mobile menu -->
         <button type="button"
           class="grid size-10 place-items-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 lg:hidden"
           @click="sidebarOpen = true">
           <AppIcon name="menu" class="size-5" />
+        </button>
+
+        <!-- Desktop collapse toggle -->
+        <button type="button"
+          class="hidden size-10 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 lg:inline-grid"
+          @click="toggleSidebar">
+          <AppIcon v-if="sidebarCollapsed" name="chevron-right" class="size-4 transition-transform duration-300" />
+          <AppIcon v-else name="chevron-left" class="size-4 transition-transform duration-300" />
         </button>
 
         <div class="ml-auto flex items-center gap-4">
@@ -105,8 +147,10 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
       </main>
     </div>
 
+    <!-- Mobile overlay backdrop -->
     <Transition name="sidebar-fade">
-      <div v-if="sidebarOpen" class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden" @click="closeSidebar" />
+      <div v-if="sidebarOpen" class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden"
+        @click="closeMobileDrawer" />
     </Transition>
   </div>
 </template>
@@ -198,14 +242,12 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 .admin-light .admin-num,
 .admin-light strong {
   color: #0f172a !important;
-  /* Slate 900 - Darkest */
 }
 
 .admin-light .admin-label,
 .admin-light .admin-section-subtitle,
 .admin-light p {
   color: #334155 !important;
-  /* Slate 700 - Medium Dark */
 }
 
 /* Override ALL gray text classes to make them darker */
@@ -214,7 +256,6 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 .admin-light [class*="text-slate-500"],
 .admin-light [class*="text-zinc-500"] {
   color: #475569 !important;
-  /* Force to Slate 600 */
 }
 
 .admin-light .text-red-400,
@@ -227,8 +268,6 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 }
 
 /* --- Table overrides for light mode --- */
-
-/* White text inside admin card tables → readable in light mode */
 .admin-light .admin-card table td[class*="text-white"],
 .admin-light .admin-card table th[class*="text-white"],
 .admin-light .admin-card tbody tr td[class*="text-white"],
@@ -236,16 +275,13 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
   color: #1e293b !important;
 }
 
-/* Table row hover in light mode (white/2 too subtle → use slate-100) */
 .admin-light .admin-card table tbody tr:hover {
   background-color: #f1f5f9 !important;
 }
 
-/* Input placeholder */
 .admin-light input::placeholder,
 .admin-light textarea::placeholder {
   color: #94a3b8 !important;
-  /* Slate 400 - Visible but muted */
 }
 </style>
 
