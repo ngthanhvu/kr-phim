@@ -277,7 +277,7 @@ const syncSourceOptions = [
                 <div class="flex items-center justify-center gap-1">
                   Phim
                   <AppIcon :name="sortIcon('name')" class="size-3"
-                    :class="sortBy === 'name' ? 'text-yellow-400' : 'opacity-50'" />
+                    :class="sortBy === 'name' ? 'text-[#095DF2]' : 'opacity-50'" />
                 </div>
               </th>
               <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Nguồn</th>
@@ -288,7 +288,7 @@ const syncSourceOptions = [
                 <div class="flex items-center justify-center gap-1">
                   Lượt xem
                   <AppIcon :name="sortIcon('views')" class="size-3"
-                    :class="sortBy === 'views' ? 'text-yellow-400' : 'opacity-50'" />
+                    :class="sortBy === 'views' ? 'text-[#095DF2]' : 'opacity-50'" />
                 </div>
               </th>
               <th style="border-bottom: 3px solid #eeee;"
@@ -297,7 +297,7 @@ const syncSourceOptions = [
                 <div class="flex items-center justify-center gap-1">
                   Cập nhật API
                   <AppIcon :name="sortIcon('apiUpdatedAt')" class="size-3"
-                    :class="sortBy === 'apiUpdatedAt' ? 'text-yellow-400' : 'opacity-50'" />
+                    :class="sortBy === 'apiUpdatedAt' ? 'text-[#095DF2]' : 'opacity-50'" />
                 </div>
               </th>
               <th style="border-bottom: 3px solid #eeee;"
@@ -306,7 +306,7 @@ const syncSourceOptions = [
                 <div class="flex items-center justify-center gap-1">
                   Trạng thái
                   <AppIcon :name="sortIcon('active')" class="size-3"
-                    :class="sortBy === 'active' ? 'text-yellow-400' : 'opacity-50'" />
+                    :class="sortBy === 'active' ? 'text-[#095DF2]' : 'opacity-50'" />
                 </div>
               </th>
               <th style="border-bottom: 3px solid #eeee;" class="px-4 py-3 text-center">Tuỳ chỉnh</th>
@@ -394,22 +394,22 @@ const syncSourceOptions = [
                 <div class="relative inline-flex">
                   <button type="button" class="grid size-9 place-items-center rounded-lg
                      text-zinc-500 transition
-                     hover:bg-white/5 hover:text-zinc-300" title="Thao tác"
+                     hover:bg-slate-100 hover:text-zinc-700" title="Thao tác"
                     @click="menuOpen = menuOpen === movie.id ? null : movie.id">
                     <AppIcon name="ellipsis-vertical" class="size-5 stroke-[2.5]" />
                   </button>
                   <Transition name="dropdown-fade">
                     <div v-if="menuOpen === movie.id" class="absolute right-0 top-full z-50 mt-1 min-w-40
-               rounded-lg border border-white/8
-               bg-[#131418] py-1 shadow-xl">
+               rounded-lg border border-slate-200
+               bg-white py-1 shadow-xl">
                       <NuxtLink :to="`/admin/phim/${movie.id}`" class="flex w-full items-center gap-2 px-3 py-2
-                  text-sm text-slate-300 transition
-                  hover:bg-white/5 hover:text-white" @click="menuOpen = null">
+                  text-sm text-slate-700 transition
+                  hover:bg-slate-100 hover:text-slate-900" @click="menuOpen = null">
                         <AppIcon name="pencil" class="size-4" />
                         Chỉnh sửa
                       </NuxtLink>
                       <button type="button" class="flex w-full items-center gap-2 px-3 py-2
-                  text-sm text-red-400 transition hover:bg-white/5" @click="
+                  text-sm text-red-500 transition hover:bg-red-50" @click="
                     menuOpen = null;
                   selectedMovie = movie;
                   deleteConfirmOpen = true
@@ -444,7 +444,7 @@ const syncSourceOptions = [
             <span v-if="page === 'ellipsis'" class="grid size-9 place-items-center text-sm text-slate-500">...</span>
             <button v-else type="button"
               class="grid size-9 place-items-center rounded-lg border text-sm font-semibold transition" :class="page === currentPage
-                ? 'border-yellow-400 bg-yellow-400 text-slate-950'
+                ? 'border-[#095DF2] bg-[#095DF2] text-white'
                 : 'border-white/8 text-slate-400 hover:bg-white/5 hover:text-white'" @click="currentPage = page">
               {{ page }}
             </button>
@@ -462,41 +462,41 @@ const syncSourceOptions = [
       <Transition name="modal-fade">
         <div v-if="syncOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="syncOpen = false" />
-          <div class="relative w-full max-w-md rounded-2xl border border-white/8 bg-[#131418] p-6 shadow-2xl">
+          <div class="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
             <button type="button"
-              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-slate-400 transition hover:bg-white/5 hover:text-white"
+              class="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
               @click="syncOpen = false">
               <AppIcon name="x" class="size-5" />
             </button>
 
             <div class="mb-5">
-              <h2 class="text-xl font-black text-white">Đồng bộ phim</h2>
-              <p class="mt-1 text-sm text-slate-400">Chọn nguồn để đồng bộ phim vào hệ thống</p>
+              <h2 class="text-xl font-black text-slate-900">Đồng bộ phim</h2>
+              <p class="mt-1 text-sm text-slate-500">Chọn nguồn để đồng bộ phim vào hệ thống</p>
             </div>
 
             <div class="space-y-3">
               <label v-for="source in syncSourceOptions" :key="source.key"
-                class="flex cursor-pointer items-center justify-between rounded-xl border border-white/6 bg-white/3 p-4 transition hover:border-white/10 hover:bg-white/5">
+                class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-slate-100">
                 <div>
-                  <p class="text-sm font-bold text-white">{{ source.label }}</p>
-                  <p class="text-xs text-slate-400">{{ source.domain }}</p>
+                  <p class="text-sm font-bold text-slate-900">{{ source.label }}</p>
+                  <p class="text-xs text-slate-500">{{ source.domain }}</p>
                 </div>
                 <AdminToggle v-model="syncSources[source.key]" />
               </label>
             </div>
 
-            <div v-if="syncResult" class="mt-4 rounded-xl border border-white/6 bg-white/3 p-4">
-              <p class="text-sm font-bold text-white">Kết quả đồng bộ</p>
-              <div class="mt-2 space-y-1 text-xs text-slate-400">
-                <p>Tổng phim lấy được: <span class="font-bold text-white">{{ syncResult.total }}</span></p>
-                <p>Đã tạo: <span class="font-bold text-emerald-400">{{ syncResult.created }}</span></p>
-                <p>Đã cập nhật: <span class="font-bold text-yellow-400">{{ syncResult.updated }}</span></p>
+            <div v-if="syncResult" class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p class="text-sm font-bold text-slate-900">Kết quả đồng bộ</p>
+              <div class="mt-2 space-y-1 text-xs text-slate-500">
+                <p>Tổng phim lấy được: <span class="font-bold text-slate-900">{{ syncResult.total }}</span></p>
+                <p>Đã tạo: <span class="font-bold text-emerald-500">{{ syncResult.created }}</span></p>
+                <p>Đã cập nhật: <span class="font-bold text-amber-500">{{ syncResult.updated }}</span></p>
                 <div v-if="syncResult.sourceStats" class="mt-2">
-                  <p class="font-semibold text-white">Theo nguồn:</p>
+                  <p class="font-semibold text-slate-900">Theo nguồn:</p>
                   <ul class="mt-1 space-y-0.5">
                     <li v-for="(stats, source) in syncResult.sourceStats" :key="source">
-                      <span class="uppercase text-white">{{ source }}</span>: {{ stats.fetched }} phim
-                      <span v-if="stats.error" class="text-red-400">({{ stats.error }})</span>
+                      <span class="uppercase text-slate-900">{{ source }}</span>: {{ stats.fetched }} phim
+                      <span v-if="stats.error" class="text-red-500">({{ stats.error }})</span>
                     </li>
                   </ul>
                 </div>
@@ -518,12 +518,12 @@ const syncSourceOptions = [
       <Transition name="modal-fade">
         <div v-if="deleteConfirmOpen" class="fixed inset-0 z-70 grid place-items-center px-3">
           <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="deleteConfirmOpen = false" />
-          <div class="relative w-full max-w-sm rounded-2xl border border-white/8 bg-[#131418] p-6 shadow-2xl">
+          <div class="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
             <div class="mb-4 grid size-12 place-items-center rounded-full bg-red-500/10">
-              <AppIcon name="trash" class="size-6 text-red-400" />
+              <AppIcon name="trash" class="size-6 text-red-500" />
             </div>
-            <h2 class="text-xl font-black text-white">Xoá tất cả phim?</h2>
-            <p class="mt-2 text-sm leading-6 text-slate-400">
+            <h2 class="text-xl font-black text-slate-900">Xoá tất cả phim?</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-500">
               Hành động này sẽ xoá toàn bộ {{ data?.total || 0 }} phim trong hệ thống, bao gồm cả các tuỳ chỉnh. Không
               thể
               hoàn tác.

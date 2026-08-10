@@ -33,13 +33,13 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 </script>
 
 <template>
-  <div class="admin-light min-h-screen bg-[#f8fafc]">
+  <div class="admin-light min-h-screen bg-white">
     <aside
-      class="fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-200 bg-[#095DF2] transition-transform lg:translate-x-0 border-l-4 border-l-blue-700">
+      class="fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-200 bg-white transition-transform lg:translate-x-0 border-l-4 border-l-blue-700">
       <div class="flex h-16 items-center justify-between border-white/20 px-5">
         <NuxtLink to="/admin" class="flex items-center gap-3">
-          <AppIcon name="film" class="size-5 text-white" />
-          <span class="text-lg font-black text-white tracking-tight">Admin Management</span>
+          <AppIcon name="film" class="size-5 text-[#095DF2]" />
+          <span class="text-lg font-black text-slate-900 tracking-tight">Admin Management</span>
         </NuxtLink>
         <button type="button"
           class="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 lg:hidden"
@@ -51,21 +51,21 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
       <nav class="flex flex-col gap-1 p-3">
         <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to"
           class="group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition" :class="isActive(item.to)
-            ? 'bg-white/15 text-white font-semibold'
-            : 'text-blue-100 hover:bg-white/10 hover:text-white'">
+            ? 'bg-[#095DF2]/10 text-[#095DF2] font-semibold'
+            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'">
           <AppIcon :name="item.icon" class="size-5 transition group-hover:scale-110" />
           {{ item.label }}
         </NuxtLink>
       </nav>
 
-      <div class="absolute inset-x-0 bottom-0 space-y-1 border-t border-white/20 p-3">
+      <div class="absolute inset-x-0 bottom-0 space-y-1 border-t border-slate-200 p-3">
         <NuxtLink to="/"
-          class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-100 transition hover:bg-white/10 hover:text-white">
+          class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">
           <AppIcon name="home" class="size-5" />
           Về trang chủ
         </NuxtLink>
         <button type="button"
-          class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-white/10 hover:text-red-600"
+          class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-red-500 transition hover:bg-red-50 hover:text-red-600"
           @click="handleLogout">
           <AppIcon name="log-out" class="size-5" />
           Đăng xuất
@@ -220,12 +220,25 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
 .admin-light .text-red-400,
 .admin-light .text-red-300 {
   color: #dc2626 !important;
-  /* Red-600 */
 }
 
 .admin-light .text-emerald-400 {
   color: #059669 !important;
-  /* Emerald-600 */
+}
+
+/* --- Table overrides for light mode --- */
+
+/* White text inside admin card tables → readable in light mode */
+.admin-light .admin-card table td[class*="text-white"],
+.admin-light .admin-card table th[class*="text-white"],
+.admin-light .admin-card tbody tr td[class*="text-white"],
+.admin-light .admin-card tbody tr td[class*="text-black"] {
+  color: #1e293b !important;
+}
+
+/* Table row hover in light mode (white/2 too subtle → use slate-100) */
+.admin-light .admin-card table tbody tr:hover {
+  background-color: #f1f5f9 !important;
 }
 
 /* Input placeholder */
