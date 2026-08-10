@@ -24,7 +24,13 @@ To perform your task correctly, you MUST read and follow the specific rule files
    - Contains dev server status checks, logs analysis, and shell command integrations.
 
 6. **Docker Compose Creator**: [`.agents/docker-compose-creator.md`](./.agents/docker-compose-creator.md)
-   - Standardizes the generation of Docker Compose files and Docker files with best practices.
+    - Standardizes the generation of Docker Compose files and Docker files with best practices.
+
+7. **CI/CD Builder**: [`.agents/ci-cd-builder.md`](./.agents/ci-cd-builder.md)
+    - Creates CI/CD pipelines with GitHub Actions for testing, building, and deployment (staging + production).
+
+
+> **Full skill library**: See [`AGENTS.md`](./AGENTS.md) for the complete catalog of 188 skills organized by category (Security, DevOps, Data, Design, Writing, Integrations, etc.).
 
 ## High-Level Directives
 

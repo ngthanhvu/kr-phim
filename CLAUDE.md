@@ -45,5 +45,8 @@ For detailed instructions and utility classes, always read and follow:
 - **Distinctive UI Aesthetics**: [`.agents/distinctive-frontend.md`](./.agents/distinctive-frontend.md)
 - **Docker Development**: [`.agents/docker-development.md`](./.agents/docker-development.md)
 - **Docker Compose Creator**: [`.agents/docker-compose-creator.md`](./.agents/docker-compose-creator.md)
+- **CI/CD Builder**: [`.agents/ci-cd-builder.md`](./.agents/ci-cd-builder.md)
+
+For the complete skill catalog (188+ skills across Security, DevOps, Data, Design, Writing, Integrations, etc.), see [`AGENTS.md`](./AGENTS.md).
 
 
