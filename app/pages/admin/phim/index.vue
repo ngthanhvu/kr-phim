@@ -123,6 +123,17 @@ async function handleDeleteAll() {
 const movies = computed(() => data.value?.items || [])
 const totalPages = computed(() => data.value?.totalPages || 1)
 
+// Helper để dropdown luôn hiển thị bên trong vùng nhìn thấy
+function getDropdownPosition(index: number) {
+  const total = movies.value?.length || 0
+  // Chỉ mở lên trên khi còn ít nhất 2 hàng phía dưới
+  // Còn lại mở xuống dưới (mặc định)
+  if (total <= 2 || index < total - 2) {
+    return 'top-full mt-1'
+  }
+  return 'bottom-full mb-1'
+}
+
 const visiblePages = computed(() => {
   const total = totalPages.value
   const current = currentPage.value
@@ -233,7 +244,7 @@ const syncSourceOptions = [
       </div>
     </div>
 
-    <div class="admin-card overflow-hidden">
+    <div class="admin-card overflow-visible!">
       <div class="grid grid-cols-1 gap-3 border-b border-white/6 p-4
          md:grid-cols-2
          xl:grid-cols-[minmax(280px,1fr)_180px_160px_150px]
@@ -390,8 +401,8 @@ const syncSourceOptions = [
                     @update:model-value="(val: boolean) => { movie.active = val; toggleActive(movie) }" />
                 </div>
               </td>
-              <td class="px-4 py-3.5 text-center">
-                <div class="relative inline-flex">
+              <td class="px-4 py-3.5 text-center relative">
+                <div class="inline-flex">
                   <button type="button" class="grid size-9 place-items-center rounded-lg
                      text-zinc-500 transition
                      hover:bg-slate-100 hover:text-zinc-700" title="Thao tác"
@@ -399,9 +410,10 @@ const syncSourceOptions = [
                     <AppIcon name="ellipsis-vertical" class="size-5 stroke-[2.5]" />
                   </button>
                   <Transition name="dropdown-fade">
-                    <div v-if="menuOpen === movie.id" class="absolute right-0 top-full z-50 mt-1 min-w-40
-               rounded-lg border border-slate-200
-               bg-white py-1 shadow-xl">
+                    <div v-if="menuOpen === movie.id" :class="[
+                      'absolute right-0 min-w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-xl z-50',
+                      getDropdownPosition(movies.indexOf(movie))
+                    ]">
                       <NuxtLink :to="`/admin/phim/${movie.id}`" class="flex w-full items-center gap-2 px-3 py-2
                   text-sm text-slate-700 transition
                   hover:bg-slate-100 hover:text-slate-900" @click="menuOpen = null">
