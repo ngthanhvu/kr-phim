@@ -24,8 +24,8 @@ services:
 
   cinek:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: cinek
     restart: unless-stopped
     environment:
@@ -36,7 +36,7 @@ services:
     ports:
       - "3002:3002"
     volumes:
-      - .:/app
+      - ../:/app
       - /app/node_modules
     depends_on:
       - mysql
