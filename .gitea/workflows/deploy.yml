@@ -1,35 +1,50 @@
-name: Deploy
+# name: Deploy Production
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+# jobs:
+#   deploy:
+#     runs-on: [self-hosted, linux]
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "14"
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm install
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
 
-      - name: Build project
-        run: npm run build
+#       - name: Stop old containers
+#         run: |
+#           cd /root/www/kr-phim
+#           docker stop cinek 2>/dev/null || true
+#           docker rm cinek 2>/dev/null || true
 
-      - name: Deploy to server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          scp -i private_key.pem -r ./build/* $SSH_USER@$SSH_HOST:/path/to/deploy/
-          rm private_key.pem
+#       - name: Build production image
+#         run: |
+#           cd /root/www/kr-phim
+#           docker build -t cinek:latest -f docker/Dockerfile.prod ..
+
+#       - name: Start MySQL & Redis
+#         run: |
+#           cd /root/www/kr-phim
+#           docker compose -f docker/docker-compose.prod.yml up -d mysql redis
+
+#       - name: Wait for database
+#         run: sleep 5
+
+#       - name: Start application container
+#         run: |
+#           cd /root/www/kr-phim
+#           docker compose -f docker/docker-compose.prod.yml up -d cinek
+
+#       - name: Verify deployment
+#         run: |
+#           sleep 10
+#           cd /root/www/kr-phim
+#           docker compose -f docker/docker-compose.prod.yml ps
+
+#       - name: Cleanup unused images
+#         run: docker system prune -f --volumes || true
