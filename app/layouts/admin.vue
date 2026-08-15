@@ -47,7 +47,7 @@ const displayInitial = computed(() => displayName.value.charAt(0).toUpperCase())
          border-r border-slate-200 bg-white
          transition-[width,transform] duration-300 ease-in-out
          lg:translate-x-0
-         border-l-4 border-l-blue-700">
+         border-l-4">
       <!-- Header row -->
       <div class="flex h-16 items-center justify-between border-b border-slate-200 px-4">
         <!-- Logo -->

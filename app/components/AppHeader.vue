@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
 const keyword = ref(typeof route.query.q === 'string' ? route.query.q : '')
@@ -85,7 +85,7 @@ watch(() => route.path, () => {
 </script>
 
 <template>
-  <header class="fixed inset-x-0 top-0 z-50 bg-linear-to-b from-black/80 via-black/40 to-transparent">
+  <header class="fixed inset-x-0 top-0 z-9999 isolate bg-linear-to-b from-black/80 via-black/40 to-transparent">
     <nav class="mx-auto flex max-w-390 items-center gap-3 px-4 py-3 sm:px-6 lg:gap-6 lg:px-8 xl:px-10">
       <AppLogo />
 
@@ -129,7 +129,7 @@ watch(() => route.path, () => {
 
         <Transition name="member-menu">
           <div v-if="user && memberMenuOpen"
-            class="absolute right-0 top-[calc(100%+0.5rem)] w-56 overflow-hidden rounded-2xl border border-white/8 bg-[#12121a]/95 py-2 text-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+            class="absolute right-0 top-[calc(100%+0.5rem)] z-9999 w-56 overflow-hidden rounded-2xl border border-white/12 bg-[#12121a] py-2 text-sm shadow-2xl shadow-black/80">
             <div class="border-b border-white/6 px-4 py-3">
               <div class="flex items-center gap-2.5">
                 <img v-if="avatarUrl" :src="avatarUrl" :alt="displayName"
@@ -168,7 +168,7 @@ watch(() => route.path, () => {
 
     <Teleport to="body">
       <Transition name="sidebar">
-        <div v-if="mobileMenuOpen" class="fixed inset-0 z-60 lg:hidden">
+        <div v-if="mobileMenuOpen" class="fixed inset-0 z-10000 lg:hidden">
           <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeMobileMenu" />
           <div class="absolute inset-y-0 left-0 w-72 bg-slate-950 shadow-2xl">
             <div class="flex items-center justify-between border-b border-white/10 px-4 py-4">

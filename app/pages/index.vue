@@ -422,7 +422,7 @@ useHead({
 
       <!-- Thumbnail navigation -->
       <div
-        class="relative md:absolute md:bottom-8 md:left-auto md:right-8 md:translate-x-0 z-50 flex gap-2 overflow-x-auto max-w-full md:max-w-md lg:max-w-lg py-3 md:py-0 pb-2 md:pb-0 snap-x px-4 md:px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden bg-transparent"
+        class="relative md:absolute md:bottom-8 md:left-auto md:right-8 md:translate-x-0 z-30 flex gap-2 overflow-x-auto max-w-full md:max-w-md lg:max-w-lg py-3 md:py-0 pb-2 md:pb-0 snap-x px-4 md:px-2 pointer-events-auto scroll-smooth [&::-webkit-scrollbar]:hidden bg-transparent"
         style="scrollbar-width:none;-ms-overflow-style:none">
         <button v-for="(slide, index) in heroSlides" :key="`${slide.source}-${slide.slug}-thumb`" type="button"
           class="relative shrink-0 w-[14vw] sm:w-[10vw] md:w-[7vw] lg:w-[6vw] xl:w-[5vw] max-w-10 md:max-w-18.75 lg:max-w-21.25 aspect-square md:aspect-video transition-all duration-300 rounded-full md:rounded-lg overflow-hidden snap-center transform-gpu border-2 cursor-pointer"

@@ -28,12 +28,12 @@ services:
       dockerfile: docker/Dockerfile.prod
     container_name: cinek
     restart: unless-stopped
+    env_file:
+      - ../.env
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 3002
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
     ports:
       - "3002:3002"
     depends_on:
