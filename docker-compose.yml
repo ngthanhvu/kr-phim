@@ -1,0 +1,79 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: cinek-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-cinek}
+      MYSQL_USER: ${MYSQL_USER:-cinek}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cinekpassword}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - cinek-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cinek-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cinek-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cinek-backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://cinek:cinekpassword@mysql:3306/cinek
+      - REDIS_URL=redis://redis:6379
+      - FRONTEND_URL=http://localhost:3002
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    networks:
+      - cinek-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cinek-frontend
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.nuxt
+    environment:
+      - BACKEND_URL=http://backend:4000
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - cinek-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  cinek-network:
+    driver: bridge

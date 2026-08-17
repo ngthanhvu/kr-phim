@@ -1,0 +1,90 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --color-cinek-50: #fefce8;
+  --color-cinek-100: #fef9c3;
+  --color-cinek-300: #fde047;
+  --color-cinek-400: #facc15;
+  --color-cinek-500: #eab308;
+  --color-cinek-950: #422006;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  background-color: #0E111A;
+  color: #f8fbff;
+}
+
+body,
+button,
+input {
+  font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+}
+
+button:not(:disabled),
+a[href],
+[role="button"],
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+label[for],
+select:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
+::-webkit-scrollbar {
+  height: 0.7rem;
+  width: 0.7rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(234, 179, 21, 0.68);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(2, 6, 23, 0.72);
+}
+
+.hero-fade-enter-active,
+.hero-fade-leave-active {
+  transition: opacity 700ms ease, transform 900ms ease;
+}
+
+.hero-fade-enter-from,
+.hero-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.03);
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth modal fade */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}

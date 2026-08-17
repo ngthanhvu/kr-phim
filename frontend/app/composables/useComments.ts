@@ -1,0 +1,85 @@
+import { apiFetch } from '~/utils/api'
+
+export type CommentReply = {
+  id: number
+  userId: number
+  userName: string
+  userAvatar?: string
+  parentId: number
+  content: string
+  likeCount: number
+  dislikeCount: number
+  createdAt: string
+  userVote: number
+  pinned: boolean
+  spoiler: boolean
+  anonymous: boolean
+}
+
+export type Comment = {
+  id: number
+  userId: number
+  userName: string
+  userAvatar?: string
+  source: string
+  slug: string
+  movieName?: string
+  content: string
+  likeCount: number
+  dislikeCount: number
+  createdAt: string
+  userVote: number
+  replies: CommentReply[]
+  pinned: boolean
+  spoiler: boolean
+  anonymous: boolean
+}
+
+export function useComments() {
+  async function fetchComments(source: string, slug: string, userId?: number, limit?: number, offset?: number) {
+    try {
+      const data = await apiFetch('/api/comments', {
+        query: { source, slug, userId, limit, offset },
+      })
+      return data as { items: Comment[], total: number }
+    } catch {
+      return { items: [] as Comment[], total: 0 }
+    }
+  }
+
+  async function postComment(
+    source: string,
+    slug: string,
+    content: string,
+    movieName?: string,
+    parentId?: number,
+    spoiler?: boolean,
+    anonymous?: boolean,
+  ) {
+    return apiFetch('/api/comments', {
+      method: 'POST',
+      body: { source, slug, content, movieName, parentId, spoiler, anonymous },
+    })
+  }
+
+  async function deleteComment(id: number) {
+    return apiFetch(`/api/comments/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async function voteComment(commentId: number, vote: number) {
+    return apiFetch('/api/comments/vote', {
+      method: 'POST',
+      body: { commentId, vote },
+    })
+  }
+
+  async function togglePinComment(id: number) {
+    return apiFetch(`/api/comments/${id}/pin`, {
+      method: 'POST',
+    })
+  }
+
+  return { fetchComments, postComment, deleteComment, voteComment, togglePinComment }
+}

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiFetch } from '~/utils/api'
 definePageMeta({
   layout: 'admin',
 })
@@ -170,7 +171,6 @@ function useApiContent() {
   if (apiContent.value) customContent.value = apiContent.value
 }
 
-
 const contentRows = computed(() => {
   if (!customContent.value) return 6
   const lines = customContent.value.split('\n').length
@@ -232,7 +232,7 @@ async function handleSave() {
   saving.value = true
   saved.value = false
   try {
-    await $fetch(`/api/admin/movies/${movieId}`, {
+    await apiFetch(`/api/admin/movies/${movieId}`, {
       method: 'PUT',
       body: {
         customPoster: customPoster.value,
@@ -296,9 +296,10 @@ function useApiActors() {
       <div class="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden p-4 sm:p-5">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div class="shrink-0">
-            <div class="aspect-video w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 sm:w-44">
-              <img v-if="customPoster || movie.poster" :src="customPoster || movie.poster || undefined"
-                :alt="movie.name" class="h-full w-full object-cover">
+            <div
+              class="aspect-video w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 sm:w-44">
+              <img v-if="customPoster || movie.poster" :src="customPoster || movie.poster || undefined" :alt="movie.name"
+                class="h-full w-full object-cover">
               <div v-else class="grid h-full place-items-center text-zinc-600">
                 <AppIcon name="image" class="size-6" />
               </div>
@@ -314,12 +315,8 @@ function useApiActors() {
                 :class="movie.active ? 'bg-emerald-400/10 text-emerald-400' : 'bg-zinc-400/10 text-zinc-400'">
                 {{ movie.active ? 'Đang hiển thị' : 'Ẩn' }}
               </span>
-              <span v-if="movie.quality"
-                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-zinc-200/50 text-zinc-400">{{
-                movie.quality }}</span>
-              <span
-                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-zinc-200/50 text-zinc-400">{{
-                  movie.episodeTotal || '—' }} tập</span>
+              <span v-if="movie.quality" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-zinc-200/50 text-zinc-400">{{ movie.quality }}</span>
+              <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-zinc-200/50 text-zinc-400">{{ movie.episodeTotal || '—' }} tập</span>
             </div>
           </div>
         </div>
@@ -361,8 +358,7 @@ function useApiActors() {
               <!-- Section: Thông tin -->
               <div v-if="activeSection === 'info'">
                 <div class="mb-5 flex items-center gap-3">
-                  <div
-                    class="grid size-9 place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-400">
+                  <div class="grid size-9 place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-400">
                     <AppIcon name="info" class="size-4" />
                   </div>
                   <div>
@@ -409,8 +405,7 @@ function useApiActors() {
               <div v-if="activeSection === 'content'">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div class="flex items-center gap-3">
-                    <div
-                      class="grid size-9 place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-400">
+                    <div class="grid size-9 place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-400">
                       <AppIcon name="type" class="size-4" />
                     </div>
                     <div>
@@ -422,8 +417,7 @@ function useApiActors() {
                   <button v-if="apiContent && !customContent" type="button"
                     class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition bg-sky-50 text-zinc-900 hover:bg-sky-500/20"
                     @click="useApiContent">Dùng mô tả API</button>
-                  <button v-else-if="customContent" type="button"
-                    class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition text-red-400 hover:bg-red-400/10"
+                  <button v-else-if="customContent" type="button" class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition text-red-400 hover:bg-red-400/10"
                     @click="clearField('customContent')">Về mặc định</button>
                 </div>
                 <textarea v-model="customContent" :rows="contentRows" :placeholder="apiContent || 'Nhập mô tả phim...'"
@@ -435,8 +429,7 @@ function useApiActors() {
               <div v-if="activeSection === 'actors'">
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div class="flex items-center gap-3">
-                    <div
-                      class="grid size-9 place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-400">
+                    <div class="grid size-9 place-items-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-400">
                       <AppIcon name="users" class="size-4" />
                     </div>
                     <div>
@@ -447,8 +440,7 @@ function useApiActors() {
                   <div class="flex gap-2"><button v-if="apiActors.length" type="button"
                       class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition bg-sky-50 text-zinc-900 hover:bg-sky-500/20"
                       @click="useApiActors">Import ({{ apiActors.length }})</button><button type="button"
-                      class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition bg-zinc-200/50 text-zinc-800 hover:bg-white/10"
-                      @click="addActor">
+                      class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition bg-zinc-200/50 text-zinc-800 hover:bg-white/10" @click="addActor">
                       <AppIcon name="plus" class="size-3" />Thêm
                     </button></div>
                 </div>
@@ -457,17 +449,12 @@ function useApiActors() {
                     class="grid gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 md:grid-cols-[44px_1fr_1fr_140px_1fr_36px] md:items-center">
                     <div class="grid size-10 place-items-center overflow-hidden rounded-full bg-zinc-200/50"><img
                         v-if="actor.avatar" :src="actor.avatar" :alt="actor.name" class="size-full object-cover"><span
-                        v-else class="text-sm font-bold text-zinc-400">{{ (actor.name?.[0] || '?').toUpperCase()
-                        }}</span>
+                        v-else class="text-sm font-bold text-zinc-400">{{ (actor.name?.[0] || '?').toUpperCase() }}</span>
                     </div>
-                    <input v-model="actor.name" type="text" placeholder="Tên"
-                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><input
-                      v-model="actor.originalName" type="text" placeholder="Tên gốc"
-                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><input
-                      v-model="actor.role" type="text" placeholder="Vai"
-                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><input
-                      v-model="actor.avatar" type="url" placeholder="Avatar URL"
-                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><button
+                    <input v-model="actor.name" type="text" placeholder="Tên" class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><input
+                      v-model="actor.originalName" type="text" placeholder="Tên gốc" class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><input
+                      v-model="actor.role" type="text" placeholder="Vai" class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><input
+                      v-model="actor.avatar" type="url" placeholder="Avatar URL" class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition"><button
                       type="button" class="grid size-8 place-items-center rounded-lg text-red-400 hover:bg-red-400/10"
                       @click="removeActor(index)">
                       <AppIcon name="trash" class="size-4" />
@@ -483,15 +470,13 @@ function useApiActors() {
               <div v-if="activeSection === 'images'" class="space-y-5">
                 <div><label class="text-sm font-semibold text-zinc-700 mb-2 block">Ảnh poster ngang (16:9)</label>
                   <div class="flex gap-2"><input v-model="customPoster" type="url" placeholder="Dán URL poster ngang..."
-                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition min-w-0 flex-1"><button
-                      v-if="customPoster" type="button"
+                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition min-w-0 flex-1"><button v-if="customPoster" type="button"
                       class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition text-red-400 hover:bg-red-400/10"
                       @click="clearField('customPoster')">Xoá</button></div>
                 </div>
                 <div><label class="text-sm font-semibold text-zinc-700 mb-2 block">Ảnh poster dọc (2:3)</label>
                   <div class="flex gap-2"><input v-model="customThumb" type="url" placeholder="Dán URL poster dọc..."
-                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition min-w-0 flex-1"><button
-                      v-if="customThumb" type="button"
+                      class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition min-w-0 flex-1"><button v-if="customThumb" type="button"
                       class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 transition text-red-400 hover:bg-red-400/10"
                       @click="clearField('customThumb')">Xoá</button></div>
                 </div>
@@ -499,11 +484,10 @@ function useApiActors() {
                   Preview ảnh được ghim ở sidebar bên phải để bạn theo dõi trong lúc nhập URL.</p>
               </div>
 
-
+              
               <!-- Section: Tập phim -->
-              <div v-if="activeSection === 'episodes'"
-                class="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-6 items-start">
-
+              <div v-if="activeSection === 'episodes'" class="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-6 items-start">
+                
                 <!-- Left Column: Manual Server Management -->
                 <div class="space-y-4">
                   <div class="flex items-center justify-between">
@@ -511,141 +495,96 @@ function useApiActors() {
                       <h3 class="text-sm font-semibold text-zinc-900">Server & tập phim</h3>
                       <p class="text-xs text-zinc-500 mt-0.5">Quản lý server và tập phim thủ công</p>
                     </div>
-                    <button type="button"
-                      class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition disabled:opacity-40"
-                      @click="addServer">
+                    <button type="button" class="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition disabled:opacity-40" @click="addServer">
                       <AppIcon name="plus" class="size-3" /> Thêm server
                     </button>
                   </div>
-
-                  <div v-for="(server, serverIndex) in customServers" :key="serverIndex"
-                    class="rounded-lg border border-zinc-200 bg-white overflow-hidden shadow-sm">
+                  
+                  <div v-for="(server, serverIndex) in customServers" :key="serverIndex" class="rounded-lg border border-zinc-200 bg-white overflow-hidden shadow-sm">
                     <div class="flex items-center justify-between border-b border-zinc-200 bg-zinc-50/80 px-3 py-2">
-                      <button type="button" class="flex min-w-0 flex-1 items-center gap-2 text-left"
-                        @click="toggleServer(serverIndex)">
-                        <AppIcon name="chevron-down" class="size-3.5 shrink-0 text-zinc-500 transition"
-                          :class="collapsedServers[serverIndex] ? '-rotate-90' : ''" />
-                        <span class="truncate text-sm font-semibold text-zinc-900">{{ server.name || `Server
-                          ${serverIndex + 1}` }}</span>
-                        <span
-                          class="shrink-0 text-[10px] font-bold text-zinc-700 bg-zinc-200 px-1.5 py-0.5 rounded-full">{{
-                          server.episodes.length }} tập</span>
+                      <button type="button" class="flex min-w-0 flex-1 items-center gap-2 text-left" @click="toggleServer(serverIndex)">
+                        <AppIcon name="chevron-down" class="size-3.5 shrink-0 text-zinc-500 transition" :class="collapsedServers[serverIndex] ? '-rotate-90' : ''" />
+                        <span class="truncate text-sm font-semibold text-zinc-900">{{ server.name || `Server ${serverIndex + 1}` }}</span>
+                        <span class="shrink-0 text-[10px] font-bold text-zinc-700 bg-zinc-200 px-1.5 py-0.5 rounded-full">{{ server.episodes.length }} tập</span>
                       </button>
-                      <button type="button"
-                        class="grid size-7 place-items-center rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition"
-                        @click="removeServer(serverIndex)">
+                      <button type="button" class="grid size-7 place-items-center rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition" @click="removeServer(serverIndex)">
                         <AppIcon name="trash" class="size-3.5" />
                       </button>
                     </div>
-
+                    
                     <div v-if="!collapsedServers[serverIndex]" class="p-3 space-y-3">
-                      <input v-model="server.name" type="text" placeholder="Tên server..."
-                        class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm font-medium text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
-
-                      <div v-for="(ep, episodeIndex) in server.episodes" :key="episodeIndex"
-                        class="rounded-md border border-zinc-200 bg-zinc-50/50 p-2">
+                      <input v-model="server.name" type="text" placeholder="Tên server..." class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm font-medium text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
+                      
+                      <div v-for="(ep, episodeIndex) in server.episodes" :key="episodeIndex" class="rounded-md border border-zinc-200 bg-zinc-50/50 p-2">
                         <div class="flex gap-2">
-                          <input v-model="ep.name" type="text" placeholder="Tên tập..."
-                            class="h-8 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
-                          <select
-                            class="h-8 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 transition"
-                            @change="handleSourceLinkChange(serverIndex, episodeIndex, $event)">
+                          <input v-model="ep.name" type="text" placeholder="Tên tập..." class="h-8 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
+                          <select class="h-8 min-w-0 flex-1 rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 transition" @change="handleSourceLinkChange(serverIndex, episodeIndex, $event)">
                             <option value="" class="bg-white">Chọn link từ API...</option>
-                            <option v-for="item in availableEpisodes" :key="item.key" :value="item.key"
-                              class="bg-white">{{ item.label }}</option>
+                            <option v-for="item in availableEpisodes" :key="item.key" :value="item.key" class="bg-white">{{ item.label }}</option>
                           </select>
-                          <button type="button"
-                            class="grid size-7 place-items-center rounded-md text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 transition"
-                            @click="toggleLinks(`${serverIndex}-${episodeIndex}`)">
+                          <button type="button" class="grid size-7 place-items-center rounded-md text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 transition" @click="toggleLinks(`${serverIndex}-${episodeIndex}`)">
                             <AppIcon name="link" class="size-3.5" />
                           </button>
-                          <button type="button"
-                            class="grid size-7 place-items-center rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition"
-                            @click="removeServerEpisode(serverIndex, episodeIndex)">
+                          <button type="button" class="grid size-7 place-items-center rounded-md text-zinc-400 hover:text-red-600 hover:bg-red-50 transition" @click="removeServerEpisode(serverIndex, episodeIndex)">
                             <AppIcon name="x" class="size-3.5" />
                           </button>
                         </div>
-                        <div v-if="expandedLinks[`${serverIndex}-${episodeIndex}`]"
-                          class="mt-2 grid gap-2 sm:grid-cols-2">
-                          <input v-model="ep.linkEmbed" type="url" placeholder="Link embed..."
-                            class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
-                          <input v-model="ep.linkM3u8" type="url" placeholder="Link m3u8..."
-                            class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
+                        <div v-if="expandedLinks[`${serverIndex}-${episodeIndex}`]" class="mt-2 grid gap-2 sm:grid-cols-2">
+                          <input v-model="ep.linkEmbed" type="url" placeholder="Link embed..." class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
+                          <input v-model="ep.linkM3u8" type="url" placeholder="Link m3u8..." class="h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-200 placeholder:text-zinc-400 transition" />
                         </div>
                       </div>
-
-                      <button type="button"
-                        class="inline-flex items-center gap-1.5 rounded-md border border-dashed border-zinc-300 bg-transparent px-3 py-1.5 text-xs font-medium text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 transition"
-                        @click="addServerEpisode(serverIndex)">
+                      
+                      <button type="button" class="inline-flex items-center gap-1.5 rounded-md border border-dashed border-zinc-300 bg-transparent px-3 py-1.5 text-xs font-medium text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 transition" @click="addServerEpisode(serverIndex)">
                         <AppIcon name="plus" class="size-3" /> Thêm tập phim
                       </button>
                     </div>
                   </div>
-
-                  <div v-if="customServers.length === 0"
-                    class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-8 text-center">
+                  
+                  <div v-if="customServers.length === 0" class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-8 text-center">
                     <AppIcon name="server" class="size-8 mx-auto text-zinc-300" />
                     <p class="mt-2 text-sm font-medium text-zinc-600">Chưa có server nào</p>
-                    <button type="button"
-                      class="mt-2 inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
-                      @click="addServer">
+                    <button type="button" class="mt-2 inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition" @click="addServer">
                       <AppIcon name="plus" class="size-3" /> Thêm server đầu tiên
                     </button>
                   </div>
                 </div>
-
+                
                 <!-- Right Column: External Sources Sync Panel -->
                 <div class="xl:sticky xl:top-5">
-                  <details v-if="availableEpisodes.length > 0"
-                    class="rounded-lg border border-zinc-200 bg-white shadow-sm overflow-hidden">
-                    <summary
-                      class="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-zinc-900 bg-zinc-50/80 hover:bg-zinc-100 transition flex items-center gap-2">
+                  <details v-if="availableEpisodes.length > 0" class="rounded-lg border border-zinc-200 bg-white shadow-sm overflow-hidden">
+                    <summary class="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-zinc-900 bg-zinc-50/80 hover:bg-zinc-100 transition flex items-center gap-2">
                       <AppIcon name="download" class="size-3.5" />
                       Đồng bộ từ nguồn ngoài
-                      <span
-                        class="ml-auto text-[10px] font-bold text-zinc-700 bg-zinc-200 px-1.5 py-0.5 rounded-full">{{
-                        availableEpisodes.length }} tập</span>
+                      <span class="ml-auto text-[10px] font-bold text-zinc-700 bg-zinc-200 px-1.5 py-0.5 rounded-full">{{ availableEpisodes.length }} tập</span>
                     </summary>
-
+                    
                     <div class="border-t border-zinc-200 p-3 max-h-[500px] overflow-y-auto space-y-3">
-                      <div v-for="(source, sourceIndex) in (sourceData?.sources || [])" :key="source.source"
-                        class="rounded-md border border-zinc-200 bg-white overflow-hidden">
-                        <button type="button"
-                          class="flex w-full items-center justify-between px-3 py-2 text-left text-xs font-semibold text-zinc-900 bg-zinc-50/80 hover:bg-zinc-100 transition"
-                          @click="toggleSource(source.source)">
+                      <div v-for="(source, sourceIndex) in (sourceData?.sources || [])" :key="source.source" class="rounded-md border border-zinc-200 bg-white overflow-hidden">
+                        <button type="button" class="flex w-full items-center justify-between px-3 py-2 text-left text-xs font-semibold text-zinc-900 bg-zinc-50/80 hover:bg-zinc-100 transition" @click="toggleSource(source.source)">
                           <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
                             {{ source.source.toUpperCase() }} — {{ source.name || '' }}
                           </div>
-                          <AppIcon name="chevron-down" class="size-3.5 text-zinc-500 transition"
-                            :class="expandedSources[source.source] ? '-rotate-90' : ''" />
+                          <AppIcon name="chevron-down" class="size-3.5 text-zinc-500 transition" :class="expandedSources[source.source] ? '-rotate-90' : ''" />
                         </button>
-
+                        
                         <div v-show="expandedSources[source.source]" class="p-3 border-t border-zinc-100 space-y-3">
                           <div v-for="(server, srvIdx) in (source.servers || [])" :key="srvIdx">
                             <div class="mb-2 flex items-center justify-between">
-                              <span
-                                class="text-[11px] font-semibold text-zinc-800 bg-zinc-900 text-white px-2 py-0.5 rounded-full">{{
-                                server.name }}</span>
-                              <span class="text-[10px] font-medium text-zinc-600">{{ server.episodes.length }}
-                                tập</span>
+                              <span class="text-[11px] font-semibold text-zinc-800 bg-zinc-900 text-white px-2 py-0.5 rounded-full">{{ server.name }}</span>
+                              <span class="text-[10px] font-medium text-zinc-600">{{ server.episodes.length }} tập</span>
                             </div>
-
+                            
                             <div class="flex flex-wrap gap-1.5 mb-2">
-                              <button v-for="(ep, epIdx) in server.episodes" :key="epIdx" type="button"
-                                class="rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900 transition cursor-pointer"
-                                @click="quickAddEpisode(sourceIndex, srvIdx, epIdx)">
-                                <span
-                                  class="grid size-4 place-items-center rounded bg-zinc-100 text-[9px] font-extrabold text-zinc-600 mr-1">{{
-                                  epIdx + 1 }}</span>
+                              <button v-for="(ep, epIdx) in server.episodes" :key="epIdx" type="button" class="rounded-md border border-zinc-200 bg-white px-2 py-1 text-[11px] font-medium text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-900 transition cursor-pointer" @click="quickAddEpisode(sourceIndex, srvIdx, epIdx)">
+                                <span class="grid size-4 place-items-center rounded bg-zinc-100 text-[9px] font-extrabold text-zinc-600 mr-1">{{ epIdx + 1 }}</span>
                                 {{ ep.name || `Tập ${epIdx + 1}` }}
                               </button>
                             </div>
-
+                            
                             <div class="mt-1">
-                              <button type="button"
-                                class="inline-flex items-center gap-1 rounded-md bg-zinc-950 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-zinc-800 transition"
-                                @click="quickAddAllEpisodes(sourceIndex, srvIdx)">
+                              <button type="button" class="inline-flex items-center gap-1 rounded-md bg-zinc-950 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-zinc-800 transition" @click="quickAddAllEpisodes(sourceIndex, srvIdx)">
                                 <AppIcon name="plus" class="size-2.5" /> Thêm tất cả ({{ server.episodes.length }})
                               </button>
                             </div>
@@ -654,7 +593,7 @@ function useApiActors() {
                       </div>
                     </div>
                   </details>
-
+                  
                   <div v-else class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-6 text-center">
                     <AppIcon name="server" class="size-8 mx-auto text-zinc-300" />
                     <p class="mt-2 text-sm text-zinc-500">Không có tập phim nào để đồng bộ từ API</p>
@@ -688,8 +627,7 @@ function useApiActors() {
                   }}</span></div>
             </div>
             <div class="border-t border-zinc-200 p-4"><button type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 w-full justify-center"
-                :disabled="saving" @click="handleSave">
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 w-full justify-center" :disabled="saving" @click="handleSave">
                 <AppIcon name="save" class="size-4" />{{ saving ? 'Đang lưu...' : 'Cập nhật phim' }}
               </button>
               <Transition name="fade">
@@ -723,9 +661,8 @@ function useApiActors() {
             <div class="p-4">
               <div
                 class="mx-auto aspect-2/3 w-full max-w-55 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
-                <img v-if="customThumb || movie.thumb || movie.poster"
-                  :src="customThumb || movie.thumb || movie.poster || undefined" :alt="movie.name"
-                  class="size-full object-cover">
+                <img v-if="customThumb || movie.thumb || movie.poster" :src="customThumb || movie.thumb || movie.poster || undefined"
+                  :alt="movie.name" class="size-full object-cover">
                 <div v-else class="grid size-full place-items-center text-zinc-600">
                   <AppIcon name="image" class="size-7" />
                 </div>
