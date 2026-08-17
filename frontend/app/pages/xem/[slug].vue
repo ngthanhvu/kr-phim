@@ -1,5 +1,7 @@
 ﻿<script setup lang="ts">
 import type Hls from 'hls.js'
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
 const route = useRoute()
 const selectedServer = ref(Math.max(Number(route.query.server || 0), 0))
 const selectedEpisode = ref(Math.max(Number(route.query.ep || 1) - 1, 0))
@@ -440,8 +442,12 @@ watch(() => route.query, () => { selectedServer.value = Math.max(Number(route.qu
 watch([movie, activeEpisode], () => { if (hasStarted.value) saveWatchHistory() })
 watch(libraryItem, () => { refreshFavoriteState() })
 useHead(() => ({
-  title: movie.value ? `Xem ${movie.value.name} - CineK` : 'Đang tải - CineK',
-  meta: [{ name: 'description', content: movie.value ? `Xem ${movie.value.name} online` : '' }, { property: 'og:title', content: movie.value ? `${movie.value.name} - CineK` : 'CineK' }, { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.webp' }],
+  title: movie.value ? `Xem ${movie.value.name} - ${settings.value?.siteName || 'CineK'}` : 'Đang tải',
+  meta: [
+    { name: 'description', content: movie.value ? `Xem ${movie.value.name} online` : '' },
+    { property: 'og:title', content: movie.value ? `${movie.value.name} - ${settings.value?.siteName || 'CineK'}` : settings.value?.siteName || 'CineK' },
+    { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.webp' },
+  ],
 }))
 </script>
 

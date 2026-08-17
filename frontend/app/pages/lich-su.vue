@@ -60,14 +60,11 @@ onMounted(async () => {
   await refreshHistory()
 })
 
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
 useHead({
-  title: 'Lịch sử xem - CineK',
-  meta: [
-    {
-      name: 'description',
-      content: 'Xem lại lịch sử xem phim trên CineK và tiếp tục các tập phim Hàn Quốc đang xem dở.',
-    },
-  ],
+  title: () => `Lịch sử xem - ${(settings.value?.siteName || 'CineK')}`,
 })
 </script>
 

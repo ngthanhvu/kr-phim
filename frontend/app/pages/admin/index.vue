@@ -1,9 +1,13 @@
 <script setup lang="ts">
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
 definePageMeta({
   layout: 'admin',
 })
+
 useHead({
-  title: 'Dashboard - CineK Admin',
+  title: `Dashboard - ${settings?.siteName || 'CineK'} Admin`,
 })
 const { data: stats, refresh } = await useFetch('/api/admin/stats')
 function percentOf(value: number, total: number) {

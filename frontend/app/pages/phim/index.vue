@@ -1,4 +1,6 @@
 ﻿<script setup lang="ts">
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
 const route = useRoute()
 const router = useRouter()
 
@@ -74,22 +76,10 @@ onBeforeUnmount(() => {
   if (searchTimer) clearTimeout(searchTimer)
 })
 
+const siteName = computed(() => settings.value?.siteName || 'CineK')
+
 useHead({
-  title: 'Kho phim Hàn Quốc - CineK',
-  meta: [
-    {
-      name: 'description',
-      content: 'Duyệt kho phim Hàn Quốc online trên CineK: tìm phim bộ, phim lẻ, phim mới cập nhật, Vietsub, thuyết minh và lồng tiếng.',
-    },
-    {
-      property: 'og:title',
-      content: 'Kho phim Hàn Quốc - CineK',
-    },
-    {
-      property: 'og:description',
-      content: 'Tìm kiếm và lọc phim Hàn Quốc online theo thể loại, tập mới và nội dung mới cập nhật.',
-    },
-  ],
+  title: () => `Kho phim Hàn Quốc - ${siteName.value}`,
 })
 </script>
 

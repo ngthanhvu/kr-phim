@@ -8,6 +8,7 @@ import moviesRoutes from './routes/movies.js'
 import adminRoutes from './routes/admin.js'
 import commentsRoutes from './routes/comments.js'
 import homeRoutes from './routes/home.js'
+import publicRoutes from './routes/public.js'
 import { imageProxy } from './routes/image-proxy.js'
 import { m3u8Proxy } from './routes/proxy-m3u8.js'
 import { requireAdmin, authenticateAdmin } from './middleware/auth.js'
@@ -32,6 +33,7 @@ app.set('trust proxy', 1)
 app.use('/api', authenticateAdmin)
 
 // Routes
+app.use('/api/public', publicRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/movies', moviesRoutes)
 app.use('/api/admin', adminRoutes)

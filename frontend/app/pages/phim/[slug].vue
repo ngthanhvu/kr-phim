@@ -141,11 +141,14 @@ onMounted(async () => {
 
 watch(libraryItem, () => { refreshFavoriteState() })
 
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
 useHead(() => ({
-  title: movie.value ? `${movie.value.name} - Xem phim online - CineK` : 'Đang tải phim - CineK',
+  title: movie.value ? `${movie.value.name} - Xem phim online - ${settings.value?.siteName || 'CineK'}` : 'Đang tải phim',
   meta: [
     { name: 'description', content: movie.value ? `Xem ${movie.value.name} online` : 'Xem phim Hàn Quốc online' },
-    { property: 'og:title', content: movie.value ? `${movie.value.name} - CineK` : 'CineK' },
+    { property: 'og:title', content: movie.value ? `${movie.value.name} - ${settings.value?.siteName || 'CineK'}` : settings.value?.siteName || 'CineK' },
     { property: 'og:description', content: movie.value?.content || '' },
     { property: 'og:image', content: movie.value?.poster || movie.value?.thumb || '/icon.webp' },
   ],

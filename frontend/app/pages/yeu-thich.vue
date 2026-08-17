@@ -21,14 +21,11 @@ onMounted(async () => {
   await refreshFavorites()
 })
 
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
 useHead({
-  title: 'Yêu thích - CineK',
-  meta: [
-    {
-      name: 'description',
-      content: 'Danh sách phim yêu thích của bạn trên CineK, giúp lưu lại các phim Hàn Quốc muốn xem hoặc xem lại nhanh hơn.',
-    },
-  ],
+  title: () => `Yêu thích - ${(settings.value?.siteName || 'CineK')}`,
 })
 </script>
 

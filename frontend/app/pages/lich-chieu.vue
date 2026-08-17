@@ -120,22 +120,12 @@ function selectNextDay() {
   if (nextDay) selectedDate.value = nextDay.date
 }
 
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
+const siteName = computed(() => settings.value?.siteName || 'CineK')
 useHead({
-  title: 'Lịch cập nhật phim - CineK',
-  meta: [
-    {
-      name: 'description',
-      content: 'Theo dõi lịch cập nhật phim Hàn Quốc mới trên CineK, xem nhanh các tập phim và nội dung mới theo từng ngày.',
-    },
-    {
-      property: 'og:title',
-      content: 'Lịch cập nhật phim - CineK',
-    },
-    {
-      property: 'og:description',
-      content: 'Lịch phim Hàn Quốc mới cập nhật theo ngày, giúp bạn không bỏ lỡ tập mới và phim mới trên CineK.',
-    },
-  ],
+  title: () => `Lịch cập nhật phim - ${siteName.value}`,
 })
 </script>
 

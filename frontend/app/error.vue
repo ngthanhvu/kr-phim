@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const router = useRouter()
 const keyword = ref('')
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
 
 function handleSearch() {
   if (keyword.value.trim()) {
@@ -23,8 +25,10 @@ function goHome() {
   router.push('/')
 }
 
+const siteName = computed(() => settings.value?.siteName || 'CineK')
+
 useHead({
-  title: `${props.error?.statusCode || 404} - Không tìm thấy trang - CineK`,
+  title: `${props.error?.statusCode || 404} - Không tìm thấy trang - ${siteName}`,
   meta: [
     { name: 'robots', content: 'noindex' },
   ],

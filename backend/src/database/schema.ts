@@ -88,3 +88,15 @@ export type Comment = typeof comments.$inferSelect
 export type NewComment = typeof comments.$inferInsert
 export type CommentVote = typeof commentVotes.$inferSelect
 export type NewCommentVote = typeof commentVotes.$inferInsert
+
+export const appSettings = mysqlTable('app_settings', {
+  id: int('id').primaryKey().autoincrement(),
+  key: varchar('key', { length: 100 }).notNull().unique(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow().onUpdateNow(),
+}, (table) => ({
+  idxKey: index('idx_key').on(table.key),
+}))
+
+export type AppSetting = typeof appSettings.$inferSelect
+export type NewAppSetting = typeof appSettings.$inferInsert

@@ -5,6 +5,8 @@ import { useRedis } from '../utils/redis.js'
 import { requireAdmin } from '../middleware/auth.js'
 import { users } from '../database/schema.js'
 import { useDb } from '../utils/db.js'
+import { appSettings } from '../database/schema.js'
+import { json } from 'body-parser'
 
 const router = Router()
 
@@ -221,6 +223,55 @@ router.get('/movies/:id/sources', async (req, res) => {
   })
 
   return res.json({ movie, sources: sourceServers })
+})
+
+// ---- Settings ----
+
+// GET /api/admin/settings
+router.get('/settings', async (req, res) => {
+  const db = useDb()
+  const rows = await db.select().from(appSettings)
+  const settings: Record<string, string> = {}
+  for (const row of rows) settings[row.key] = row.value
+  
+  return res.json(settings)
+})
+
+// PUT /api/admin/settings
+router.put('/settings', async (req, res) => {
+  const db = useDb()
+  const body = req.body as any
+  
+  const pairs: [key: string, value: string][] = [
+    ['siteName', typeof body?.siteName === 'string' ? body.siteName.trim() : 'CineK'],
+    ['siteDescription', typeof body?.siteDescription === 'string' ? body.siteDescription.trim() : ''],
+    ['maintenanceMode', body?.maintenanceMode === true || body?.maintenanceMode === '1' ? '1' : '0'],
+    ['allowRegistration', body?.allowRegistration !== false && body?.allowRegistration !== '0' ? '1' : '0'],
+    ['siteLogo', typeof body?.siteLogo === 'string' ? body.siteLogo.trim() : ''],
+    ['siteFavicon', typeof body?.siteFavicon === 'string' ? body.siteFavicon.trim() : '/favicon.ico'],
+    ['contactEmail', typeof body?.contactEmail === 'string' ? body.contactEmail.trim() : ''],
+    ['facebookUrl', typeof body?.facebookUrl === 'string' ? body.facebookUrl.trim() : ''],
+    ['telegramUrl', typeof body?.telegramUrl === 'string' ? body.telegramUrl.trim() : ''],
+    ['tiktokUrl', typeof body?.tiktokUrl === 'string' ? body.tiktokUrl.trim() : ''],
+    ['youtubeUrl', typeof body?.youtubeUrl === 'string' ? body.youtubeUrl.trim() : ''],
+  ]
+  
+  for (const [key, value] of pairs) {
+    const existing = await db.select().from(appSettings).where(eq(appSettings.key, key)).limit(1)
+    if (existing.length) {
+      await db.update(appSettings).set({ value }).where(eq(appSettings.id, existing[0].id))
+    } else {
+      await db.insert(appSettings).values({ key, value })
+    }
+  }
+  
+  try {
+    const redis = useRedis()
+    const keys = await redis.keys('cinek:public:settings:*')
+    if (keys.length) await redis.del(...keys)
+  } catch {}
+  
+  return res.json({ success: true })
 })
 
 // ---- Sync ----

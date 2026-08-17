@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { apiFetch } from '~/utils/api'
 
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
 definePageMeta({
   layout: false,
   middleware: [],
 })
 
 useHead({
-  title: 'Đăng nhập Admin - CineK',
+  title: `Đăng nhập ${settings?.siteName || 'CineK'} - Admin`,
 })
 
 onMounted(async () => {
+  await loadSettings()
   const { user, fetchUser } = useAuth()
   await fetchUser()
   if (user.value?.role === 'admin') {
@@ -64,7 +68,7 @@ async function handleLogin() {
               <span class="text-xl font-black text-white">C</span>
             </div>
             <div class="text-left">
-              <span class="block text-2xl font-bold tracking-tight text-zinc-900">CineK Admin</span>
+              <span class="block text-2xl font-bold tracking-tight text-zinc-900">{{ settings?.siteName || 'CineK' }} Admin</span>
               <span class="text-xs text-zinc-500">Quản lý hệ thống</span>
             </div>
           </div>

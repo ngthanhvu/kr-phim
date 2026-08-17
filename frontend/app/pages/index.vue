@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { apiFetch } from '~/utils/api'
+
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
 import type { WatchHistoryItem } from '~/composables/useWatchHistory'
 
 const { data, pending, error } = await useFetch('/api/movies', {
@@ -290,22 +293,10 @@ onBeforeUnmount(() => {
   if (import.meta.client) window.removeEventListener('storage', loadWatchHistory)
 })
 
+const siteName = computed(() => settings.value?.siteName || 'CineK')
+
 useHead({
-  title: 'CineK - Xem phim Hàn Quốc online',
-  meta: [
-    {
-      name: 'description',
-      content: 'Xem phim Hàn Quốc online tại CineK với kho phim bộ, phim lẻ, show mới cập nhật, hỗ trợ Vietsub, thuyết minh và lồng tiếng.',
-    },
-    {
-      property: 'og:title',
-      content: 'CineK - Xem phim Hàn Quốc online',
-    },
-    {
-      property: 'og:description',
-      content: 'Kho phim Hàn Quốc online mới cập nhật, trải nghiệm xem mượt trên điện thoại, máy tính bảng và desktop.',
-    },
-  ],
+  title: () => `Trang chủ - ${siteName.value}`,
 })
 </script>
 

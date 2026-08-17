@@ -232,14 +232,11 @@ watch(user, (u) => {
   }
 }, { immediate: true })
 
+const { settings, loadSettings } = useAppSettings()
+onMounted(loadSettings)
+
 useHead({
-  title: 'Thành viên - CineK',
-  meta: [
-    {
-      name: 'description',
-      content: 'Quản lý tài khoản CineK, lịch sử xem và danh sách yêu thích.',
-    },
-  ],
+  title: () => `Thành viên - ${(settings.value?.siteName || 'CineK')}`,
 })
 </script>
 
